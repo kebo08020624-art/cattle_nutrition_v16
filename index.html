@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v17</title>
+<title>繁殖和牛 栄養計算 v18</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -154,6 +154,13 @@
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <span style="font-size:14px;font-weight:700;">保存済み計算結果</span>
     <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">全削除</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <button class="btn btn-outline btn-sm" onclick="exportHistory()" style="flex:1;border-color:#1565c0;color:#1565c0;">📤 エクスポート</button>
+    <label class="btn btn-outline btn-sm" style="flex:1;border-color:#2e7d32;color:#2e7d32;text-align:center;cursor:pointer;">
+      📥 インポート
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importHistory(event)">
+    </label>
   </div>
   <input type="text" id="history-search" placeholder="🔍 農家名・メモ・飼料名で検索..." style="margin-bottom:8px;">
   <div id="history-count" style="font-size:11px;color:var(--text-sub);margin-bottom:8px;padding-left:2px;"></div>
@@ -832,6 +839,81 @@ function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
+
+// ===== エクスポート / インポート =====
+function exportHistory(){
+  const history = JSON.parse(lsGet('cattle_history','[]'));
+  const custom  = JSON.parse(lsGet('custom_feeds','[]'));
+  const bwSettings = JSON.parse(lsGet('bw_settings','{"bw":540,"overrides":{}}'));
+  if(history.length === 0 && custom.length === 0){
+    showToast('エクスポートするデータがありません');return;
+  }
+  const data = {
+    version: 1,
+    exportedAt: new Date().toLocaleString('ja-JP'),
+    history,
+    custom_feeds: custom,
+    bw_settings: bwSettings
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `cattle_nutrition_${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`📤 ${history.length}件の履歴をエクスポートしました`);
+}
+
+function importHistory(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.version || !Array.isArray(data.history)){
+        showToast('⚠️ 正しいバックアップファイルではありません');return;
+      }
+      const existing = JSON.parse(lsGet('cattle_history','[]'));
+      // 重複チェック（date+stageで判定）
+      const existingKeys = new Set(existing.map(h=>h.date+'_'+h.stage));
+      const newItems = data.history.filter(h=>!existingKeys.has(h.date+'_'+h.stage));
+      const merged = [...newItems, ...existing];
+      lsSet('cattle_history', JSON.stringify(merged));
+
+      // カスタム飼料もインポート
+      if(Array.isArray(data.custom_feeds) && data.custom_feeds.length > 0){
+        const existingCustom = JSON.parse(lsGet('custom_feeds','[]'));
+        const existingCustomNames = new Set(existingCustom.map(f=>f.name));
+        const newCustom = data.custom_feeds.filter(f=>!existingCustomNames.has(f.name));
+        lsSet('custom_feeds', JSON.stringify([...existingCustom, ...newCustom]));
+      }
+
+      // BW設定もインポート（既存設定がデフォルトの場合のみ上書き）
+      if(data.bw_settings){
+        const currentBW = JSON.parse(lsGet('bw_settings','{"bw":540}'));
+        if(currentBW.bw === 540){
+          lsSet('bw_settings', JSON.stringify(data.bw_settings));
+          applyBWToRequirements();
+        }
+      }
+
+      renderHistory();
+      showToast(`📥 ${newItems.length}件の履歴をインポートしました（重複${data.history.length - newItems.length}件スキップ）`);
+    } catch(err){
+      showToast('⚠️ ファイルの読み込みに失敗しました');
+    }
+    // inputをリセット（同じファイルを再度選べるように）
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 // ===== 体重・要求量設定 =====
 const STAGE_KEYS = ['pre','post0','post90','maint'];
 const STAGE_LABEL = {pre:'分娩60日前',post0:'分娩後0〜90日',post90:'分娩後90日〜',maint:'維持期'};
