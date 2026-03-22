@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v23</title>
+<title>繁殖和牛 栄養計算 v33</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -180,7 +180,7 @@
     <button id="hist-view-farmer" class="btn btn-outline btn-sm" onclick="setHistView('farmer')" style="flex:1;">🏠 農家別</button>
     <button id="hist-view-graph" class="btn btn-outline btn-sm" onclick="setHistView('graph')" style="flex:1;">📈 グラフ</button>
   </div>
-  <div id="hist-graph-area" style="display:none;margin-bottom:10px;"></div>
+  <div id="hist-graph-area" style="overflow:hidden;" style="display:none;margin-bottom:10px;"></div>
   <input type="text" id="history-search" placeholder="🔍 農家名・メモ・飼料名で検索..." style="margin-bottom:8px;">
   <div id="history-count" style="font-size:11px;color:var(--text-sub);margin-bottom:8px;padding-left:2px;"></div>
   <div id="history-list"></div>
@@ -420,7 +420,6 @@
       <input type="number" id="m-moisture" step="0.1" min="0" max="99">
     </div>
     <div style="font-size:11px;color:var(--text-sub);margin-bottom:14px;">※ <span class="required-star">*</span> 必須。NFC未入力時は自動計算（100−NDF−CP−脂肪−灰分）</div>
-    <div style="margin-bottom:14px;"><label>メモ（購入先・価格など）</label><textarea id="m-feed-memo" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;resize:vertical;" placeholder="例: ○○農協 / 50円/kg"></textarea></div>
     <button class="btn btn-primary" onclick="submitFeed()" id="modal-submit-btn">追加する</button>
   </div>
 </div>
@@ -669,10 +668,6 @@ function calculate(){
   if(nfcPct>25)notes+='<div class="note warn">⚠️ NFCが高め。ルーメンアシドーシスに注意。</div>';
   if(rdpNfcRatio!==null&&rdpNfcRatio>0.40)notes+='<div class="note warn">⚠️ RDPがNFCに対して多すぎます。アンモニア産生過多のリスクあり。NFCを増やすか、RDPの低い飼料に変更を検討。</div>';
   document.getElementById('notes-area').innerHTML=notes;
-  const _bwNow=loadBWSettings().bw;
-  const _dmiLim=_bwNow*0.015;
-  let _dmiWarn=totalDM>_dmiLim?`<div style="background:#ffebee;border-left:4px solid #c62828;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DMI警告:</strong> DM ${totalDM.toFixed(2)}kg は体重${_bwNow}kgの${((totalDM/_bwNow)*100).toFixed(1)}%（上限目安1.5%=${_dmiLim.toFixed(2)}kg）を超えています。給与量を見直してください。</div>`:'';
-
   document.getElementById('result-area').style.display='block';
   document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
   window._lastResult={
@@ -686,9 +681,6 @@ function calculate(){
     fatPct:parseFloat(fatPct.toFixed(1)),nfcPct:parseFloat(nfcPct.toFixed(1)),nr:parseFloat(nr.toFixed(1)),
     rdpNfc:rdpNfcRatio?`1:${(1/rdpNfcRatio).toFixed(1)}`:'-'
   };
-  let _ew=_dmiWarn;
-  if(stage==='pre'){const _sKg=rows.filter(r=>r.feed.name.includes('稲わら')).reduce((s,r)=>s+r.amount,0);const _tKg=rows.reduce((s,r)=>s+r.amount,0);const _sr=_tKg>0?_sKg/_tKg:0;_ew+=_sr>0.4?`<div style="background:#fff8e1;border-left:4px solid #f57c00;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DCAD注意（分娩前）:</strong> 稲わら${(_sr*100).toFixed(0)}%でカリウム過多。陰イオン塩添加を検討。目標DCAD: −50〜−150 mEq/kg DM</div>`:`<div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">✅ <strong>DCAD管理（分娩前）:</strong> 陰イオン塩で目標DCAD −50〜−150 mEq/kg DM を。</div>`;}
-  let _wc=document.getElementById('extra-warn-box');if(!_wc){_wc=document.createElement('div');_wc.id='extra-warn-box';const _ra=document.getElementById('result-area');if(_ra)_ra.appendChild(_wc);}_wc.innerHTML=_ew;
 }
 
 function openSaveModal(){
@@ -703,10 +695,7 @@ function confirmSave(){
   const farmer=document.getElementById('save-farmer').value.trim();
   const memo=document.getElementById('save-memo').value.trim();
   const h=JSON.parse(lsGet('cattle_history', '[]'));
-  const _milkEl=document.getElementById('milk-amount');
-  const _milkAreaEl=document.getElementById('milk-input-area');
-  const _milkAmt=(_milkEl&&_milkAreaEl&&_milkAreaEl.style.display!=='none')?parseFloat(_milkEl.value)||null:null;
-  h.unshift({...window._lastResult,farmer,memo,milkAmount:_milkAmt,date:new Date().toLocaleString('ja-JP')});
+  h.unshift({...window._lastResult, farmer, memo, date:new Date().toLocaleString('ja-JP')});
   if(h.length>50)h.pop();
   lsSet('cattle_history', JSON.stringify(h));
   closeSaveModal();
@@ -886,8 +875,7 @@ function submitFeed(){
   const fat=n('fat')??0,ndf=n('ndf'),ash=n('ash')??0;
   let nfc=n('nfc');
   if(nfc===null&&ndf!==null)nfc=parseFloat((100-ndf-cp-fat-ash).toFixed(2));
-  const _fMemo=(document.getElementById('m-feed-memo')||{}).value||'';
-  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca')??0,p:n('p')??0,mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,memo:_fMemo,custom:true};
+  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca')??0,p:n('p')??0,mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,custom:true};
   if(_editingName){
     deleteFeed(_editingName,isCustomFeed(_editingName));
   } else {
@@ -1002,13 +990,13 @@ function renderHistoryGraph(){
   const tdnPcts = data.map(h=>h.pctTDN);
   const dmPcts  = data.map(h=>h.pctDM);
 
-  const W=320, H=180, PL=36, PR=10, PT=20, PB=40;
+  const W=320, H=200, PL=40, PR=16, PT=24, PB=50;
   const gW=W-PL-PR, gH=H-PT-PB;
-  const allVals=[...cpPcts,...tdnPcts,...dmPcts];
-  const minV=Math.max(0,Math.min(...allVals)-10);
-  const maxV=Math.min(150,Math.max(...allVals)+10);
+  const allVals=[...cpPcts,...tdnPcts,...dmPcts].filter(v=>v!=null&&!isNaN(v)&&isFinite(v));
+  const minV=0;
+  const maxV=allVals.length>0?Math.max(120,Math.min(200,Math.max(...allVals)+15)):150;
 
-  function xPos(i){ return PL + (data.length===1?gW/2:i/(data.length-1)*gW); }
+  function xPos(i){ return PL + (data.length<=1?gW/2:i/(data.length-1)*gW); }
   function yPos(v){ return PT + gH - (v-minV)/(maxV-minV)*gH; }
   function polyline(vals,color){
     const pts=vals.map((v,i)=>`${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ');
@@ -1047,7 +1035,7 @@ function renderHistoryGraph(){
         <span style="font-size:12px;font-weight:700;color:var(--primary);">📈 充足率の推移</span>
         <select id="graph-farmer-sel" onchange="renderHistoryGraph()" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;">${farmerOpts}</select>
       </div>
-      <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;">
+      <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:hidden;display:block;">
         ${yLabels}
         <line x1="${PL}" y1="${y90}" x2="${PL+gW}" y2="${y90}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
         <line x1="${PL}" y1="${y110}" x2="${PL+gW}" y2="${y110}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
@@ -1473,9 +1461,6 @@ function showHistoryDetail(index){
   const farmerLine=h.farmer?`<div style="font-size:13px;font-weight:700;margin-bottom:6px;">🏠 ${h.farmer}</div>`:'';
   const memoLine=h.memo?`<div style="font-size:12px;background:#fff8e1;color:#795548;border-radius:6px;padding:6px 10px;margin-bottom:10px;">📝 ${h.memo}</div>`:'';
   const dateLine=`<div style="font-size:11px;color:var(--text-sub);margin-bottom:6px;">📅 ${h.date}${h.bw?' ／ BW '+h.bw+'kg':''}${h.milkAmount?' ／ 🥛 '+h.milkAmount+'kg/日':''}</div>`;
-  const _caPR=(h.ca&&h.p&&h.p>0)?(h.ca/h.p).toFixed(2):'-';
-  const _caPOk=_caPR!=='-'&&parseFloat(_caPR)>=1.5&&parseFloat(_caPR)<=2.5;
-  const _caPBadge=_caPR==='-'?'':(_caPOk?'<span class="badge badge-ok">✓</span>':parseFloat(_caPR)<1.5?'<span class="badge badge-ng">Pが多い</span>':'<span class="badge badge-warn">Caが多い</span>');
 
   // 給与飼料リスト
   const feedListHTML=`<div class="card-title" style="font-size:12px;margin-bottom:6px;">🌾 給与飼料</div>`+
@@ -1496,13 +1481,35 @@ function showHistoryDetail(index){
   rHTML+='</div>';
 
   // 詳細テーブル
+  // Ca:P比
+  const _caPR=(h.ca&&h.p&&h.p>0)?(h.ca/h.p).toFixed(2):'-';
+  const _caPOk=_caPR!=='-'&&parseFloat(_caPR)>=1.5&&parseFloat(_caPR)<=2.5;
+  const _caPBadge=_caPR==='-'?'':(_caPOk?'<span class="badge badge-ok">✓</span>':parseFloat(_caPR)<1.5?'<span class="badge badge-ng">Pが多い</span>':'<span class="badge badge-warn">Caが多い</span>');
+  // 各バッジ
+  const _fatBadge=h.fatPct<=req.fat_max?'<span class="badge badge-ok">✓ &lt;5%</span>':'<span class="badge badge-ng">✗ 超過</span>';
+  const _cpPct2=h.cpPct||(h.dm>0?parseFloat((h.cp/10/h.dm*100).toFixed(1)):'-');
+  const _cpBadge=_cpPct2!=='-'&&_cpPct2>=req.cp_pct?`<span class="badge badge-ok">✓ ≥${req.cp_pct}%</span>`:`<span class="badge badge-warn">△ &lt;${req.cp_pct}%</span>`;
+  const _nrV=parseFloat(h.nr)||0;
+  const _nrRng=(req.nr||'3.5〜5.0').toString().split('〜');
+  const _nrOk=_nrV>=parseFloat(_nrRng[0])&&_nrV<=parseFloat(_nrRng[_nrRng.length-1]);
+  const _nrBadge=_nrOk?'<span class="badge badge-ok">✓</span>':'<span class="badge badge-warn">△</span>';
+  const _nfcRng=(req.nfc_range||'15〜22').split('〜');
+  const _nfcOk=h.nfcPct>=parseFloat(_nfcRng[0])&&h.nfcPct<=parseFloat(_nfcRng[1]);
+  const _nfcBadge=_nfcOk?'<span class="badge badge-ok">✓</span>':'<span class="badge badge-warn">△</span>';
+  const _dmiPct2=h.dmiPct||(h.bw>0?parseFloat((h.dm/h.bw*100).toFixed(1)):'-');
+  const _dmiBadge=parseFloat(_dmiPct2)>1.5?'<span class="badge badge-ng">⚠ 超過</span>':'<span class="badge badge-ok">✓</span>';
+  const _dcadRow=h.stage==='pre'?`<tr><td>DCAD管理</td><td>${h.strawRatio!=null?'稲わら'+h.strawRatio+'%':'-'}</td><td>${(h.strawRatio||0)>40?'<span class="badge badge-warn">⚠ K過多</span>':'<span class="badge badge-ok">✓ 管理可</span>'} 目標−50〜−150</td></tr>`:'';
+
   const detailHTML=`<table class="full-result-table" style="margin-bottom:14px;">
-    <tr><th>指標</th><th>値</th><th>目安</th></tr>
-    <tr><td>NFC%DM</td><td>${h.nfcPct}%</td><td>${req.nfc_range}%</td></tr>
-    <tr><td>NR</td><td>${h.nr}</td><td>目安 ${req.nr}</td></tr>
+    <tr><th>指標</th><th>値</th><th>判定</th></tr>
+    <tr><td>粗脂肪%DM</td><td>${h.fatPct}%</td><td>${_fatBadge}</td></tr>
+    <tr><td>CP%DM</td><td>${_cpPct2}%</td><td>${_cpBadge}</td></tr>
+    <tr><td>NFC%DM</td><td>${h.nfcPct}%</td><td>${_nfcBadge} 目安 ${req.nfc_range||'15〜22'}%</td></tr>
+    <tr><td>NR (TDN-CP)/CP</td><td>${h.nr}</td><td>${_nrBadge} 目安 ${req.nr}</td></tr>
     <tr><td>Ca:P比</td><td>${_caPR}</td><td>${_caPBadge} 1.5〜2.5</td></tr>
-    <tr><td>脂肪%DM</td><td>${h.fatPct}%</td><td>&lt;5%</td></tr>
     <tr><td>RDP:NFC</td><td>${h.rdpNfc||'-'}</td><td>1:3</td></tr>
+    <tr><td>DMI (体重比)</td><td>${h.dm}kg (${_dmiPct2}%)</td><td>${_dmiBadge} 上限1.5%</td></tr>
+    ${_dcadRow}
   </table>`;
 
   // 改善案（保存時のデータから再計算）
@@ -1791,14 +1798,51 @@ function buildCase2(rows, req, tCP, tTDN, tDM, tCa, tP, tFat, tNFC) {
 
 
 
-// ============================================================
-// v22 追加機能：CSVインポート・メモ表示・PDF出力
-// ============================================================
+// ===== v30追加機能 =====
 
-// 飼料CSV一括インポート
+// 1. 乳量保存（confirmSave内）→ confirmSaveをオーバーライド
+const _origConfirmSave = window.confirmSave;
+window.confirmSave = function(){
+  if(!window._lastResult)return;
+  const farmer=document.getElementById('save-farmer').value.trim();
+  const memo=document.getElementById('save-memo').value.trim();
+  const h=JSON.parse(lsGet('cattle_history','[]'));
+  const _me=document.getElementById('milk-amount'),_ma=document.getElementById('milk-input-area');
+  const _milk=(_me&&_ma&&_ma.style.display!=='none')?parseFloat(_me.value)||null:null;
+  h.unshift({...window._lastResult,farmer,memo,milkAmount:_milk,date:new Date().toLocaleString('ja-JP')});
+  if(h.length>50)h.pop();
+  lsSet('cattle_history',JSON.stringify(h));
+  document.getElementById('save-modal').classList.remove('open');
+  showToast('💾 保存しました！');
+};
+
+// 2. calculate後にDMI・DCAD警告 + _lastResultへdmiPct追記
+const _origCalculate = window.calculate;
+window.calculate = function(){
+  _origCalculate();
+  setTimeout(function(){
+    if(!window._lastResult)return;
+    const r=window._lastResult;
+    const bw=r.bw||loadBWSettings().bw;
+    const dmiLim=bw*0.015;
+    // dmiPct追記
+    if(!r.dmiPct) r.dmiPct=parseFloat(((r.dm/bw)*100).toFixed(1));
+    r.dmiOver=r.dmiPct>1.5;
+    // 警告表示
+    let warns='';
+    if(r.dm>dmiLim) warns+=`<div style="background:#ffebee;border-left:4px solid #c62828;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DMI警告:</strong> DM ${r.dm}kg は体重${bw}kgの${r.dmiPct}%（上限目安1.5%=${dmiLim.toFixed(2)}kg）を超えています。</div>`;
+    if(r.stage==='pre'){
+      const sr=r.strawRatio||0;
+      warns+=sr>40?`<div style="background:#fff8e1;border-left:4px solid #f57c00;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DCAD注意（分娩前）:</strong> 稲わら${sr}%でK過多。陰イオン塩添加を検討。目標DCAD: −50〜−150 mEq/kg DM</div>`:`<div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">✅ <strong>DCAD管理（分娩前）:</strong> 陰イオン塩で目標DCAD −50〜−150 mEq/kg DM を目指してください。</div>`;
+    }
+    const wb=document.getElementById('extra-warn-box');
+    if(wb) wb.innerHTML=warns;
+  },100);
+};
+
+// 4. CSV一括インポート
 function importFeedCSV(event){
-  const file=event.target.files[0];
-  if(!file)return;
+  const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
@@ -1811,11 +1855,8 @@ function importFeedCSV(event){
         const c=line.split(',').map(s=>s.trim().replace(/^"|"$/g,''));
         if(!c[0]||existing.includes(c[0]))return;
         const pf=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
-        customs.push({cat:c[1]||'その他',name:c[0],cp:pf(c[2]),tdn:pf(c[3]),
-          moisture:pf(c[4]),fat:pf(c[5]),ndf:pf(c[6])||null,nfc:pf(c[7])||null,
-          ca:pf(c[8]),p:pf(c[9]),rdp:pf(c[10])||null,memo:c[11]||'',
-          custom:true,cf:null,adf:null,ash:null,mg:null,k:null});
-        cnt++;
+        customs.push({cat:c[1]||'その他',name:c[0],cp:pf(c[2]),tdn:pf(c[3]),moisture:pf(c[4]),fat:pf(c[5]),ndf:pf(c[6])||null,nfc:pf(c[7])||null,ca:pf(c[8]),p:pf(c[9]),rdp:pf(c[10])||null,memo:c[11]||'',custom:true,cf:null,adf:null,ash:null,mg:null,k:null});
+        existing.push(c[0]);cnt++;
       });
       lsSet('custom_feeds',JSON.stringify(customs));
       showToast('📥 '+cnt+'件インポートしました');
@@ -1825,38 +1866,33 @@ function importFeedCSV(event){
   reader.readAsText(file,'UTF-8');
 }
 
-// PDF出力
+// 5. PDF出力
 function printDetail(){
-  if(confirm('印刷画面が開きます。\n「PDFに保存」を選択するとPDFで保存できます。')){
-    window.print();
-  }
+  if(confirm('印刷画面が開きます。\n「PDFに保存」でPDF保存できます。')){window.print();}
 }
 
-// DOMContentLoaded後にCSVボタン・PDFボタンを追加
+// 6. DOM読み込み後の処理
 document.addEventListener('DOMContentLoaded',function(){
-  // CSVボタン：飼料追加ボタンの隣に追加
-  const allBtns=Array.from(document.querySelectorAll('button'));
-  const addFeedBtn=allBtns.find(b=>b.textContent.trim()==='＋ 追加');
-  if(addFeedBtn&&!document.getElementById('csv-import-label')){
-    const lbl=document.createElement('label');
-    lbl.id='csv-import-label';
-    lbl.style.cssText='display:inline-flex;align-items:center;padding:6px 10px;font-size:12px;border:1px solid #757575;border-radius:8px;color:#555;cursor:pointer;margin-right:6px;background:#fff;';
-    lbl.innerHTML='📥 CSV<input type="file" accept=".csv,.txt" style="display:none;" onchange="importFeedCSV(event)">';
-    addFeedBtn.parentNode.insertBefore(lbl,addFeedBtn);
-  }
-
-  // PDFボタン：詳細モーダルのボタン列に追加
-  const detailModal=document.getElementById('detail-modal');
-  if(detailModal&&!document.getElementById('pdf-print-btn')){
-    const closeBtn=detailModal.querySelector('.modal-close');
-    if(closeBtn&&closeBtn.parentElement){
-      const pdfBtn=document.createElement('button');
-      pdfBtn.id='pdf-print-btn';
-      pdfBtn.className='btn btn-outline btn-sm';
-      pdfBtn.style.cssText='padding:6px 10px;border-color:#c62828;color:#c62828;';
-      pdfBtn.textContent='📄PDF';
-      pdfBtn.onclick=printDetail;
-      closeBtn.parentElement.insertBefore(pdfBtn,closeBtn.parentElement.firstChild);
+  // CSVボタン追加
+  document.querySelectorAll('button').forEach(function(btn){
+    if(btn.textContent.trim()==='＋ 追加'&&!document.getElementById('csv-import-label')){
+      const lbl=document.createElement('label');
+      lbl.id='csv-import-label';
+      lbl.style.cssText='display:inline-flex;align-items:center;padding:6px 10px;font-size:12px;border:1px solid #757575;border-radius:8px;color:#555;cursor:pointer;margin-right:6px;background:#fff;';
+      lbl.innerHTML='📥 CSV<input type="file" accept=".csv,.txt" style="display:none;" onchange="importFeedCSV(event)">';
+      btn.parentNode.insertBefore(lbl,btn);
+    }
+  });
+  // PDFボタン追加
+  const dm=document.getElementById('detail-modal');
+  if(dm){
+    const cb=dm.querySelector('.modal-close');
+    if(cb&&cb.parentElement&&!document.getElementById('pdf-print-btn')){
+      const pb=document.createElement('button');
+      pb.id='pdf-print-btn';pb.className='btn btn-outline btn-sm';
+      pb.style.cssText='padding:6px 10px;border-color:#c62828;color:#c62828;';
+      pb.textContent='📄PDF';pb.onclick=printDetail;
+      cb.parentElement.insertBefore(pb,cb.parentElement.firstChild);
     }
   }
 });
