@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v33</title>
+<title>繁殖和牛 栄養計算 v34</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -102,11 +102,29 @@
   .glossary-formula { font-size: 12px; background: #f3e5f5; color: #4a148c; border-radius: 6px; padding: 5px 10px; margin-top: 4px; font-family: monospace; }
 
 @media print {
-  body>*{visibility:hidden;}
-  #detail-modal,#detail-modal *{visibility:visible;}
-  #detail-modal{position:absolute;left:0;top:0;width:100%;}
-  .modal-close,#pdf-print-btn,button{display:none!important;}
-  .modal{max-height:none!important;overflow:visible!important;box-shadow:none!important;}
+  /* 全体を非表示にしてモーダルだけ表示 */
+  body { background: white !important; }
+  body > * { display: none !important; }
+  #detail-modal { display: block !important; position: static !important; background: white !important; width: 100% !important; height: auto !important; z-index: auto !important; }
+  #detail-modal .modal-overlay, .modal-overlay { display: block !important; position: static !important; background: white !important; height: auto !important; }
+  #detail-modal .modal, .modal { display: block !important; position: static !important; max-height: none !important; height: auto !important; overflow: visible !important; box-shadow: none !important; border-radius: 0 !important; padding: 16px !important; width: 100% !important; }
+  #detail-modal * { visibility: visible !important; }
+  /* ボタン類を非表示 */
+  .modal-close, #pdf-print-btn, button { display: none !important; }
+  /* テーブルが途中で切れないように */
+  table { page-break-inside: avoid; }
+  .result-grid { page-break-inside: avoid; }
+  /* バッジが印刷で見えるように */
+  .badge { border: 1px solid #ccc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .badge-ok { background: #e8f5e9 !important; color: #2e7d32 !important; }
+  .badge-warn { background: #fff8e1 !important; color: #f57c00 !important; }
+  .badge-ng { background: #ffebee !important; color: #c62828 !important; }
+  /* result-gridの色 */
+  .result-item.ok { border-color: #2e7d32 !important; }
+  .result-item.warn { border-color: #f57c00 !important; }
+  .result-item.ng { border-color: #c62828 !important; }
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 </style>
 </head>
