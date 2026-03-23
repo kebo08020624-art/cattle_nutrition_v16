@@ -459,6 +459,11 @@
       <input type="number" id="m-moisture" step="0.1" min="0" max="99">
     </div>
     <div style="font-size:11px;color:var(--text-sub);margin-bottom:14px;">※ <span class="required-star">*</span> 必須。NFC未入力時は自動計算（100−NDF−CP−脂肪−灰分）</div>
+    <div style="margin-bottom:14px;">
+      <label>単価（円/kg）</label>
+      <input type="number" id="m-price" step="1" min="0" placeholder="例: 45（任意）">
+      <div style="font-size:11px;color:var(--text-sub);margin-top:2px;">入力すると計算結果にコストが表示されます</div>
+    </div>
     <button class="btn btn-primary" onclick="submitFeed()" id="modal-submit-btn">追加する</button>
   </div>
 </div>
@@ -667,6 +672,42 @@ function calculate(){
   rHTML+='</div>';
   document.getElementById('result-content').innerHTML=rHTML;
 
+  // コスト計算
+  var costResult=calcDailyCost(rows);
+  var costCardId='cost-card-area';
+  var existCost=document.getElementById(costCardId);
+  if(!existCost){
+    var costDiv=document.createElement('div');costDiv.id=costCardId;
+    document.getElementById('result-content').after(costDiv);
+  }
+  var costHtml='';
+  if(costResult.hasCost){
+    costHtml='<div class="card" style="margin-top:0;">';
+    costHtml+='<div class="card-title">💴 1日あたりの飼料コスト</div>';
+    costHtml+='<table style="width:100%;font-size:12px;border-collapse:collapse;">';
+    costHtml+='<tr style="color:var(--text-sub);"><th style="text-align:left;padding:4px 2px;">飼料</th><th style="text-align:right;padding:4px 2px;">給与量</th><th style="text-align:right;padding:4px 2px;">単価</th><th style="text-align:right;padding:4px 2px;">小計</th></tr>';
+    costResult.lines.forEach(function(l){
+      costHtml+='<tr style="border-top:1px solid var(--border);">';
+      costHtml+='<td style="padding:5px 2px;">'+l.name+'</td>';
+      costHtml+='<td style="text-align:right;padding:5px 2px;">'+l.amount+'kg</td>';
+      costHtml+='<td style="text-align:right;padding:5px 2px;">'+l.price+'円</td>';
+      costHtml+='<td style="text-align:right;padding:5px 2px;">'+Math.round(l.cost)+'円</td>';
+      costHtml+='</tr>';
+    });
+    var unpriced=rows.filter(function(r){return JSON.parse(lsGet('feed_prices','{}'))[r.feed.name]==null;});
+    costHtml+='<tr style="border-top:2px solid var(--primary);font-weight:700;">';
+    costHtml+='<td colspan="3" style="padding:6px 2px;">合計</td>';
+    costHtml+='<td style="text-align:right;padding:6px 2px;font-size:15px;color:var(--primary);">'+Math.round(costResult.total)+'円/日</td>';
+    costHtml+='</tr>';
+    if(unpriced.length>0){
+      costHtml+='<tr><td colspan="4" style="padding:4px 2px;font-size:11px;color:var(--text-sub);">※ 単価未設定: '+unpriced.map(function(r){return r.feed.name;}).join('、')+'</td></tr>';
+    }
+    costHtml+='</table>';
+    costHtml+='<div style="font-size:11px;color:var(--text-sub);margin-top:8px;">月額目安: 約'+Math.round(costResult.total*30).toLocaleString()+'円 / 年額目安: 約'+Math.round(costResult.total*365/10000).toLocaleString()+'万円</div>';
+    costHtml+='</div>';
+  }
+  document.getElementById(costCardId).innerHTML=costHtml;
+
   // RDP:NFC 判定
   let rdpNfcHtml='';
   if(rdpNfcRatio!==null){
@@ -819,59 +860,39 @@ function clearAllHistory(){
 }
 
 function renderMaster(){
-  const filter=document.getElementById('master-search').value;
-  const feeds=loadFeeds();
-  const list=filter?feeds.filter(f=>f.name.includes(filter)||f.cat.includes(filter)):feeds;
-  const cats=[...new Set(list.map(f=>f.cat))];
-  const customNames=JSON.parse(lsGet('custom_feeds', '[]')).map(f=>f.name);
-  let html='';
+  var filter=document.getElementById('master-search').value;
+  var feeds=loadFeeds();
+  var list=filter?feeds.filter(function(f){return f.name.indexOf(filter)>=0||f.cat.indexOf(filter)>=0;}):feeds;
+  var cats=[];
+  list.forEach(function(f){if(cats.indexOf(f.cat)<0)cats.push(f.cat);});
+  var customNames=JSON.parse(lsGet('custom_feeds','[]')).map(function(f){return f.name;});
+  var prices=JSON.parse(lsGet('feed_prices','{}'));
+  var html='';
   if(list.length===0){html='<div class="empty-state"><div class="icon">🔍</div><p>該当する飼料が見つかりません</p></div>';}
-  cats.forEach(cat=>{
-    const cf=list.filter(f=>f.cat===cat);
-    html+=`<div class="section-label"><span>${cat} (${cf.length}件)</span></div>`;
-    cf.forEach((f,i)=>{
-      const cu=customNames.includes(f.name);
-      const idx=list.indexOf(f);
-      html+=`<div class="master-feed-item">
-        <div class="master-feed-header">
-          <div class="master-feed-name">${f.name} ${cu?'<span class="badge badge-custom">追加</span>':''}</div>
-          <div class="master-feed-actions">
-            <button class="btn btn-outline btn-sm master-edit-btn" data-idx="${idx}">編集</button>
-            <button class="btn btn-danger btn-sm master-del-btn" data-idx="${idx}" data-custom="${cu}">削除</button>
-          </div>
-        </div>
-        <div class="master-grid">
-          <div><span>CP</span> ${f.cp}%</div><div><span>TDN</span> ${f.tdn}%</div>
-          <div><span>NDF</span> ${f.ndf??'-'}%</div><div><span>NFC</span> ${f.nfc??'-'}%</div>
-          <div><span>Ca</span> ${f.ca??'-'}%</div><div><span>P</span> ${f.p??'-'}%</div>
-          <div><span>脂肪</span> ${f.fat??'-'}%</div><div><span>水分</span> ${f.moisture}%</div>
-        </div>
-      </div>`;
+  cats.forEach(function(cat){
+    var cf=list.filter(function(f){return f.cat===cat;});
+    html+='<div class="section-label"><span>'+cat+' ('+cf.length+'件)</span></div>';
+    cf.forEach(function(f){
+      var cu=customNames.indexOf(f.name)>=0;
+      var nm=f.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      var pd=prices[f.name]!=null?prices[f.name]+'円/kg':'<span style="color:var(--text-sub);">未設定</span>';
+      html+='<div class="master-feed-item">';
+      html+='<div class="master-feed-header">';
+      html+='<div class="master-feed-name">'+nm+(cu?' <span class="badge badge-custom">追加</span>':'')+'</div>';
+      html+='<div class="master-feed-actions">';
+      html+='<button class="btn btn-outline btn-sm" data-name="'+nm+'" onclick="masterEditClick(this)" style="touch-action:manipulation;">編集</button>';
+      html+='<button class="btn btn-danger btn-sm" data-name="'+nm+'" data-custom="'+cu+'" onclick="masterDelClick(this)" style="touch-action:manipulation;">削除</button>';
+      html+='</div></div>';
+      html+='<div class="master-grid">';
+      html+='<div><span>CP</span> '+(f.cp??'-')+'%</div><div><span>TDN</span> '+(f.tdn??'-')+'%</div>';
+      html+='<div><span>NDF</span> '+(f.ndf??'-')+'%</div><div><span>NFC</span> '+(f.nfc??'-')+'%</div>';
+      html+='<div><span>Ca</span> '+(f.ca??'-')+'%</div><div><span>P</span> '+(f.p??'-')+'%</div>';
+      html+='<div><span>脂肪</span> '+(f.fat??'-')+'%</div><div><span>水分</span> '+(f.moisture??'-')+'%</div>';
+      html+='<div style="grid-column:1/-1;"><span>💴 単価</span> '+pd+'</div>';
+      html+='</div></div>';
     });
   });
   document.getElementById('master-list').innerHTML=html;
-
-  // イベント委任でボタン処理（onclick属性を使わない）
-  const ml = document.getElementById('master-list');
-  const newMl = ml.cloneNode(true);
-  ml.parentNode.replaceChild(newMl, ml);
-  newMl.addEventListener('click', function(e){
-    const editBtn = e.target.closest('.master-edit-btn');
-    const delBtn  = e.target.closest('.master-del-btn');
-    if(editBtn){
-      const feeds2=loadFeeds();
-      const f=feeds2[parseInt(editBtn.dataset.idx)];
-      if(f) openEditModal(f.name);
-    }
-    if(delBtn){
-      const feeds2=loadFeeds();
-      const f=feeds2[parseInt(delBtn.dataset.idx)];
-      const isCustom=delBtn.dataset.custom==='true';
-      if(f) showConfirm(`「${f.name}」を削除しますか？`, ()=>{
-        deleteFeed(f.name,isCustom);renderMaster();showToast(`「${f.name}」を削除しました`);
-      });
-    }
-  });
 }
 
 function confirmDeleteFeed(name,isCustom){
@@ -889,6 +910,9 @@ function openAddModal(){
     const el=document.getElementById('m-'+id);
     if(el.tagName==='SELECT')el.value='配合飼料';else el.value='';
   });
+  document.getElementById('m-price').value='';
+  var _prices=JSON.parse(lsGet('feed_prices','{}'));
+  document.getElementById('m-price').value=_prices[name]!=null?_prices[name]:'';
   document.getElementById('feed-modal').classList.add('open');
 }
 function openEditModal(name){
@@ -920,7 +944,13 @@ function submitFeed(){
   } else {
     if(loadFeeds().find(f=>f.name===name)){showToast('同じ名前の飼料が既に存在します');return;}
   }
-  saveCustomFeed(feed);closeModal();renderMaster();
+  saveCustomFeed(feed);
+  var _pv=document.getElementById('m-price').value;
+  var _prices=JSON.parse(lsGet('feed_prices','{}'));
+  if(_pv!==''&&!isNaN(parseFloat(_pv))){_prices[name]=parseFloat(_pv);}
+  else{if(_editingName)delete _prices[_editingName]; delete _prices[name];}
+  lsSet('feed_prices',JSON.stringify(_prices));
+  closeModal();renderMaster();
   showToast(_editingName?`「${name}」を更新しました`:`「${name}」を追加しました`);
 }
 
@@ -1942,12 +1972,14 @@ function exportCustomFeeds(){
   if(custom.length === 0 && deleted.length === 0){
     showToast('エクスポートする飼料データがありません');return;
   }
+  var feedPrices=JSON.parse(lsGet('feed_prices','{}'));
   var data = {
     version: 1,
     type: 'feed_backup',
     exportedAt: new Date().toLocaleString('ja-JP'),
     custom_feeds: custom,
-    deleted_feeds: deleted
+    deleted_feeds: deleted,
+    feed_prices: feedPrices
   };
   var json = JSON.stringify(data, null, 2);
   var date = new Date().toISOString().slice(0,10);
@@ -1988,6 +2020,11 @@ function importCustomFeeds(event){
         lsSet('deleted_feeds', JSON.stringify(merged));
       }
 
+      if(data.feed_prices && typeof data.feed_prices==='object'){
+        var curPrices=JSON.parse(lsGet('feed_prices','{}'));
+        Object.keys(data.feed_prices).forEach(function(k){if(curPrices[k]==null)curPrices[k]=data.feed_prices[k];});
+        lsSet('feed_prices',JSON.stringify(curPrices));
+      }
       renderMaster();
       showToast('📥 ' + newFeeds.length + '件の飼料をインポートしました（重複' + (data.custom_feeds.length - newFeeds.length) + '件スキップ）');
     } catch(err){
@@ -1996,6 +2033,35 @@ function importCustomFeeds(event){
     event.target.value = '';
   };
   reader.readAsText(file);
+}
+
+// ===== 飼料DBボタン =====
+function masterEditClick(btn){
+  var name=btn.getAttribute('data-name').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  if(name) openEditModal(name);
+}
+function masterDelClick(btn){
+  var name=btn.getAttribute('data-name').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  var isCustom=btn.getAttribute('data-custom')==='true';
+  if(!name) return;
+  showConfirm('「'+name+'」を削除しますか？', function(){
+    deleteFeed(name,isCustom);renderMaster();showToast('「'+name+'」を削除しました');
+  });
+}
+
+// ===== コスト計算（1日あたり） =====
+function calcDailyCost(rows){
+  var prices=JSON.parse(lsGet('feed_prices','{}'));
+  var total=0; var hasCost=false; var lines=[];
+  rows.forEach(function(r){
+    var p=prices[r.feed.name];
+    if(p!=null){
+      var cost=r.amount*p;
+      total+=cost; hasCost=true;
+      lines.push({name:r.feed.name,amount:r.amount,price:p,cost:cost});
+    }
+  });
+  return {total:total,hasCost:hasCost,lines:lines};
 }
 </script>
 </body>
