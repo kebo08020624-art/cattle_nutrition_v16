@@ -89,7 +89,7 @@
   .master-grid div span { color: var(--text-sub); }
 
   .suggest-title { font-size: 13px; font-weight: 700; color: #e65100; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .required-star { color: #c62828; }
   textarea { -webkit-appearance: none; }
@@ -275,6 +275,20 @@
       <div class="glossary-desc">飼料から水分を除いた純粋な固形成分のこと。栄養成分はすべてDM基準（%DM）で表示されるため、実際の給与量から水分を引いて計算する必要がある。たとえば水分75%のサイレージを4kg与えると、DM摂取量は1kgになる。牛の1日のDM摂取量には限界（体重の約1.3〜1.5%）があり、エネルギーや栄養の設計の基礎となる。</div>
       <div class="glossary-formula">計算式: DM(kg) = 給与量(kg) × (1 − 水分(%) ÷ 100)</div>
       <div class="glossary-tip">💡 繁殖和牛540kgの目安DM摂取量：維持期6.9kg、泌乳期9.9kg。水分の多い飼料（サイレージ等）は見た目より実質的な栄養量が少ないので注意。</div>
+    </div>
+
+    <div class="glossary-item">
+      <div class="glossary-term">DMI <span class="glossary-en">乾物摂取量 Dry Matter Intake</span></div>
+      <div class="glossary-desc">牛が1日に実際に食べる乾物（水分を除いた固形成分）の総量。DMIには生理的な上限があり、体重の約1.3〜1.5%が現実的な最大値とされる。設計した給与量のDMがこの上限を超えている場合、実際には食べきれないため栄養計算が成り立たなくなる。分娩前の牛はDMIが低下しやすく（体重比1.3%程度）、分娩後はエネルギー要求量が摂取量を上回る「エネルギー負バランス（NEB）」が生じやすい。</div>
+      <div class="glossary-formula">計算式: DMI(kg) = Σ（各飼料の給与量 × 乾物率）　　上限目安: 体重(kg) × 1.5%</div>
+      <div class="glossary-tip">💡 このアプリでは体重の1.5%を超えるDMIを検出すると⚠️警告を表示します。540kgの牛なら上限は約8.1kg DM/日。</div>
+    </div>
+
+    <div class="glossary-item">
+      <div class="glossary-term">DCAD <span class="glossary-en">飼料陽イオン・陰イオン差 Dietary Cation-Anion Difference</span></div>
+      <div class="glossary-desc">飼料中の主要イオン（Na⁺・K⁺・Cl⁻・S²⁻）のバランスを mEq/kg DM で表した指標。DCADが高い（プラス）と体液がアルカリ性に傾き、Ca調節機構が鈍くなる。分娩前に意図的にDCADをマイナスにすること（陰イオン食）で体液を軽度に酸性化し、副甲状腺ホルモン（PTH）の働きを高めて骨からのCa動員を促進。分娩後の「乳熱（低Ca血症）」・胎盤停滞・産後マヒを予防できる。稲わらはカリウム(K)が多くDCADをプラス方向に引き上げるため、分娩前の多給には注意が必要。</div>
+      <div class="glossary-formula">計算式: DCAD = (Na⁺ + K⁺) − (Cl⁻ + S²⁻)　単位: mEq/kg DM<br>分娩前目標: −50〜−150 mEq/kg DM　／　泌乳期目標: +200〜+400 mEq/kg DM</div>
+      <div class="glossary-tip">💡 陰イオン塩（塩化アンモニウム・硫酸アンモニウム等）を添加してDCADをマイナスに調整します。効果の確認には尿pH（目標6.0〜6.8）のモニタリングが有効です。このアプリでは分娩前ステージで稲わら割合が高い場合に⚠️DCAD注意を表示します。</div>
     </div>
 
 <div class="glossary-item">
