@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v34</title>
+<title>繁殖和牛 栄養計算 v46</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -217,6 +217,7 @@
         <input type="file" id="feed-import-file" accept=".json" style="display:none;" onchange="importCustomFeeds(event)">
       </label>
     </div>
+    <button class="btn btn-outline btn-sm" onclick="showRestoreModal()" style="margin-bottom:12px;width:100%;border-color:#f57c00;color:#f57c00;">🔄 削除したデフォルト飼料を復元</button>
     <div id="master-list"></div>
   </div>
 </div>
@@ -368,6 +369,21 @@
       <textarea id="save-memo" placeholder="例: 分娩予定3/25、BCS3.0" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
     </div>
     <button class="btn btn-accent" onclick="confirmSave()">保存する</button>
+  </div>
+</div>
+
+<!-- 復元モーダル -->
+<div class="modal-overlay" id="restore-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>🔄 デフォルト飼料の復元</span>
+      <button class="modal-close" onclick="closeRestoreModal()">✕</button>
+    </div>
+    <div id="restore-list" style="margin-bottom:16px;max-height:55vh;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" onclick="restoreAllFeeds()" style="flex:1;border-color:#f57c00;color:#f57c00;">全て復元</button>
+      <button class="btn btn-outline" onclick="closeRestoreModal()" style="flex:1;">閉じる</button>
+    </div>
   </div>
 </div>
 
@@ -546,15 +562,6 @@ const DEFAULT_FEEDS = [
   {cat:"購入粗飼料",name:"輸入オーツヘイ30CF35標準値",cp:6.4,fat:1.7,cf:37.3,adf:39.4,ndf:61,ash:7.2,tdn:52.8,ca:0.22,p:0.17,mg:0.14,k:1.52,nfc:23.7,rdp:4.61,moisture:12.0},
 
   // ===== 追加飼料（2025年調査・第一飼料原物値DM換算 + 日本標準飼料成分表2009年版）=====
-  {cat:"濃厚飼料",name:"加熱圧ぺんトウモロコシ（標準）",cp:8.9,fat:3.8,cf:null,adf:null,ndf:11.5,ash:null,tdn:93.6,ca:0.02,p:0.29,mg:null,k:null,nfc:null,rdp:null,moisture:14.5,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"濃厚飼料",name:"圧ぺん小麦（標準）",cp:13.9,fat:2.2,cf:null,adf:null,ndf:15.0,ash:null,tdn:90.5,ca:0.04,p:0.37,mg:null,k:null,nfc:null,rdp:null,moisture:13.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"濃厚飼料",name:"圧ぺんえん麦（オーツ・標準）",cp:9.9,fat:4.3,cf:null,adf:null,ndf:31.0,ash:null,tdn:85.1,ca:0.10,p:0.33,mg:null,k:null,nfc:null,rdp:null,moisture:13.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"副産物",name:"コーングルテンフィード（標準）",cp:23.5,fat:3.5,cf:null,adf:null,ndf:43.0,ash:null,tdn:84.9,ca:0.08,p:0.83,mg:null,k:null,nfc:null,rdp:null,moisture:11.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"副産物",name:"ビートパルプ（輸入・乾・標準）",cp:12.3,fat:1.0,cf:null,adf:null,ndf:50.0,ash:null,tdn:73.0,ca:0.67,p:0.09,mg:null,k:null,nfc:null,rdp:null,moisture:11.5,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"副産物",name:"ルーサンペレット（アルファルファ・標準）",cp:18.3,fat:2.5,cf:null,adf:null,ndf:38.0,ash:null,tdn:60.7,ca:1.49,p:0.23,mg:null,k:null,nfc:null,rdp:null,moisture:10.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"副産物",name:"大豆皮ペレット（ソイハル・標準）",cp:10.1,fat:2.3,cf:null,adf:null,ndf:67.0,ash:null,tdn:61.8,ca:0.50,p:0.17,mg:null,k:null,nfc:null,rdp:null,moisture:11.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
-  {cat:"副産物",name:"綿実（ホールコットンシード・標準）",cp:22.0,fat:18.0,cf:null,adf:null,ndf:47.0,ash:null,tdn:89.0,ca:0.14,p:0.57,mg:null,k:null,nfc:null,rdp:null,moisture:9.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版 ※脂肪18%と高いため給与は乾物中5%以下を厳守"},
-  {cat:"購入粗飼料",name:"オーチャードグラス乾草（1番草・出穂期・標準）",cp:13.0,fat:3.5,cf:null,adf:39.3,ndf:64.4,ash:null,tdn:61.0,ca:0.39,p:0.23,mg:null,k:null,nfc:null,rdp:null,moisture:16.3,source:"全成分: 日本標準飼料成分表2009年版（G13: オーチャード1番草出穂期）/ TDNのみADF推定式（93.2−0.83×ADF）による計算値"},
   {cat:"購入粗飼料",name:"ヘイキューブ普及品",cp:16.5,fat:2.9,cf:30,adf:36.9,ndf:45.6,ash:12.9,tdn:55.2,ca:1.66,p:0.25,mg:0.35,k:2.5,nfc:22.1,rdp:11.55,moisture:10.8},
 ];
 
@@ -2082,6 +2089,47 @@ function calcDailyCost(rows){
     }
   });
   return {total:total,hasCost:hasCost,lines:lines};
+}
+
+function showRestoreModal(){
+  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
+  var html='';
+  if(deleted.length===0){
+    html='<div class="empty-state"><div class="icon">✅</div><p>削除されたデフォルト飼料はありません</p></div>';
+  } else {
+    html+='<p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">削除済みのデフォルト飼料: '+deleted.length+'件</p>';
+    deleted.forEach(function(name){
+      var f=DEFAULT_FEEDS.find(function(x){return x.name===name;});
+      var safeN=name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border);">';
+      html+='<div style="font-size:13px;">'+safeN+(f?' <span style="font-size:11px;color:var(--text-sub);">('+f.cat+')</span>':'')+'</div>';
+      html+='<button class="btn btn-outline btn-sm restore-one-btn" data-rname="'+safeN+'" style="border-color:#f57c00;color:#f57c00;touch-action:manipulation;">復元</button>';
+      html+='</div>';
+    });
+  }
+  document.getElementById('restore-list').innerHTML=html;
+  document.getElementById('restore-list').onclick=function(e){
+    var btn=e.target.closest ? e.target.closest('.restore-one-btn') : null;
+    if(!btn && e.target.className.indexOf('restore-one-btn')>=0) btn=e.target;
+    if(btn) restoreOneFeed(btn.getAttribute('data-rname').replace(/&amp;/g,'&').replace(/&quot;/g,'"'));
+  };
+  document.getElementById('restore-modal').classList.add('open');
+}
+function closeRestoreModal(){document.getElementById('restore-modal').classList.remove('open');}
+function restoreOneFeed(name){
+  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
+  deleted=deleted.filter(function(n){return n!==name;});
+  lsSet('deleted_feeds',JSON.stringify(deleted));
+  showRestoreModal();renderMaster();
+  showToast('「'+name+'」を復元しました');
+}
+function restoreAllFeeds(){
+  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
+  var count=deleted.length;
+  if(count===0){showToast('復元できる飼料はありません');return;}
+  lsSet('deleted_feeds','[]');
+  closeRestoreModal();renderMaster();
+  showToast('🔄 '+count+'件のデフォルト飼料を復元しました');
 }
 </script>
 </body>
