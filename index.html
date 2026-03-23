@@ -464,6 +464,11 @@
       <input type="number" id="m-price" step="1" min="0" placeholder="例: 45（任意）">
       <div style="font-size:11px;color:var(--text-sub);margin-top:2px;">入力すると計算結果にコストが表示されます</div>
     </div>
+    <div style="margin-bottom:14px;">
+      <label>出典・備考</label>
+      <input type="text" id="m-source" placeholder="例: 日本標準飼料成分表2009年版（任意）" maxlength="120">
+      <div style="font-size:11px;color:var(--text-sub);margin-top:2px;">成分値の根拠・参考資料を記録できます</div>
+    </div>
     <button class="btn btn-primary" onclick="submitFeed()" id="modal-submit-btn">追加する</button>
   </div>
 </div>
@@ -539,6 +544,17 @@ const DEFAULT_FEEDS = [
   {cat:"購入粗飼料",name:"輸入オーツヘイ2023.06",cp:9.8,fat:2.9,cf:null,adf:28.9,ndf:54,ash:3.8,tdn:65,ca:0.2,p:0.19,mg:0.19,k:1.43,nfc:28.9,rdp:7.15,moisture:17.43},
   {cat:"購入粗飼料",name:"輸入ライグラス202306",cp:5.8,fat:1.6,cf:null,adf:39.5,ndf:68.2,ash:4.6,tdn:58,ca:0.4,p:0.17,mg:0.15,k:1.51,nfc:20.3,rdp:3.89,moisture:12.01},
   {cat:"購入粗飼料",name:"輸入オーツヘイ30CF35標準値",cp:6.4,fat:1.7,cf:37.3,adf:39.4,ndf:61,ash:7.2,tdn:52.8,ca:0.22,p:0.17,mg:0.14,k:1.52,nfc:23.7,rdp:4.61,moisture:12.0},
+
+  // ===== 追加飼料（2025年調査・第一飼料原物値DM換算 + 日本標準飼料成分表2009年版）=====
+  {cat:"濃厚飼料",name:"加熱圧ぺんトウモロコシ（標準）",cp:8.9,fat:3.8,cf:null,adf:null,ndf:11.5,ash:null,tdn:93.6,ca:0.02,p:0.29,mg:null,k:null,nfc:null,rdp:null,moisture:14.5,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"濃厚飼料",name:"圧ぺん小麦（標準）",cp:13.9,fat:2.2,cf:null,adf:null,ndf:15.0,ash:null,tdn:90.5,ca:0.04,p:0.37,mg:null,k:null,nfc:null,rdp:null,moisture:13.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"濃厚飼料",name:"圧ぺんえん麦（オーツ・標準）",cp:9.9,fat:4.3,cf:null,adf:null,ndf:31.0,ash:null,tdn:85.1,ca:0.10,p:0.33,mg:null,k:null,nfc:null,rdp:null,moisture:13.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"副産物",name:"コーングルテンフィード（標準）",cp:23.5,fat:3.5,cf:null,adf:null,ndf:43.0,ash:null,tdn:84.9,ca:0.08,p:0.83,mg:null,k:null,nfc:null,rdp:null,moisture:11.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"副産物",name:"ビートパルプ（輸入・乾・標準）",cp:12.3,fat:1.0,cf:null,adf:null,ndf:50.0,ash:null,tdn:73.0,ca:0.67,p:0.09,mg:null,k:null,nfc:null,rdp:null,moisture:11.5,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"副産物",name:"ルーサンペレット（アルファルファ・標準）",cp:18.3,fat:2.5,cf:null,adf:null,ndf:38.0,ash:null,tdn:60.7,ca:1.49,p:0.23,mg:null,k:null,nfc:null,rdp:null,moisture:10.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"副産物",name:"大豆皮ペレット（ソイハル・標準）",cp:10.1,fat:2.3,cf:null,adf:null,ndf:67.0,ash:null,tdn:61.8,ca:0.50,p:0.17,mg:null,k:null,nfc:null,rdp:null,moisture:11.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版"},
+  {cat:"副産物",name:"綿実（ホールコットンシード・標準）",cp:22.0,fat:18.0,cf:null,adf:null,ndf:47.0,ash:null,tdn:89.0,ca:0.14,p:0.57,mg:null,k:null,nfc:null,rdp:null,moisture:9.0,source:"CP/TDN: 第一飼料㈱原物実測値をDM換算 / NDF・Ca・P: 日本標準飼料成分表2009年版 ※脂肪18%と高いため給与は乾物中5%以下を厳守"},
+  {cat:"購入粗飼料",name:"オーチャードグラス乾草（1番草・出穂期・標準）",cp:13.0,fat:3.5,cf:null,adf:39.3,ndf:64.4,ash:null,tdn:61.0,ca:0.39,p:0.23,mg:null,k:null,nfc:null,rdp:null,moisture:16.3,source:"全成分: 日本標準飼料成分表2009年版（G13: オーチャード1番草出穂期）/ TDNのみADF推定式（93.2−0.83×ADF）による計算値"},
   {cat:"購入粗飼料",name:"ヘイキューブ普及品",cp:16.5,fat:2.9,cf:30,adf:36.9,ndf:45.6,ash:12.9,tdn:55.2,ca:1.66,p:0.25,mg:0.35,k:2.5,nfc:22.1,rdp:11.55,moisture:10.8},
 ];
 
@@ -889,6 +905,7 @@ function renderMaster(){
       html+='<div><span>Ca</span> '+(f.ca??'-')+'%</div><div><span>P</span> '+(f.p??'-')+'%</div>';
       html+='<div><span>脂肪</span> '+(f.fat??'-')+'%</div><div><span>水分</span> '+(f.moisture??'-')+'%</div>';
       html+='<div style="grid-column:1/-1;"><span>💴 単価</span> '+pd+'</div>';
+      if(f.source){html+='<div style="grid-column:1/-1;font-size:11px;color:var(--text-sub);padding-top:2px;"><span>📋 出典</span> '+f.source.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>';}
       html+='</div></div>';
     });
   });
@@ -911,6 +928,7 @@ function openAddModal(){
     if(el.tagName==='SELECT')el.value='配合飼料';else el.value='';
   });
   document.getElementById('m-price').value='';
+  document.getElementById('m-source').value='';
   var _prices=JSON.parse(lsGet('feed_prices','{}'));
   document.getElementById('m-price').value=_prices[name]!=null?_prices[name]:'';
   document.getElementById('feed-modal').classList.add('open');
@@ -925,6 +943,7 @@ function openEditModal(name){
   ['cp','tdn','fat','ndf','adf','ash','nfc','rdp','ca','p','mg','k','moisture'].forEach(k=>{
     document.getElementById('m-'+k).value=f[k]??'';
   });
+  document.getElementById('m-source').value=f.source??'';
   document.getElementById('feed-modal').classList.add('open');
 }
 function closeModal(){document.getElementById('feed-modal').classList.remove('open');}
@@ -938,7 +957,8 @@ function submitFeed(){
   const fat=n('fat')??0,ndf=n('ndf'),ash=n('ash')??0;
   let nfc=n('nfc');
   if(nfc===null&&ndf!==null)nfc=parseFloat((100-ndf-cp-fat-ash).toFixed(2));
-  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca')??0,p:n('p')??0,mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,custom:true};
+  const _src=document.getElementById('m-source').value.trim();
+  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca')??0,p:n('p')??0,mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,source:_src||null,custom:true};
   if(_editingName){
     deleteFeed(_editingName,isCustomFeed(_editingName));
   } else {
