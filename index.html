@@ -758,7 +758,7 @@ function calculate(){
     cp:Math.round(totalCP),tdn:parseFloat(totalTDN.toFixed(2)),
     dm:parseFloat(totalDM.toFixed(2)),ca:Math.round(totalCa),p:Math.round(totalP),
     pctCP:Math.round(pctCP),pctTDN:Math.round(pctTDN),pctDM:Math.round(pctDM),
-    fatPct:parseFloat(fatPct.toFixed(1)),nfcPct:parseFloat(nfcPct.toFixed(1)),nr:parseFloat(nr.toFixed(1)),
+    cpPct:parseFloat(cpPct.toFixed(1)),fatPct:parseFloat(fatPct.toFixed(1)),nfcPct:parseFloat(nfcPct.toFixed(1)),nr:parseFloat(nr.toFixed(1)),
     rdpNfc:rdpNfcRatio?`1:${(1/rdpNfcRatio).toFixed(1)}`:'-'
   };
 }
@@ -1556,7 +1556,7 @@ function showHistoryDetail(index){
   const _caPBadge=_caPR==='-'?'':(_caPOk?'<span class="badge badge-ok">✓</span>':parseFloat(_caPR)<1.5?'<span class="badge badge-ng">Pが多い</span>':'<span class="badge badge-warn">Caが多い</span>');
   // 各バッジ
   const _fatBadge=h.fatPct<=req.fat_max?'<span class="badge badge-ok">✓ &lt;5%</span>':'<span class="badge badge-ng">✗ 超過</span>';
-  const _cpPct2=h.cpPct||(h.dm>0?parseFloat((h.cp/10/h.dm*100).toFixed(1)):'-');
+  const _cpPct2=h.cpPct||(h.dm>0?parseFloat((h.cp/h.dm/10).toFixed(1)):'-');
   const _cpBadge=_cpPct2!=='-'&&_cpPct2>=req.cp_pct?`<span class="badge badge-ok">✓ ≥${req.cp_pct}%</span>`:`<span class="badge badge-warn">△ &lt;${req.cp_pct}%</span>`;
   const _nrV=parseFloat(h.nr)||0;
   const _nrRng=(req.nr||'3.5〜5.0').toString().split('〜');
