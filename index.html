@@ -210,6 +210,13 @@
     <div class="card-title">📦 飼料データベース</div>
     <input type="text" id="master-search" placeholder="飼料名で検索..." oninput="renderMaster()" style="margin-bottom:10px;">
     <button class="btn btn-primary" onclick="openAddModal()" style="margin-bottom:12px;">＋ 新しい飼料を追加</button>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-outline btn-sm" onclick="exportCustomFeeds()" style="flex:1;border-color:#1565c0;color:#1565c0;">📤 飼料データをエクスポート</button>
+      <label class="btn btn-outline btn-sm" style="flex:1;border-color:#2e7d32;color:#2e7d32;text-align:center;cursor:pointer;">
+        📥 飼料データをインポート
+        <input type="file" id="feed-import-file" accept=".json" style="display:none;" onchange="importCustomFeeds(event)">
+      </label>
+    </div>
     <div id="master-list"></div>
   </div>
 </div>
@@ -1928,6 +1935,68 @@ document.addEventListener('DOMContentLoaded',function(){
     }
   }
 });
+
+function exportCustomFeeds(){
+  var custom = JSON.parse(lsGet('custom_feeds','[]'));
+  var deleted = JSON.parse(lsGet('deleted_feeds','[]'));
+  if(custom.length === 0 && deleted.length === 0){
+    showToast('エクスポートする飼料データがありません');return;
+  }
+  var data = {
+    version: 1,
+    type: 'feed_backup',
+    exportedAt: new Date().toLocaleString('ja-JP'),
+    custom_feeds: custom,
+    deleted_feeds: deleted
+  };
+  var json = JSON.stringify(data, null, 2);
+  var date = new Date().toISOString().slice(0,10);
+  try {
+    var dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+    var a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'feeds_backup_' + date + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('📤 飼料データをエクスポートしました（追加:' + custom.length + '件）');
+  } catch(e) {
+    var w = window.open();
+    w.document.write('<pre>' + json + '</pre>');
+    showToast('画面を長押し→保存してください');
+  }
+}
+
+function importCustomFeeds(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      var data = JSON.parse(e.target.result);
+      if(data.type !== 'feed_backup' || !Array.isArray(data.custom_feeds)){
+        showToast('⚠️ 正しい飼料バックアップファイルではありません');return;
+      }
+      var existing = JSON.parse(lsGet('custom_feeds','[]'));
+      var existingNames = new Set(existing.map(function(f){return f.name;}));
+      var newFeeds = data.custom_feeds.filter(function(f){return !existingNames.has(f.name);});
+      lsSet('custom_feeds', JSON.stringify([...existing, ...newFeeds]));
+
+      if(Array.isArray(data.deleted_feeds)){
+        var existingDel = JSON.parse(lsGet('deleted_feeds','[]'));
+        var merged = [...new Set([...existingDel, ...data.deleted_feeds])];
+        lsSet('deleted_feeds', JSON.stringify(merged));
+      }
+
+      renderMaster();
+      showToast('📥 ' + newFeeds.length + '件の飼料をインポートしました（重複' + (data.custom_feeds.length - newFeeds.length) + '件スキップ）');
+    } catch(err){
+      showToast('⚠️ ファイルの読み込みに失敗しました');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
