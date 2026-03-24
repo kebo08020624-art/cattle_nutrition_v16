@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v46</title>
+<title>繁殖和牛 栄養計算 v47</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -755,6 +755,33 @@ function calculate(){
   const caPOk = caPRatio>=1.5 && caPRatio<=2.5;
   const caPBadge = caPRatio===0?'<span class="badge badge-info">P=0</span>':caPOk?'<span class="badge badge-ok">✓ 適正</span>':caPRatio<1.5?'<span class="badge badge-ng">✗ Pが多い</span>':'<span class="badge badge-warn">△ Caが多い</span>';
 
+    // DMI計算
+  const bwNow = loadBWSettings().bw;
+  const dmiPct = bwNow > 0 ? parseFloat((totalDM / bwNow * 100).toFixed(1)) : null;
+  const dmiBadge = dmiPct !== null && dmiPct > 1.5
+    ? '<span class="badge badge-ng">⚠ 超過</span>'
+    : '<span class="badge badge-ok">✓</span>';
+  const dmiHtml = dmiPct !== null
+    ? `<tr><td>DMI <span style="font-size:10px;color:var(--text-sub)">(体重比)</span></td><td>${totalDM.toFixed(2)}kg (${dmiPct}%)</td><td>${dmiBadge} 上限1.5%</td></tr>`
+    : '';
+
+  // DCAD（稲わら割合）計算
+  const strawFeeds = ['稲わら'];
+  let strawNDF = 0;
+  rows.forEach(function(r){
+    if(strawFeeds.some(function(s){return r.feed.name.indexOf(s)>=0;})){
+      const dm = r.amount*(1-(r.feed.moisture||0)/100);
+      strawNDF += dm*(r.feed.ndf||0)/100;
+    }
+  });
+  const totalNDFkg = rows.reduce(function(s,r){
+    return s + r.amount*(1-(r.feed.moisture||0)/100)*(r.feed.ndf||0)/100;
+  }, 0);
+  const strawRatioPct = totalNDFkg > 0 ? Math.round(strawNDF / totalNDFkg * 100) : 0;
+  const dcadHtml = stage === 'pre'
+    ? `<tr><td>DCAD管理</td><td>${strawRatioPct > 0 ? '稲わら' + strawRatioPct + '%' : '-'}</td><td>${strawRatioPct > 40 ? '<span class="badge badge-warn">⚠ K過多</span>' : '<span class="badge badge-ok">✓ 管理可</span>'} 目標−50〜−150</td></tr>`
+    : '';
+
   document.getElementById('result-detail').innerHTML=`<table class="full-result-table">
     <tr><th>指標</th><th>値</th><th>判定</th></tr>
     <tr><td>粗脂肪%DM</td><td>${fatPct.toFixed(1)}%</td><td>${fatPct<=req.fat_max?'<span class="badge badge-ok">✓ <5%</span>':'<span class="badge badge-ng">✗ 超過</span>'}</td></tr>
@@ -763,6 +790,8 @@ function calculate(){
     <tr><td>NR　<span style="font-size:10px;color:var(--text-sub)">(TDN-CP)/CP</span></td><td>${nr.toFixed(1)}</td><td>${nrBadge} 目安 ${req.nr}</td></tr>
     <tr><td>Ca:P比</td><td>${caPRatio.toFixed(2)}</td><td>${caPBadge} 目安 1.5〜2.5</td></tr>
     ${rdpNfcHtml}
+    ${dmiHtml}
+    ${dcadHtml}
   </table>`;
 
   let notes='';
@@ -782,7 +811,8 @@ function calculate(){
     dm:parseFloat(totalDM.toFixed(2)),ca:Math.round(totalCa),p:Math.round(totalP),
     pctCP:Math.round(pctCP),pctTDN:Math.round(pctTDN),pctDM:Math.round(pctDM),
     cpPct:parseFloat(cpPct.toFixed(1)),fatPct:parseFloat(fatPct.toFixed(1)),nfcPct:parseFloat(nfcPct.toFixed(1)),nr:parseFloat(nr.toFixed(1)),
-    rdpNfc:rdpNfcRatio?`1:${(1/rdpNfcRatio).toFixed(1)}`:'-'
+    rdpNfc:rdpNfcRatio?`1:${(1/rdpNfcRatio).toFixed(1)}`:'-',
+    dmiPct:dmiPct, strawRatio:strawRatioPct
   };
 }
 
