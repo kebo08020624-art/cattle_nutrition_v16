@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v47</title>
+<title>繁殖和牛 栄養計算 v53</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -156,6 +156,10 @@
       <div class="note" style="margin-top:4px;">乳量に合わせて要求量を自動計算します</div>
     </div>
     <div id="stage-req-info" class="note" style="margin-top:8px;"></div>
+    <div style="margin-top:10px;">
+      <label style="font-size:12px;color:var(--text-sub);">📅 計算日</label>
+      <input type="date" id="calc-date" style="margin-top:4px;width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+    </div>
   </div>
   <div class="card">
     <div class="card-title">🌾 給与飼料</div>
@@ -828,7 +832,15 @@ function confirmSave(){
   const farmer=document.getElementById('save-farmer').value.trim();
   const memo=document.getElementById('save-memo').value.trim();
   const h=JSON.parse(lsGet('cattle_history', '[]'));
-  h.unshift({...window._lastResult, farmer, memo, date:new Date().toLocaleString('ja-JP')});
+    const calcDateEl = document.getElementById('calc-date');
+  let saveDate;
+  if(calcDateEl && calcDateEl.value){
+    const d = new Date(calcDateEl.value + 'T00:00:00');
+    saveDate = d.toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'/');
+  } else {
+    saveDate = new Date().toLocaleString('ja-JP');
+  }
+  h.unshift({...window._lastResult, farmer, memo, date:saveDate});
   if(h.length>50)h.pop();
   lsSet('cattle_history', JSON.stringify(h));
   closeSaveModal();
@@ -1054,138 +1066,310 @@ function setHistView(mode){
 
 function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
   const container = document.getElementById('history-list');
-  // 農家名でグループ化
-  const groups = {};
+  const STAGE_ORDER = ['pre','post0','post90','maint'];
+  const STAGE_COLOR = {
+    pre:   {bg:'#fce4ec', color:'#880e4f', icon:'🤰'},
+    post0: {bg:'#e3f2fd', color:'#0d47a1', icon:'🍼'},
+    post90:{bg:'#e8eaf6', color:'#1a237e', icon:'🥛'},
+    maint: {bg:'#e8f5e9', color:'#1b5e20', icon:'🌿'}
+  };
+  function sc(p){return p>=90&&p<=120?'#e8f5e9':p>=75?'#fff3e0':'#ffebee';}
+
+  // 農家でグループ化
+  const farmerMap = {};
   filtered.forEach((h,i)=>{
-    const key = h.farmer || '（農家名なし）';
-    if(!groups[key]) groups[key]=[];
-    groups[key].push({h, realIdx: indexMap[i]});
+    const fKey = h.farmer || '（農家名なし）';
+    if(!farmerMap[fKey]) farmerMap[fKey] = {};
+    const sKey = h.stage || 'maint';
+    if(!farmerMap[fKey][sKey]) farmerMap[fKey][sKey] = [];
+    farmerMap[fKey][sKey].push({h, realIdx: indexMap[i]});
   });
+
   let html = '';
-  Object.keys(groups).sort().forEach(farmer=>{
-    const items = groups[farmer];
-    html += `<div style="margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:700;color:var(--primary);padding:8px 10px;background:#e8f5e9;border-radius:8px;margin-bottom:6px;">
-        🏠 ${farmer} <span style="font-size:11px;color:var(--text-sub);font-weight:400;">(${items.length}件)</span>
-      </div>`;
-    items.forEach(({h, realIdx})=>{
-      const fl = h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
-      const memoLine = h.memo?`<div style="font-size:11px;color:#795548;margin-bottom:3px;">📝 ${h.memo}</div>`:'';
-      function sc(p){return p>=90&&p<=120?'#e8f5e9':p>=75?'#fff3e0':'#ffebee';}
-      html += `<div class="history-item" style="cursor:pointer;margin-left:8px;" onclick="showHistoryDetail(${realIdx})">
-        <div class="history-header">
-          <span class="history-stage" style="font-size:12px;">${h.stageName}</span>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span class="history-date">${h.date}</span>
+  Object.keys(farmerMap).sort().forEach(farmer=>{
+    const stageMap = farmerMap[farmer];
+    const totalCount = Object.values(stageMap).reduce((s,a)=>s+a.length,0);
+    const farmerId = 'farmer-' + farmer.replace(/[^a-zA-Z0-9]/g,'_') + '_' + Math.random().toString(36).slice(2,6);
+
+    html += `<div style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0;">
+      <div style="font-size:13px;font-weight:700;color:var(--primary);padding:10px 12px;background:#e8f5e9;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleFarmerGroup('${farmerId}')">
+        <span>🏠 ${farmer}</span>
+        <span style="font-size:11px;color:var(--text-sub);font-weight:400;">${totalCount}件 ▾</span>
+      </div>
+      <div id="${farmerId}" style="padding:8px;">`;
+
+    // ステージ順に表示
+    STAGE_ORDER.forEach(stageKey=>{
+      const items = stageMap[stageKey];
+      if(!items || items.length===0) return;
+      const sc2 = STAGE_COLOR[stageKey] || {bg:'#f5f5f5',color:'#333',icon:'📋'};
+      const stageName = items[0].h.stageName || stageKey;
+      const stageId = farmerId + '_' + stageKey;
+
+      html += `<div style="margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;background:${sc2.bg};color:${sc2.color};margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleStageGroup('${stageId}')">
+          <span>${sc2.icon} ${stageName}</span>
+          <span style="font-size:11px;font-weight:400;">${items.length}件 ▾</span>
+        </div>
+        <div id="${stageId}">`;
+
+      items.forEach(({h, realIdx})=>{
+        const fl = h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
+        const memoLine = h.memo ? `<div style="font-size:11px;color:#795548;margin-bottom:3px;">📝 ${h.memo}</div>` : '';
+        const dmiLine = h.dmiPct ? `<span class="mini-result" style="background:${parseFloat(h.dmiPct)>1.5?'#ffebee':'#e8f5e9'}">DMI ${h.dmiPct}%</span>` : '';
+        html += `<div class="history-item" style="cursor:pointer;margin-left:6px;margin-bottom:6px;" onclick="showHistoryDetail(${realIdx})">
+          <div class="history-header">
+            <span style="font-size:11px;color:var(--text-sub);">${h.date}</span>
             <button class="btn btn-danger btn-sm hist-del-btn" data-idx="${realIdx}" onclick="event.stopPropagation();histDeleteClick(event)">削除</button>
           </div>
-        </div>
-        ${memoLine}
-        <div style="font-size:11px;color:var(--text-sub);margin-bottom:4px;">${fl}</div>
-        <div class="mini-results">
-          <span class="mini-result" style="background:${sc(h.pctCP)}">CP ${h.pctCP}%</span>
-          <span class="mini-result" style="background:${sc(h.pctTDN)}">TDN ${h.pctTDN}%</span>
-          <span class="mini-result">NFC ${h.nfcPct}%</span>
-          <span class="mini-result">NR ${h.nr}</span>
-        </div>
-      </div>`;
+          ${memoLine}
+          <div style="font-size:11px;color:var(--text-sub);margin-bottom:4px;">${fl}</div>
+          <div class="mini-results">
+            <span class="mini-result" style="background:${sc(h.pctCP)}">CP ${h.pctCP}%</span>
+            <span class="mini-result" style="background:${sc(h.pctTDN)}">TDN ${h.pctTDN}%</span>
+            <span class="mini-result">NFC ${h.nfcPct}%</span>
+            <span class="mini-result">NR ${h.nr}</span>
+            ${dmiLine}
+          </div>
+          <div style="text-align:right;font-size:10px;color:var(--text-sub);margin-top:3px;">タップで詳細 ▶</div>
+        </div>`;
+      });
+
+      html += `</div></div>`; // stageId div & stage block div
     });
-    html += '</div>';
+
+    html += `</div></div>`; // farmerId div & farmer block div
   });
+
   container.innerHTML = html;
+}
+
+function toggleFarmerGroup(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  var hdr = el.previousElementSibling;
+  if(hdr){
+    var arrow = hdr.querySelector('span:last-child');
+    if(arrow) arrow.textContent = arrow.textContent.replace(isHidden ? '▸' : '▾', isHidden ? '▾' : '▸');
+  }
+}
+
+function toggleStageGroup(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? 'block' : 'none';
+  var hdr = el.previousElementSibling;
+  if(hdr){
+    var arrow = hdr.querySelector('span:last-child');
+    if(arrow) arrow.textContent = arrow.textContent.replace(isHidden ? '▸' : '▾', isHidden ? '▾' : '▸');
+  }
 }
 
 function renderHistoryGraph(){
   const allHistory = JSON.parse(lsGet('cattle_history','[]'));
-  if(allHistory.length===0){
-    document.getElementById('hist-graph-area').innerHTML='<div class="note">履歴がありません</div>';return;
-  }
-  // 農家フィルター用のセレクト
-  const farmers = [...new Set(allHistory.map(h=>h.farmer||'（農家名なし）'))].sort();
-  const selVal = (document.getElementById('graph-farmer-sel')||{value:'all'}).value||'all';
-  let data = selVal==='all' ? allHistory : allHistory.filter(h=>(h.farmer||'（農家名なし）')===selVal);
-  data = [...data].reverse(); // 古い順に
-  if(data.length===0){
-    document.getElementById('hist-graph-area').innerHTML='<div class="note">該当する履歴がありません</div>';return;
-  }
+  const area = document.getElementById('hist-graph-area');
+  if(allHistory.length===0){area.innerHTML='<div class="note">履歴がありません</div>';return;}
 
-  const labels = data.map(h=>{
-    const d=h.date.split(' ')[0]; return d;
+  const STAGE_ORDER=['pre','post0','post90','maint'];
+  const STAGE_META={
+    pre:  {name:'分娩前',    color:'#e91e63',bg:'#fce4ec',icon:'🤰'},
+    post0:{name:'泌乳(前期)',color:'#1565c0',bg:'#e3f2fd',icon:'🍼'},
+    post90:{name:'泌乳(後期)',color:'#512da8',bg:'#ede7f6',icon:'🥛'},
+    maint:{name:'維持期',    color:'#2e7d32',bg:'#e8f5e9',icon:'🌿'}
+  };
+
+  // 表示項目定義
+  const METRICS=[
+    {key:'pctCP',  label:'CP充足率',  unit:'%', color:'#2e7d32', yMax:150, group:'pct'},
+    {key:'pctTDN', label:'TDN充足率', unit:'%', color:'#1565c0', yMax:150, group:'pct'},
+    {key:'pctDM',  label:'DM充足率',  unit:'%', color:'#e65100', yMax:150, group:'pct'},
+    {key:'cpPct',  label:'CP%DM',     unit:'%', color:'#00897b', yMax:25,  group:'raw'},
+    {key:'nfcPct', label:'NFC%DM',    unit:'%', color:'#f57c00', yMax:35,  group:'raw'},
+    {key:'nr',     label:'NR',         unit:'',  color:'#8e24aa', yMax:8,   group:'raw'},
+    {key:'dmiPct', label:'DMI%',       unit:'%', color:'#c62828', yMax:2.5, group:'raw'},
+  ];
+
+  // 選択状態 (グローバル変数として管理)
+  if(!window._graphSel) window._graphSel = {pctCP:true,pctTDN:true,pctDM:true,cpPct:false,nfcPct:false,nr:false,dmiPct:false};
+  const sel = window._graphSel;
+
+  const farmers=['all',...new Set(allHistory.map(h=>h.farmer||'（農家名なし）'))];
+  const selFarmer=(document.getElementById('graph-farmer-sel')||{value:'all'}).value||'all';
+  const selStage =(document.getElementById('graph-stage-sel') ||{value:'all'}).value||'all';
+
+  const farmerOpts='<option value="all">全農家</option>'+farmers.slice(1).sort().map(f=>`<option value="${f}"${selFarmer===f?' selected':''}>${f}</option>`).join('');
+  const stageOpts ='<option value="all">全ステージ</option>'+STAGE_ORDER.map(s=>`<option value="${s}"${selStage===s?' selected':''}>${STAGE_META[s].icon} ${STAGE_META[s].name}</option>`).join('');
+
+  let data=allHistory.filter(h=>{
+    const fm=selFarmer==='all'||(h.farmer||'（農家名なし）')===selFarmer;
+    const sm=selStage==='all'||(h.stage||'maint')===selStage;
+    return fm&&sm;
   });
-  const cpPcts  = data.map(h=>h.pctCP);
-  const tdnPcts = data.map(h=>h.pctTDN);
-  const dmPcts  = data.map(h=>h.pctDM);
+  data=[...data].reverse();
 
-  const W=320, H=200, PL=40, PR=16, PT=24, PB=50;
+  const filterBar=`<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+    <select id="graph-farmer-sel" onchange="renderHistoryGraph()" style="flex:1;min-width:100px;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;">${farmerOpts}</select>
+    <select id="graph-stage-sel"  onchange="renderHistoryGraph()" style="flex:1;min-width:100px;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;">${stageOpts}</select>
+  </div>`;
+
+  // 項目選択トグルボタン
+  const toggleBtns=METRICS.map(m=>{
+    const on=sel[m.key];
+    return `<button onclick="graphToggle('${m.key}')" style="font-size:10px;padding:3px 8px;border-radius:10px;border:1.5px solid ${m.color};background:${on?m.color:'white'};color:${on?'white':m.color};touch-action:manipulation;cursor:pointer;white-space:nowrap;">${on?'✓ ':''}${m.label}</button>`;
+  }).join('');
+  const toggleBar=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">${toggleBtns}</div>`;
+
+  if(data.length===0){
+    area.innerHTML=`<div class="card" style="padding:10px;"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">📈 栄養推移グラフ</div>${filterBar}${toggleBar}<div class="note">該当する履歴がありません</div></div>`;return;
+  }
+
+  const activeMetrics=METRICS.filter(m=>sel[m.key]);
+  if(activeMetrics.length===0){
+    area.innerHTML=`<div class="card" style="padding:10px;"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">📈 栄養推移グラフ</div>${filterBar}${toggleBar}<div class="note">表示する項目を選択してください</div></div>`;return;
+  }
+
+  // 混合グループのとき2軸にするか判断
+  const hasPct  = activeMetrics.some(m=>m.group==='pct');
+  const hasRaw  = activeMetrics.some(m=>m.group==='raw');
+  // 軸モード: 生値のみ→右軸のみ、充足率のみ→左軸のみ、両方→両軸
+  const onlyRaw  = hasRaw && !hasPct;
+  const onlyPct  = hasPct && !hasRaw;
+  const dualAxis = hasPct && hasRaw;
+  const showRight = hasRaw; // 生値があれば常に右軸表示
+
+  // Y軸スケール決定
+  let maxL=0, maxR=0;
+  activeMetrics.forEach(m=>{
+    const vals=data.map(h=>parseFloat(h[m.key])||0).filter(v=>v>0);
+    const mx=vals.length?Math.max(...vals):0;
+    if(m.group==='pct') maxL=Math.max(maxL,mx);
+    else maxR=Math.max(maxR,mx);
+  });
+  maxL=Math.max(maxL,120)+15; maxR=maxR>0?maxR*1.3:10;
+
+  const W=320,H=220,PL=40,PR=showRight?36:16,PT=20,PB=54;
   const gW=W-PL-PR, gH=H-PT-PB;
-  const allVals=[...cpPcts,...tdnPcts,...dmPcts].filter(v=>v!=null&&!isNaN(v)&&isFinite(v));
-  const minV=0;
-  const maxV=allVals.length>0?Math.max(120,Math.min(200,Math.max(...allVals)+15)):150;
-
-  function xPos(i){ return PL + (data.length<=1?gW/2:i/(data.length-1)*gW); }
-  function yPos(v){ return PT + gH - (v-minV)/(maxV-minV)*gH; }
-  function polyline(vals,color){
-    const pts=vals.map((v,i)=>`${xPos(i).toFixed(1)},${yPos(v).toFixed(1)}`).join(' ');
-    return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
-  }
-  function dots(vals,color){
-    return vals.map((v,i)=>`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(v).toFixed(1)}" r="3" fill="${color}"/>`).join('');
+  function xPos(i){return PL+(data.length<=1?gW/2:i/(data.length-1)*gW);}
+  function yPosL(v){return PT+gH-(Math.max(0,v)/maxL)*gH;}
+  function yPosR(v){return PT+gH-(Math.max(0,v)/maxR)*gH;}
+  function yPosFor(m,v){
+    if(onlyRaw) return yPosR(v);   // 生値のみ→右軸スケール使用
+    return m.group==='pct'?yPosL(v):yPosR(v);
   }
 
-  // 目標ライン（90%・110%）
-  const y90  = yPos(90).toFixed(1);
-  const y110 = yPos(110).toFixed(1);
-  const y100 = yPos(100).toFixed(1);
-
-  // Y軸ラベル
-  let yLabels='';
-  for(let v=Math.ceil(minV/20)*20; v<=maxV; v+=20){
-    const y=yPos(v).toFixed(1);
-    yLabels+=`<line x1="${PL}" y1="${y}" x2="${PL+gW}" y2="${y}" stroke="#eee" stroke-width="1"/>
-    <text x="${PL-4}" y="${parseFloat(y)+4}" text-anchor="end" font-size="9" fill="#999">${v}</text>`;
+  // グリッド+Y軸左（充足率がある時のみ左軸ラベル表示）
+  let yGrid='';
+  for(let v=0;v<=maxL;v+=20){
+    const y=yPosL(v).toFixed(1);
+    if(!onlyRaw){
+      // 充足率あり→左軸ラベル + グリッド線
+      yGrid+=`<line x1="${PL}" y1="${y}" x2="${PL+gW}" y2="${y}" stroke="#eee" stroke-width="1"/>
+      <text x="${PL-4}" y="${parseFloat(y)+4}" text-anchor="end" font-size="9" fill="#999">${v}</text>`;
+    }
+  }
+  // 生値のみの場合: 右軸スケールでグリッド線を描く
+  if(onlyRaw){
+    const rStep=maxR>5?Math.ceil(maxR/5):maxR>1?0.5:0.2;
+    for(let v=0;v<=maxR;v=parseFloat((v+rStep).toFixed(2))){
+      const y=yPosR(v).toFixed(1);
+      yGrid+=`<line x1="${PL}" y1="${y}" x2="${PL+gW}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
+    }
   }
 
-  // X軸ラベル（最大5件表示）
+  // Y軸右（生値がある時は常に表示）
+  let yGridR='';
+  if(showRight){
+    const rightMetric=activeMetrics.find(m=>m.group==='raw');
+    const rColor=rightMetric?rightMetric.color:'#888';
+    const rStep=maxR>5?Math.ceil(maxR/5):maxR>1?0.5:0.2;
+    for(let v=0;v<=maxR;v=parseFloat((v+rStep).toFixed(2))){
+      const y=yPosR(v).toFixed(1);
+      yGridR+=`<text x="${PL+gW+4}" y="${parseFloat(y)+4}" text-anchor="start" font-size="9" fill="${rColor}">${v%1===0?v:v.toFixed(1)}</text>`;
+    }
+  }
+
+  // 90/110%ライン（充足率項目がある時）
+  let refLines='';
+  if(hasPct){
+    const y90=yPosL(90).toFixed(1),y110=yPosL(110).toFixed(1),y100=yPosL(100).toFixed(1);
+    refLines=`<line x1="${PL}" y1="${y90}"  x2="${PL+gW}" y2="${y90}"  stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
+    <line x1="${PL}" y1="${y110}" x2="${PL+gW}" y2="${y110}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
+    <line x1="${PL}" y1="${y100}" x2="${PL+gW}" y2="${y100}" stroke="#4caf50" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="${PL+gW+2}" y="${parseFloat(y90)+3}"  font-size="8" fill="#ff8f00">90</text>
+    <text x="${PL+gW+2}" y="${parseFloat(y110)+3}" font-size="8" fill="#ff8f00">110</text>`;
+  }
+
+  // ライン＆ドット描画
+  let lines='',dots='';
+  const stageDots=selStage==='all';
+  activeMetrics.forEach(m=>{
+    const vals=data.map(h=>parseFloat(h[m.key]));
+    const validPts=vals.map((v,i)=>({v,i})).filter(p=>p.v!=null&&!isNaN(p.v));
+    if(validPts.length<1) return;
+    // ライン
+    if(validPts.length>1){
+      const pts=validPts.map(p=>`${xPos(p.i).toFixed(1)},${yPosFor(m,p.v).toFixed(1)}`).join(' ');
+      lines+=`<polyline points="${pts}" fill="none" stroke="${m.color}" stroke-width="2" stroke-linejoin="round" opacity="0.85"/>`;
+    }
+    // ドット
+    validPts.forEach(p=>{
+      const dotColor=stageDots?(STAGE_META[data[p.i].stage||'maint']||STAGE_META.maint).color:m.color;
+      dots+=`<circle cx="${xPos(p.i).toFixed(1)}" cy="${yPosFor(m,p.v).toFixed(1)}" r="3.5" fill="${dotColor}" stroke="white" stroke-width="1"/>`;
+    });
+  });
+
+  // X軸ラベル
   let xLabels='';
-  const step = data.length<=5?1:Math.ceil(data.length/5);
-  for(let i=0;i<data.length;i+=step){
-    const lbl=labels[i].slice(5); // MM/DD
-    xLabels+=`<text x="${xPos(i).toFixed(1)}" y="${H-PT+8}" text-anchor="middle" font-size="8" fill="#999">${lbl}</text>`;
+  const step2=data.length<=6?1:Math.ceil(data.length/6);
+  for(let i=0;i<data.length;i+=step2){
+    xLabels+=`<text x="${xPos(i).toFixed(1)}" y="${H-PB+14}" text-anchor="middle" font-size="8" fill="#999">${data[i].date.split(' ')[0].slice(5)}</text>`;
+    if(stageDots){
+      const sm=STAGE_META[data[i].stage||'maint']||STAGE_META.maint;
+      xLabels+=`<text x="${xPos(i).toFixed(1)}" y="${H-PB+25}" text-anchor="middle" font-size="9" fill="${sm.color}">${sm.icon}</text>`;
+    }
   }
 
-  const farmerOpts = `<option value="all">全農家</option>`+farmers.map(f=>`<option value="${f}" ${selVal===f?'selected':''}>${f}</option>`).join('');
+  // 凡例
+  const legendItems=activeMetrics.map(m=>`<span><span style="color:${m.color};">●</span> ${m.label}</span>`).join('');
+  const legend=`<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:11px;">${legendItems}${hasPct?'<span style="color:#ff8f00;">-- 90〜110%</span>':''}</div>`;
 
-  document.getElementById('hist-graph-area').innerHTML=`
-    <div class="card" style="padding:10px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:12px;font-weight:700;color:var(--primary);">📈 充足率の推移</span>
-        <select id="graph-farmer-sel" onchange="renderHistoryGraph()" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;">${farmerOpts}</select>
-      </div>
-      <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:hidden;display:block;">
-        ${yLabels}
-        <line x1="${PL}" y1="${y90}" x2="${PL+gW}" y2="${y90}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
-        <line x1="${PL}" y1="${y110}" x2="${PL+gW}" y2="${y110}" stroke="#ff8f00" stroke-width="1" stroke-dasharray="4,2"/>
-        <line x1="${PL}" y1="${y100}" x2="${PL+gW}" y2="${y100}" stroke="#4caf50" stroke-width="1" stroke-dasharray="4,2"/>
-        <text x="${PL+gW+2}" y="${parseFloat(y90)+3}" font-size="8" fill="#ff8f00">90%</text>
-        <text x="${PL+gW+2}" y="${parseFloat(y110)+3}" font-size="8" fill="#ff8f00">110%</text>
-        ${polyline(cpPcts,'#2e7d32')}${dots(cpPcts,'#2e7d32')}
-        ${polyline(tdnPcts,'#1565c0')}${dots(tdnPcts,'#1565c0')}
-        ${polyline(dmPcts,'#e65100')}${dots(dmPcts,'#e65100')}
-        ${xLabels}
-        <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+gH}" stroke="#ccc" stroke-width="1"/>
-        <line x1="${PL}" y1="${PT+gH}" x2="${PL+gW}" y2="${PT+gH}" stroke="#ccc" stroke-width="1"/>
-      </svg>
-      <div style="display:flex;gap:12px;justify-content:center;margin-top:4px;font-size:11px;">
-        <span><span style="color:#2e7d32">●</span> CP</span>
-        <span><span style="color:#1565c0">●</span> TDN</span>
-        <span><span style="color:#e65100">●</span> DM</span>
-        <span style="color:#ff8f00">-- 90〜110%</span>
-      </div>
-      <div style="font-size:11px;color:#555;margin-top:8px;padding:6px 8px;background:#f9f9f9;border-radius:6px;">📊 NFC平均: <strong>${(data.map(h=>parseFloat(h.nfcPct)||0).reduce((a,b)=>a+b,0)/data.length).toFixed(1)}%</strong>　NR平均: <strong>${(data.map(h=>parseFloat(h.nr)||0).reduce((a,b)=>a+b,0)/data.length).toFixed(2)}</strong></div>
-      <button class="btn btn-outline" onclick="saveGraphAsImage()" style="margin-top:10px;font-size:12px;padding:8px;border-color:#1565c0;color:#1565c0;">📷 グラフを画像で保存</button>
-    </div>`;
+  // ステージ件数バッジ
+  let stageBadges='';
+  if(selStage==='all'){
+    stageBadges='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">';
+    STAGE_ORDER.forEach(s=>{
+      const n=data.filter(h=>(h.stage||'maint')===s).length;
+      if(n>0){const sm=STAGE_META[s];stageBadges+=`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${sm.bg};color:${sm.color};">${sm.icon}${sm.name} ${n}件</span>`;}
+    });
+    stageBadges+='</div>';
+  }
+
+  // 統計サマリー
+  const avgOf=k=>{const vals=data.map(h=>parseFloat(h[k])).filter(v=>!isNaN(v)&&v>0);return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):null;};
+  const statItems=activeMetrics.map(m=>{const a=avgOf(m.key);return a!=null?`${m.label}平均: <strong>${a.toFixed(m.group==='raw'&&m.key==='nr'?2:1)}${m.unit}</strong>`:null;}).filter(Boolean).join('　');
+
+  area.innerHTML=`<div class="card" style="padding:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;">📈 栄養推移グラフ</div>
+    ${filterBar}${toggleBar}
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;display:block;">
+      ${yGrid}${yGridR}${refLines}${lines}${dots}${xLabels}
+      <line x1="${PL}" y1="${PT}"    x2="${PL}"    y2="${PT+gH}" stroke="#ccc" stroke-width="1"/>
+      <line x1="${PL}" y1="${PT+gH}" x2="${PL+gW}" y2="${PT+gH}" stroke="#ccc" stroke-width="1"/>
+    </svg>
+    ${legend}${stageBadges}
+    ${statItems?`<div style="font-size:11px;color:#555;margin-top:8px;padding:6px 8px;background:#f9f9f9;border-radius:6px;">📊 ${statItems}</div>`:''}
+    <button class="btn btn-outline" onclick="saveGraphAsImage()" style="margin-top:10px;font-size:12px;padding:8px;border-color:#1565c0;color:#1565c0;">📷 グラフを画像で保存</button>
+  </div>`;
 }
 
+function graphToggle(key){
+  if(!window._graphSel) window._graphSel={pctCP:true,pctTDN:true,pctDM:true,cpPct:false,nfcPct:false,nr:false,dmiPct:false};
+  window._graphSel[key]=!window._graphSel[key];
+  renderHistoryGraph();
+}
 function saveGraphAsImage(){
   const svg = document.querySelector('#hist-graph-area svg');
   if(!svg){ showToast('グラフが表示されていません'); return; }
@@ -1586,7 +1770,12 @@ function showHistoryDetail(index){
 
   const farmerLine=h.farmer?`<div style="font-size:13px;font-weight:700;margin-bottom:6px;">🏠 ${h.farmer}</div>`:'';
   const memoLine=h.memo?`<div style="font-size:12px;background:#fff8e1;color:#795548;border-radius:6px;padding:6px 10px;margin-bottom:10px;">📝 ${h.memo}</div>`:'';
-  const dateLine=`<div style="font-size:11px;color:var(--text-sub);margin-bottom:6px;">📅 ${h.date}${h.bw?' ／ BW '+h.bw+'kg':''}${h.milkAmount?' ／ 🥛 '+h.milkAmount+'kg/日':''}</div>`;
+  const bwBadge = h.bw ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#e8eaf6;color:#283593;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">⚙️ BW ${h.bw}kg</span>` : '';
+  const milkBadge = h.milkAmount ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#e3f2fd;color:#0d47a1;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">🥛 ${h.milkAmount}kg/日</span>` : '';
+  const dateLine=`<div style="margin-bottom:10px;">
+    <div style="font-size:11px;color:var(--text-sub);margin-bottom:5px;">📅 ${h.date}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${bwBadge}${milkBadge}</div>
+  </div>`;
 
   // 給与飼料リスト
   const feedListHTML=`<div class="card-title" style="font-size:12px;margin-bottom:6px;">🌾 給与飼料</div>`+
@@ -2021,6 +2210,16 @@ document.addEventListener('DOMContentLoaded',function(){
       cb.parentElement.insertBefore(pb,cb.parentElement.firstChild);
     }
   }
+  // 計算日を今日にデフォルト設定
+  var dateEl = document.getElementById('calc-date');
+  if(dateEl){
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth()+1).padStart(2,'0');
+    var dd = String(today.getDate()).padStart(2,'0');
+    dateEl.value = yyyy+'-'+mm+'-'+dd;
+  }
+  onStageChange();
 });
 
 function exportCustomFeeds(){
