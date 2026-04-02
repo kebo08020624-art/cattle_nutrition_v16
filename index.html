@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
-<title>繁殖和牛 栄養計算 v53</title>
+<title>繁殖和牛 栄養計算 v56</title>
 <style>
   :root {
     --primary: #2e7d32; --primary-light: #4caf50; --accent: #ff8f00;
@@ -1074,6 +1074,22 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
     maint: {bg:'#e8f5e9', color:'#1b5e20', icon:'🌿'}
   };
   function sc(p){return p>=90&&p<=120?'#e8f5e9':p>=75?'#fff3e0':'#ffebee';}
+  function scBadge(p){
+    if(p>=90&&p<=120) return 'background:#e8f5e9;color:#1b5e20;';
+    if((p>=75&&p<90)||(p>120&&p<=140)) return 'background:#fff3e0;color:#e65100;';
+    return 'background:#ffebee;color:#c62828;';
+  }
+
+  // 旧データ補完（グラフと同様）
+  function enrichH(h){
+    var e=Object.assign({},h);
+    if((e.cpPct==null||isNaN(e.cpPct))&&e.cp>0&&e.dm>0) e.cpPct=parseFloat((e.cp/e.dm/10).toFixed(1));
+    if((e.nr==null||isNaN(parseFloat(e.nr)))&&e.tdn>0&&e.cp>0) e.nr=parseFloat(((e.tdn-e.cp/1000)/(e.cp/1000)).toFixed(2));
+    if((e.dmiPct==null||isNaN(e.dmiPct))&&e.dm>0&&e.bw>0) e.dmiPct=parseFloat((e.dm/e.bw*100).toFixed(1));
+    if(e.pctCa==null&&e.ca>0&&e.reqSnapshot&&e.reqSnapshot.ca>0) e.pctCa=Math.round(e.ca/e.reqSnapshot.ca*100);
+    if(e.pctP==null&&e.p>0&&e.reqSnapshot&&e.reqSnapshot.p>0) e.pctP=Math.round(e.p/e.reqSnapshot.p*100);
+    return e;
+  }
 
   // 農家でグループ化
   const farmerMap = {};
@@ -1082,8 +1098,48 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
     if(!farmerMap[fKey]) farmerMap[fKey] = {};
     const sKey = h.stage || 'maint';
     if(!farmerMap[fKey][sKey]) farmerMap[fKey][sKey] = [];
-    farmerMap[fKey][sKey].push({h, realIdx: indexMap[i]});
+    farmerMap[fKey][sKey].push({h:enrichH(h), realIdx: indexMap[i]});
   });
+
+  // 時系列テーブル生成
+  function buildTimelineTable(items, stageKey, sc2){
+    // 古い順に並べる
+    const sorted = [...items].reverse();
+    const COLS = [
+      {key:'date',    label:'日付',       fmt:h=>h.date.split(' ')[0]||h.date, style:'min-width:70px;font-weight:600;'},
+      {key:'pctCP',   label:'CP充足率',   fmt:h=>(h.pctCP!=null?h.pctCP+'%':'-'), colorFn:h=>h.pctCP!=null?scBadge(h.pctCP):''},
+      {key:'pctTDN',  label:'TDN充足率',  fmt:h=>(h.pctTDN!=null?h.pctTDN+'%':'-'), colorFn:h=>h.pctTDN!=null?scBadge(h.pctTDN):''},
+      {key:'pctDM',   label:'DM充足率',   fmt:h=>(h.pctDM!=null?h.pctDM+'%':'-'), colorFn:h=>h.pctDM!=null?scBadge(h.pctDM):''},
+      {key:'pctCa',   label:'Ca充足率',   fmt:h=>(h.pctCa!=null?h.pctCa+'%':'-'), colorFn:h=>h.pctCa!=null?scBadge(h.pctCa):''},
+      {key:'pctP',    label:'P充足率',    fmt:h=>(h.pctP!=null?h.pctP+'%':'-'), colorFn:h=>h.pctP!=null?scBadge(h.pctP):''},
+      {key:'fatPct',  label:'脂肪%DM',   fmt:h=>(h.fatPct!=null?h.fatPct+'%':'-'), colorFn:h=>h.fatPct!=null?(h.fatPct<=5?'background:#e8f5e9;color:#1b5e20;':'background:#ffebee;color:#c62828;'):''},
+      {key:'cpPct',   label:'CP%DM',      fmt:h=>(h.cpPct!=null?h.cpPct+'%':'-'), style:'min-width:60px;'},
+      {key:'nfcPct',  label:'NFC%DM',     fmt:h=>(h.nfcPct!=null?h.nfcPct+'%':'-'), style:'min-width:65px;'},
+      {key:'nr',      label:'NR',         fmt:h=>(h.nr!=null?h.nr:'-'), style:'min-width:45px;'},
+      {key:'caP',     label:'Ca:P比',     fmt:h=>(h.ca&&h.p&&h.p>0?(h.ca/h.p).toFixed(2):'-'), colorFn:h=>{const v=h.ca&&h.p&&h.p>0?h.ca/h.p:null;if(v==null)return'';return v>=1.5&&v<=2.5?'background:#e8f5e9;color:#1b5e20;':'background:#fff3e0;color:#e65100;';}},
+      {key:'rdpNfc',  label:'RDP:NFC',    fmt:h=>(h.rdpNfc||'-'), style:'min-width:60px;'},
+      {key:'dmiPct',  label:'DMI%',       fmt:h=>(h.dmiPct!=null?h.dmiPct+'%':'-'), colorFn:h=>h.dmiPct!=null?(parseFloat(h.dmiPct)>1.5?'background:#ffebee;color:#c62828;':'background:#e8f5e9;color:#1b5e20;'):''},
+      {key:'dcad',    label:'DCAD',       fmt:h=>stageKey==='pre'?(h.strawRatio!=null?'稲わら'+h.strawRatio+'%':'-'):'-', colorFn:h=>{if(stageKey!=='pre')return'background:#f5f5f5;color:#bbb;';return h.strawRatio!=null&&h.strawRatio>40?'background:#fff3e0;color:#e65100;':'background:#e8f5e9;color:#1b5e20;';}},
+    ];
+
+    let th = COLS.map(c=>`<th style="padding:5px 8px;font-size:10px;white-space:nowrap;background:${sc2.bg};color:${sc2.color};position:sticky;top:0;${c.style||''}">${c.label}</th>`).join('');
+    let rows = sorted.map(({h,realIdx})=>{
+      const tds = COLS.map(c=>{
+        const val = c.fmt(h);
+        const style = (c.colorFn?c.colorFn(h):'')||'';
+        return `<td style="padding:5px 8px;font-size:11px;white-space:nowrap;text-align:center;border-bottom:1px solid #f0f0f0;${style}" onclick="event.stopPropagation();showHistoryDetail(${realIdx})">${val}</td>`;
+      }).join('');
+      return `<tr style="cursor:pointer;">${tds}</tr>`;
+    }).join('');
+
+    return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0 8px;border-radius:6px;border:1px solid #e0e0e0;">
+      <table style="border-collapse:collapse;width:max-content;min-width:100%;">
+        <thead><tr>${th}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="font-size:10px;color:var(--text-sub);padding:3px 8px;">← 横スクロールで全項目表示 　行をタップで詳細</div>
+    </div>`;
+  }
 
   let html = '';
   Object.keys(farmerMap).sort().forEach(farmer=>{
@@ -1098,25 +1154,32 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
       </div>
       <div id="${farmerId}" style="padding:8px;">`;
 
-    // ステージ順に表示
     STAGE_ORDER.forEach(stageKey=>{
       const items = stageMap[stageKey];
       if(!items || items.length===0) return;
       const sc2 = STAGE_COLOR[stageKey] || {bg:'#f5f5f5',color:'#333',icon:'📋'};
       const stageName = items[0].h.stageName || stageKey;
-      const stageId = farmerId + '_' + stageKey;
+      const stageId   = farmerId + '_' + stageKey;
+      const tableId   = stageId + '_tbl';
+
+      // 時系列テーブルHTML
+      const tableHTML = buildTimelineTable(items, stageKey, sc2);
 
       html += `<div style="margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;background:${sc2.bg};color:${sc2.color};margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleStageGroup('${stageId}')">
-          <span>${sc2.icon} ${stageName}</span>
-          <span style="font-size:11px;font-weight:400;">${items.length}件 ▾</span>
+        <div style="font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;background:${sc2.bg};color:${sc2.color};margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="cursor:pointer;" onclick="toggleStageGroup('${stageId}')">${sc2.icon} ${stageName} <span style="font-size:11px;font-weight:400;">${items.length}件</span></span>
+          <div style="display:flex;gap:6px;">
+            <button onclick="toggleStageTable('${tableId}')" style="font-size:10px;padding:2px 8px;border-radius:10px;border:1.5px solid ${sc2.color};background:white;color:${sc2.color};touch-action:manipulation;cursor:pointer;">📊 時系列</button>
+            <span style="cursor:pointer;" onclick="toggleStageGroup('${stageId}')">▾</span>
+          </div>
         </div>
+        <div id="${tableId}" style="display:none;">${tableHTML}</div>
         <div id="${stageId}">`;
 
       items.forEach(({h, realIdx})=>{
         const fl = h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
         const memoLine = h.memo ? `<div style="font-size:11px;color:#795548;margin-bottom:3px;">📝 ${h.memo}</div>` : '';
-        const dmiLine = h.dmiPct ? `<span class="mini-result" style="background:${parseFloat(h.dmiPct)>1.5?'#ffebee':'#e8f5e9'}">DMI ${h.dmiPct}%</span>` : '';
+        const dmiLine  = h.dmiPct ? `<span class="mini-result" style="background:${parseFloat(h.dmiPct)>1.5?'#ffebee':'#e8f5e9'}">DMI ${h.dmiPct}%</span>` : '';
         html += `<div class="history-item" style="cursor:pointer;margin-left:6px;margin-bottom:6px;" onclick="showHistoryDetail(${realIdx})">
           <div class="history-header">
             <span style="font-size:11px;color:var(--text-sub);">${h.date}</span>
@@ -1135,13 +1198,19 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
         </div>`;
       });
 
-      html += `</div></div>`; // stageId div & stage block div
+      html += `</div></div>`; // stageId + stage block
     });
 
-    html += `</div></div>`; // farmerId div & farmer block div
+    html += `</div></div>`; // farmerId + farmer block
   });
 
   container.innerHTML = html;
+}
+
+function toggleStageTable(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
 
 function toggleFarmerGroup(id){
@@ -1186,6 +1255,8 @@ function renderHistoryGraph(){
     {key:'pctCP',  label:'CP充足率',  unit:'%', color:'#2e7d32', yMax:150, group:'pct'},
     {key:'pctTDN', label:'TDN充足率', unit:'%', color:'#1565c0', yMax:150, group:'pct'},
     {key:'pctDM',  label:'DM充足率',  unit:'%', color:'#e65100', yMax:150, group:'pct'},
+    {key:'pctCa',  label:'Ca充足率',  unit:'%', color:'#ad1457', yMax:150, group:'pct'},
+    {key:'pctP',   label:'P充足率',   unit:'%', color:'#6a1b9a', yMax:150, group:'pct'},
     {key:'cpPct',  label:'CP%DM',     unit:'%', color:'#00897b', yMax:25,  group:'raw'},
     {key:'nfcPct', label:'NFC%DM',    unit:'%', color:'#f57c00', yMax:35,  group:'raw'},
     {key:'nr',     label:'NR',         unit:'',  color:'#8e24aa', yMax:8,   group:'raw'},
@@ -1193,7 +1264,7 @@ function renderHistoryGraph(){
   ];
 
   // 選択状態 (グローバル変数として管理)
-  if(!window._graphSel) window._graphSel = {pctCP:true,pctTDN:true,pctDM:true,cpPct:false,nfcPct:false,nr:false,dmiPct:false};
+  if(!window._graphSel) window._graphSel = {pctCP:true,pctTDN:true,pctDM:true,pctCa:false,pctP:false,cpPct:false,nfcPct:false,nr:false,dmiPct:false};
   const sel = window._graphSel;
 
   const farmers=['all',...new Set(allHistory.map(h=>h.farmer||'（農家名なし）'))];
@@ -1209,6 +1280,27 @@ function renderHistoryGraph(){
     return fm&&sm;
   });
   data=[...data].reverse();
+
+  // 旧データ互換: 保存時に存在しないフィールドをストアド値から逆算補完
+  data = data.map(function(h){
+    var e = Object.assign({}, h);
+    // CP%DM: cp(g) / dm(kg) / 10
+    if((e.cpPct==null||e.cpPct===undefined||isNaN(e.cpPct)) && e.cp>0 && e.dm>0)
+      e.cpPct = parseFloat((e.cp / e.dm / 10).toFixed(1));
+    // NR: (TDN_kg - CP_kg) / CP_kg
+    if((e.nr==null||e.nr===undefined||isNaN(parseFloat(e.nr))) && e.tdn>0 && e.cp>0)
+      e.nr = parseFloat(((e.tdn - e.cp/1000) / (e.cp/1000)).toFixed(2));
+    // DMI%: dm / bw * 100
+    if((e.dmiPct==null||e.dmiPct===undefined||isNaN(e.dmiPct)) && e.dm>0 && e.bw>0)
+      e.dmiPct = parseFloat((e.dm / e.bw * 100).toFixed(1));
+    // Ca充足率
+    if((e.pctCa==null||e.pctCa===undefined||isNaN(e.pctCa)) && e.ca>0 && e.reqSnapshot && e.reqSnapshot.ca>0)
+      e.pctCa = Math.round(e.ca / e.reqSnapshot.ca * 100);
+    // P充足率
+    if((e.pctP==null||e.pctP===undefined||isNaN(e.pctP)) && e.p>0 && e.reqSnapshot && e.reqSnapshot.p>0)
+      e.pctP = Math.round(e.p / e.reqSnapshot.p * 100);
+    return e;
+  });
 
   const filterBar=`<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
     <select id="graph-farmer-sel" onchange="renderHistoryGraph()" style="flex:1;min-width:100px;font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;">${farmerOpts}</select>
