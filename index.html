@@ -171,6 +171,39 @@
   .alert-row { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; margin-bottom:4px; font-size:12px; }
   .alert-row.alert-ng { background:#ffebee; border-left:3px solid var(--ng); }
   .alert-row.alert-warn { background:#fff3e0; border-left:3px solid var(--warn); }
+  /* 個体連携カード */
+  .cow-select-btn { display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--bg); border-radius:8px; border:2px solid transparent; cursor:pointer; transition:border-color .2s; }
+  .cow-select-btn.selected { border-color:var(--primary); background:#e8f5e9; }
+  .cow-select-btn .csb-name { font-size:14px; font-weight:700; flex:1; }
+  .cow-select-btn .csb-meta { font-size:11px; color:var(--text-sub); }
+  /* BCSグラフ */
+  .bcs-chart-wrap { position:relative; width:100%; overflow-x:auto; }
+  .bcs-chart-wrap svg { display:block; }
+  .bcs-legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; font-size:11px; }
+  .bcs-legend-item { display:flex; align-items:center; gap:4px; }
+  .bcs-legend-dot { width:10px; height:10px; border-radius:50%; }
+  /* CSVセクション */
+  .csv-section { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  /* 配合シミュレーター */
+  .sim-feed-row { display:grid; grid-template-columns:1fr 72px 56px; gap:6px; align-items:center; margin-bottom:10px; }
+  .sim-feed-row label { font-size:12px; font-weight:600; }
+  .sim-feed-row input[type=range] { width:100%; height:6px; appearance:none; -webkit-appearance:none; border-radius:3px; background:linear-gradient(to right, var(--primary) 0%, var(--primary) var(--pct,50%), #e0e0e0 var(--pct,50%)); outline:none; padding:0; margin:0; }
+  .sim-feed-row input[type=range]::-webkit-slider-thumb { appearance:none; width:18px; height:18px; border-radius:50%; background:var(--primary); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+  .sim-feed-row .sim-kg { font-size:13px; font-weight:700; text-align:right; }
+  .sim-add-btn { display:flex; align-items:center; gap:8px; padding:8px; background:var(--bg); border-radius:8px; margin-bottom:8px; cursor:pointer; font-size:12px; color:var(--primary); font-weight:600; border:1px dashed var(--primary); }
+  .sim-bar { height:12px; border-radius:3px; transition:width .15s; }
+  .sim-bars { display:flex; flex-direction:column; gap:4px; margin:8px 0; }
+  .sim-bar-row { display:grid; grid-template-columns:52px 1fr 48px; gap:6px; align-items:center; font-size:11px; }
+  /* 和暦/西暦切替入力 */
+  .wareki-input { margin-bottom:2px; }
+  .wareki-toggle { display:flex; margin-bottom:6px; border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+  .wareki-toggle button { flex:1; padding:6px 0; font-size:11px; font-weight:600; border:none; cursor:pointer; background:white; color:var(--text-sub); }
+  .wareki-toggle button.active { background:var(--primary); color:white; }
+  .wareki-fields { display:flex; gap:4px; align-items:center; }
+  .wareki-fields select, .wareki-fields input { padding:8px 6px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+  .wareki-fields select { min-width:70px; }
+  .wareki-fields input[type=number] { width:56px; text-align:center; }
+  .wareki-fields .wareki-sep { font-size:12px; color:var(--text-sub); }
 </style>
 </head>
 <body>
@@ -188,6 +221,15 @@
 
 <!-- 計算タブ -->
 <div id="tab-calc" class="page active">
+  <div class="card" id="cow-link-card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🐄 個体から入力</span>
+      <button type="button" onclick="toggleCowLink()" id="cow-link-toggle-btn" class="btn btn-sm btn-outline" style="font-size:11px;padding:4px 10px;">選択する</button>
+    </div>
+    <div id="cow-link-selected" style="display:none;margin-bottom:8px;"></div>
+    <div id="cow-link-list" style="display:none;max-height:200px;overflow-y:auto;"></div>
+    <div id="cow-link-none" style="display:none;" class="note">繁殖タブで農家・個体を登録すると、ここから体重・ステージを自動入力できます。</div>
+  </div>
   <div class="card">
     <div class="card-title">🗓 ステージ選択</div>
     <select id="stage-select" onchange="onStageChange()">
@@ -268,9 +310,43 @@
       </div>
     </div>
     <div class="card">
+      <div class="card-title">📈 BCS推移グラフ</div>
+      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <select id="bcs-farm-filter" onchange="renderBCSGraph()" style="font-size:12px;flex:1;min-width:120px;">
+          <option value="">全農家</option>
+        </select>
+        <select id="bcs-cow-filter" onchange="renderBCSGraph()" style="font-size:12px;flex:1;min-width:100px;">
+          <option value="">全個体</option>
+        </select>
+      </div>
+      <div id="bcs-graph-area">
+        <div class="note" style="text-align:center;padding:10px;">BCSイベントを記録するとグラフが表示されます</div>
+      </div>
+    </div>
+    <div class="card">
       <div class="card-title">⚠️ 要注意牛</div>
       <div id="breed-alerts-content">
         <div class="note" style="text-align:center;padding:10px;">注意が必要な個体はありません</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📁 データ管理（CSV）</div>
+      <div style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">農家・個体・繁殖イベントのデータをCSVで出力/取込できます。</div>
+      <div class="csv-section">
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportBreedCSV('farms')" style="flex:1;">🏠 農家一覧 出力</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportBreedCSV('cows')" style="flex:1;">🐄 個体一覧 出力</button>
+      </div>
+      <div class="csv-section">
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportBreedCSV('events')" style="flex:1;">📝 イベント 出力</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="exportBreedCSV('all')" style="flex:1;">📦 全データ 出力</button>
+      </div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="font-size:12px;color:var(--text-sub);margin-bottom:6px;">▼ CSVを取り込む</div>
+        <label style="display:block;cursor:pointer;background:var(--bg);border:2px dashed var(--border);border-radius:8px;padding:12px;text-align:center;font-size:12px;">
+          📂 ファイルを選択またはドロップ
+          <input type="file" accept=".csv" onchange="importBreedCSV(this)" style="display:none;">
+        </label>
+        <div id="csv-import-result" style="margin-top:6px;font-size:12px;"></div>
       </div>
     </div>
   </div>
@@ -361,7 +437,7 @@
     <label>愛称・名号</label>
     <input type="text" id="cow-name" placeholder="例: はな、2番">
     <label>生年月日</label>
-    <input type="date" id="cow-birth">
+    <div class="wareki-input" id="wi-cow-birth"></div>
     <label>産次</label>
     <input type="number" id="cow-parity" value="0" min="0" max="30">
     <label>体重 (kg)</label>
@@ -374,9 +450,9 @@
       <option value="post90">泌乳期（分娩後90日〜）</option>
     </select>
     <label>最終分娩日</label>
-    <input type="date" id="cow-last-calving">
+    <div class="wareki-input" id="wi-cow-last-calving"></div>
     <label>最終授精日</label>
-    <input type="date" id="cow-last-ai">
+    <div class="wareki-input" id="wi-cow-last-ai"></div>
     <label>BCS（最新）</label>
     <input type="number" id="cow-bcs" value="3.0" min="1" max="5" step="0.25">
     <label>メモ</label>
@@ -1105,22 +1181,83 @@ function calculate(){
     ? `<tr><td>DMI <span style="font-size:10px;color:var(--text-sub)">(体重比)</span></td><td>${totalDM.toFixed(2)}kg (${dmiPct}%)</td><td>${dmiBadge} 上限${dmiMax}%</td></tr>`
     : '';
 
-  // DCAD（稲わら割合）計算
-  const strawFeeds = ['稲わら'];
-  let strawNDF = 0;
+  // ── 粗濃比（粗飼料DM vs 濃厚飼料DM）──
+  let roughDM = 0, concDM = 0, concKgRaw = 0, roughKgRaw = 0;
   rows.forEach(function(r){
-    if(strawFeeds.some(function(s){return r.feed.name.indexOf(s)>=0;})){
+    const dm = r.amount*(1-(r.feed.moisture||0)/100);
+    if(ROUGHAGE_CATS.includes(r.feed.cat)){ roughDM+=dm; roughKgRaw+=r.amount; }
+    else { concDM+=dm; concKgRaw+=r.amount; }
+  });
+  const roughPct = totalDM>0 ? roughDM/totalDM*100 : 0;
+  const concPct  = totalDM>0 ? concDM/totalDM*100  : 0;
+  // ステージ別 目標粗濃比（DM基準）
+  const ct = concTargets[stage]||{lo:30,hi:45};
+  const concRatioBadge = concPct<ct.lo
+    ? `<span class="badge badge-warn">△ 濃厚飼料少なめ</span>`
+    : concPct>ct.hi
+      ? `<span class="badge badge-ng">✗ 濃厚飼料過多（過肥リスク）</span>`
+      : `<span class="badge badge-ok">✓ 適正範囲</span>`;
+  const roughConcHtml = `<tr><td>粗:濃 DM比<span style="font-size:10px;color:var(--text-sub);display:block;">目標:濃 ${ct.lo}〜${ct.hi}%DM</span></td><td>${roughPct.toFixed(0)}%:${concPct.toFixed(0)}%</td><td>${concRatioBadge}</td></tr>`;
+
+  // ── 稲わら依存度（DM比率）──
+  let strawDM = 0;
+  rows.forEach(function(r){
+    if(r.feed.name.indexOf('稲わら')>=0){
+      strawDM += r.amount*(1-(r.feed.moisture||0)/100);
+    }
+  });
+  const strawDMpct = totalDM>0 ? strawDM/totalDM*100 : 0;
+  const strawDMBadge = strawDMpct>50
+    ? `<span class="badge badge-ng">✗ 依存過多 → CP・TDN低下の主因</span>`
+    : strawDMpct>30
+      ? `<span class="badge badge-warn">△ やや多め（目安 ≤30%）</span>`
+      : strawDMpct>0
+        ? `<span class="badge badge-ok">✓ 適正範囲</span>`
+        : '';
+  const strawHtml = strawDMpct>0
+    ? `<tr><td>稲わら依存度<span style="font-size:10px;color:var(--text-sub);display:block;">目安 DM30%以下</span></td><td>${strawDMpct.toFixed(0)}%DM</td><td>${strawDMBadge}</td></tr>`
+    : '';
+
+  // ── 配合飼料 給与量（原物）──
+  const ck = concTargetKg[stage]||{lo:1.0,hi:4.0};
+  const concKgBadge = concKgRaw<ck.lo
+    ? `<span class="badge badge-warn">△ 少なめ（目安 ${ck.lo}〜${ck.hi}kg）</span>`
+    : concKgRaw>ck.hi
+      ? `<span class="badge badge-ng">✗ 多すぎ（過肥リスク）</span>`
+      : `<span class="badge badge-ok">✓ 適正範囲</span>`;
+  const concKgHtml = `<tr><td>配合飼料量<span style="font-size:10px;color:var(--text-sub);display:block;">目安 ${ck.lo}〜${ck.hi}kg/日</span></td><td>${concKgRaw.toFixed(2)}kg</td><td>${concKgBadge}</td></tr>`;
+
+  // ── DCAD（稲わら割合）計算 ──
+  let strawNDF = 0;
+  const totalNDFkg = rows.reduce(function(s,r){
+    return s + r.amount*(1-(r.feed.moisture||0)/100)*(r.feed.ndf||0)/100;
+  }, 0);
+  rows.forEach(function(r){
+    if(r.feed.name.indexOf('稲わら')>=0){
       const dm = r.amount*(1-(r.feed.moisture||0)/100);
       strawNDF += dm*(r.feed.ndf||0)/100;
     }
   });
-  const totalNDFkg = rows.reduce(function(s,r){
-    return s + r.amount*(1-(r.feed.moisture||0)/100)*(r.feed.ndf||0)/100;
-  }, 0);
   const strawRatioPct = totalNDFkg > 0 ? Math.round(strawNDF / totalNDFkg * 100) : 0;
   const dcadHtml = stage === 'pre'
-    ? `<tr><td>DCAD管理</td><td>${strawRatioPct > 0 ? '稲わら' + strawRatioPct + '%' : '-'}</td><td>${strawRatioPct > 40 ? '<span class="badge badge-warn">⚠ K過多</span>' : '<span class="badge badge-ok">✓ 管理可</span>'} 目標−50〜−150</td></tr>`
+    ? `<tr><td>DCAD管理<span style="font-size:10px;color:var(--text-sub);display:block;">目標 −50〜−150mEq</span></td><td>${strawRatioPct > 0 ? '稲わら' + strawRatioPct + '%NDF' : '-'}</td><td>${strawRatioPct > 40 ? '<span class="badge badge-warn">⚠ K過多</span>' : '<span class="badge badge-ok">✓ 管理可</span>'}</td></tr>`
     : '';
+
+  // ── ビタミンA 注意 ──
+  const vitAFeeds = ['アルファルファ','ヘイキューブ','イタリアン','オーチャード','チモシー','牧草','青刈り','トウモロコシサイレージ','トウモロコシS','ケールサイレージ'];
+  const hasVitASource = rows.some(r => vitAFeeds.some(k => r.feed.name.indexOf(k)>=0));
+  const calcMonth = (function(){
+    const d = document.getElementById('calc-date');
+    return d && d.value ? new Date(d.value).getMonth()+1 : new Date().getMonth()+1;
+  })();
+  const isWinter = calcMonth>=11 || calcMonth<=3;
+  let vitAHtml = '';
+  if((stage==='pre'||stage==='post0') && !hasVitASource){
+    const winterNote = isWinter ? '（冬期：青草・サイレージが少ない時期）' : '';
+    vitAHtml = `<tr><td>ビタミンA<span style="font-size:10px;color:var(--text-sub);display:block;">妊娠末期・泌乳期</span></td><td>供給源なし${winterNote}</td><td><span class="badge badge-warn">⚠ 欠乏リスク</span></td></tr>`;
+  } else if(hasVitASource){
+    vitAHtml = `<tr><td>ビタミンA</td><td>供給源あり</td><td><span class="badge badge-ok">✓</span></td></tr>`;
+  }
 
   document.getElementById('result-detail').innerHTML=`<table class="full-result-table">
     <tr><th>指標</th><th>値</th><th>判定</th></tr>
@@ -1131,7 +1268,12 @@ function calculate(){
     <tr><td>Ca:P比</td><td>${caPRatio.toFixed(2)}</td><td>${caPBadge} 目安 1.5〜2.5</td></tr>
     ${rdpNfcHtml}
     ${dmiHtml}
+    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──</td></tr>
+    ${roughConcHtml}
+    ${concKgHtml}
+    ${strawHtml}
     ${dcadHtml}
+    ${vitAHtml}
   </table>`;
 
   let notes='';
@@ -1139,6 +1281,13 @@ function calculate(){
   if(nfcPct>0&&nfcPct<15)notes+='<div class="note warn">⚠️ NFCが低め。受胎率向上には18〜20%が目安。</div>';
   if(nfcPct>25)notes+='<div class="note warn">⚠️ NFCが高め。ルーメンアシドーシスに注意。</div>';
   if(rdpNfcRatio!==null&&rdpNfcRatio>0.40)notes+='<div class="note warn">⚠️ RDPがNFCに対して多すぎます。アンモニア産生過多のリスクあり。NFCを増やすか、RDPの低い飼料に変更を検討。</div>';
+  if(concPct>ct.hi)notes+=`<div class="note warn">⚠️ 濃厚飼料比率が高め（DM比${concPct.toFixed(0)}%）。妊娠末期の過肥は難産・脂肪肝・胎盤停滞リスクを高めます。粗飼料の割合を増やし、配合飼料を${ct.hi}%DM以内に抑えることを検討してください。</div>`;
+  if(concKgRaw>ck.hi)notes+=`<div class="note warn">⚠️ 配合飼料が${concKgRaw.toFixed(1)}kg/日と多めです。黒毛和種繁殖牛の一般的な目安は${ck.lo}〜${ck.hi}kg/日（三重・栃木県等の標準例）。BCSを確認して過肥に注意してください。</div>`;
+  if(strawDMpct>50)notes+=`<div class="note warn">⚠️ 稲わらDM比が${strawDMpct.toFixed(0)}%と高すぎます。稲わらはCP 3〜7%・TDN 43〜50%と低栄養で、多給するとCP・TDN不足の直接原因になります。一部をアルファルファ・ヘイキューブ・チモシーに置き換えることを検討してください。</div>`;
+  if((stage==='pre'||stage==='post0') && !hasVitASource){
+    const winterMsg = isWinter ? '冬期は特にビタミンA欠乏になりやすい時期です。' : '';
+    notes+=`<div class="note warn">⚠️ ビタミンA供給源（アルファルファ・チモシー・トウモロコシサイレージ等）が見当たりません。${winterMsg}妊娠末期・泌乳期のビタミンA欠乏は流産・虚弱子牛・胎盤停滞リスクがあります。ビタミンAを含む飼料の追加、またはビタミン剤の使用を検討してください。</div>`;
+  }
   document.getElementById('notes-area').innerHTML=notes;
   document.getElementById('result-area').style.display='block';
   document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
@@ -1212,13 +1361,14 @@ function renderHistory(){
     const realIdx=indexMap[i];
     const fl=h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
     const bwBadge=h.bw?`<span class="badge" style="background:#e8eaf6;color:#283593;font-size:11px;">BW ${h.bw}kg</span>`:'';
+    const simBadge=h.simResult?'<span class="badge" style="background:#e3f2fd;color:#1565c0;font-size:10px;">🎛 シミュ</span>':'';
     const farmerBadge=h.farmer?`<span class="badge badge-custom" style="font-size:12px;">🏠 ${h.farmer}</span>`:'';
     const memoLine=h.memo?`<div style="font-size:12px;color:#795548;background:#fff8e1;border-radius:6px;padding:5px 8px;margin-bottom:6px;">📝 ${h.memo}</div>`:'';
-    return`<div class="history-item" style="cursor:pointer;" onclick="showHistoryDetail(${realIdx})">
+    return`<div class="history-item" style="cursor:pointer;${h.simResult?'border-left:3px solid #1565c0;':''}" onclick="showHistoryDetail(${realIdx})">
       <div class="history-header">
         <div style="display:flex;flex-direction:column;gap:4px;">
           <span class="history-stage">${h.stageName}</span>
-          ${farmerBadge}${bwBadge}
+          ${farmerBadge}${bwBadge}${simBadge}
         </div>
         <div style="display:flex;gap:6px;align-items:flex-start">
           <span class="history-date">${h.date}</span>
@@ -1375,7 +1525,7 @@ function showTab(tab,btn){
     }
   }
   if(tab==='master')renderMaster();
-  if(tab==='breed') renderDashboard();
+  if(tab==='breed'){ renderDashboard(); renderBCSGraph(); }
 }
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
@@ -2321,7 +2471,30 @@ function showHistoryDetail(index){
   const _dmiPct2=h.dmiPct||(h.bw>0?parseFloat((h.dm/h.bw*100).toFixed(1)):'-');
   const _dmiMaxPct=req.dmi_max_pct||1.5;
   const _dmiBadge=parseFloat(_dmiPct2)>_dmiMaxPct?'<span class="badge badge-ng">⚠ 超過</span>':'<span class="badge badge-ok">✓</span>';
-  const _dcadRow=h.stage==='pre'?`<tr><td>DCAD管理</td><td>${h.strawRatio!=null?'稲わら'+h.strawRatio+'%':'-'}</td><td>${(h.strawRatio||0)>40?'<span class="badge badge-warn">⚠ K過多</span>':'<span class="badge badge-ok">✓ 管理可</span>'} 目標−50〜−150</td></tr>`:'';
+  const _dcadRow=h.stage==='pre'?`<tr><td>DCAD管理<span style="font-size:10px;color:var(--text-sub);display:block;">目標 −50〜−150mEq</span></td><td>${h.strawRatio!=null?'稲わら'+h.strawRatio+'%NDF':'-'}</td><td>${(h.strawRatio||0)>40?'<span class="badge badge-warn">⚠ K過多</span>':'<span class="badge badge-ok">✓ 管理可</span>'}</td></tr>`:'';
+
+  // 保存時の飼料リストから粗濃比・稲わら・配合量・ビタミンA を再計算
+  const _feeds=loadFeeds();
+  const _rows=h.feeds.map(f=>{const fd=_feeds.find(x=>x.name===f.name);return fd?{feed:fd,amount:f.amount}:null;}).filter(x=>x);
+  let _roughDM=0,_concDM=0,_concKgRaw=0,_strawDM=0;
+  let _vitASource=false;
+  const _vitAKeys=['アルファルファ','ヘイキューブ','イタリアン','オーチャード','チモシー','牧草','青刈り','トウモロコシサイレージ','トウモロコシS'];
+  _rows.forEach(r=>{
+    const dm=r.amount*(1-(r.feed.moisture||0)/100);
+    if(ROUGHAGE_CATS.includes(r.feed.cat)){_roughDM+=dm;}else{_concDM+=dm;_concKgRaw+=r.amount;}
+    if(r.feed.name.indexOf('稲わら')>=0) _strawDM+=dm;
+    if(_vitAKeys.some(k=>r.feed.name.indexOf(k)>=0)) _vitASource=true;
+  });
+  const _totalDM2=_roughDM+_concDM;
+  const _roughPct=_totalDM2>0?_roughDM/_totalDM2*100:0;
+  const _concPct=_totalDM2>0?_concDM/_totalDM2*100:0;
+  const _strawPct=_totalDM2>0?_strawDM/_totalDM2*100:0;
+  const _ct=(concTargets||{maint:{lo:20,hi:30},pre:{lo:35,hi:45},post0:{lo:40,hi:50},post90:{lo:35,hi:48}})[h.stage]||{lo:30,hi:45};
+  const _ck=(concTargetKg||{maint:{lo:0.5,hi:2.0},pre:{lo:2.5,hi:4.5},post0:{lo:3.0,hi:5.5},post90:{lo:2.5,hi:4.5}})[h.stage]||{lo:1.0,hi:4.0};
+  const _concRatioBadge=_concPct<_ct.lo?`<span class="badge badge-warn">△ 濃厚飼料少なめ</span>`:_concPct>_ct.hi?`<span class="badge badge-ng">✗ 濃厚飼料過多</span>`:`<span class="badge badge-ok">✓</span>`;
+  const _concKgBadge=_concKgRaw<_ck.lo?`<span class="badge badge-warn">△ 少なめ</span>`:_concKgRaw>_ck.hi?`<span class="badge badge-ng">✗ 多すぎ</span>`:`<span class="badge badge-ok">✓</span>`;
+  const _strawBadge=_strawPct>50?`<span class="badge badge-ng">✗ 依存過多</span>`:_strawPct>30?`<span class="badge badge-warn">△ やや多め</span>`:_strawPct>0?`<span class="badge badge-ok">✓</span>`:'';
+  const _vitABadge=(h.stage==='pre'||h.stage==='post0')&&!_vitASource?`<span class="badge badge-warn">⚠ 欠乏リスク</span>`:_vitASource?`<span class="badge badge-ok">✓</span>`:'';
 
   const detailHTML=`<table class="full-result-table" style="margin-bottom:14px;">
     <tr><th>指標</th><th>値</th><th>判定</th></tr>
@@ -2333,6 +2506,11 @@ function showHistoryDetail(index){
     <tr><td>RDP:NFC</td><td>${h.rdpNfc||'-'}</td><td>1:3</td></tr>
     <tr><td>DMI (体重比)</td><td>${h.dm}kg (${_dmiPct2}%)</td><td>${_dmiBadge} 上限${_dmiMaxPct}%</td></tr>
     ${_dcadRow}
+    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──</td></tr>
+    <tr><td>粗:濃 DM比<span style="font-size:10px;color:var(--text-sub);display:block;">目標:濃 ${_ct.lo}〜${_ct.hi}%DM</span></td><td>${_roughPct.toFixed(0)}%:${_concPct.toFixed(0)}%</td><td>${_concRatioBadge}</td></tr>
+    <tr><td>配合飼料量<span style="font-size:10px;color:var(--text-sub);display:block;">目安 ${_ck.lo}〜${_ck.hi}kg/日</span></td><td>${_concKgRaw.toFixed(2)}kg</td><td>${_concKgBadge}</td></tr>
+    ${_strawPct>0?`<tr><td>稲わら依存度<span style="font-size:10px;color:var(--text-sub);display:block;">目安 DM30%以下</span></td><td>${_strawPct.toFixed(0)}%DM</td><td>${_strawBadge}</td></tr>`:''}
+    ${_vitABadge?`<tr><td>ビタミンA</td><td>${_vitASource?'供給源あり':'供給源なし'}</td><td>${_vitABadge}</td></tr>`:''}
   </table>`;
 
   // 改善案（保存時のデータから再計算）
@@ -2347,10 +2525,13 @@ function showHistoryDetail(index){
   if(rows.length>0 && rows.length===h.feeds.length){
     const t=calcTotals(rows);
     const bwNow=h.bw||loadBWSettings().bw;
-    const issues=detectIssues(t,req,rows,bwNow,h.stage||'maint');
-    const c3=buildCase3(t,req,rows,issues,h.stage||'maint');
+    const stageKey=h.stage||'maint';
+    const issues=detectIssues(t,req,rows,bwNow,stageKey);
+    const c3=buildCase3(t,req,rows,issues,stageKey);
     const c1=buildCase1(rows,req,t,bwNow,issues);
-    const c2=buildCase2(rows,req,t,bwNow,issues,h.stage||'maint');
+    const c2=buildCase2(rows,req,t,bwNow,issues,stageKey);
+    const mixA=buildOptimalMix(rows,req,bwNow,stageKey);
+    const mixB=buildResetMix(rows,req,bwNow,stageKey);
     improveHTML=`<div style="border:2px solid #ff8f00;border-radius:12px;padding:14px;margin-top:4px;">
       <div class="card-title" style="color:#ff8f00;margin-bottom:10px;">💡 改善案</div>
       ${c3}
@@ -2358,6 +2539,10 @@ function showHistoryDetail(index){
       ${c1}
       <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
       ${c2}
+      <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
+      ${mixA}
+      <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
+      ${mixB}
     </div>`;
   } else {
     improveHTML=`<div class="note warn">⚠️ 一部の飼料がDBから削除されているため改善案を表示できません。</div>`;
@@ -2392,6 +2577,10 @@ function suggestImprovements() {
   let case2HTML = buildCase2(rows, req, totals, bwNow, issues, stage);
   // ===== Case 3: 総合コメント =====
   let case3HTML = buildCase3(totals, req, rows, issues, stage);
+  // ===== 配合提案A: 現有飼料の最適化 =====
+  let mixAHTML = buildOptimalMix(rows, req, bwNow, stage);
+  // ===== 配合提案B: リセット最適配合 =====
+  let mixBHTML = buildResetMix(rows, req, bwNow, stage);
 
   area.innerHTML = `
     <div class="card" style="border:2px solid #ff8f00;">
@@ -2401,12 +2590,310 @@ function suggestImprovements() {
       ${case1HTML}
       <hr style="border:none;border-top:1px solid #eee;margin:14px 0;">
       ${case2HTML}
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;">
+      ${mixAHTML}
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0;">
+      ${mixBHTML}
+    </div>
+    <div class="card" style="border:2px solid #1565c0;margin-top:10px;" id="sim-card">
+      <div class="card-title" style="color:#1565c0;">🎛 配合シミュレーター</div>
+      <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">飼料を選んでスライダーで給与量を調整すると、栄養バランスがリアルタイムで表示されます。</p>
+      <div id="sim-feed-list"></div>
+      <div id="sim-add-area">
+        <div class="sim-add-btn" onclick="simOpenAddFeed()">＋ 飼料を追加</div>
+        <div id="sim-add-picker" style="display:none;background:var(--bg);border-radius:8px;padding:8px;margin-bottom:8px;">
+          <input type="text" id="sim-search-input" placeholder="飼料名で検索..." oninput="simRenderPicker()" style="width:100%;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+          <div id="sim-picker-list" style="max-height:160px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div id="sim-result-area" style="margin-top:8px;"></div>
     </div>`;
   area.scrollIntoView({behavior:'smooth'});
+  // シミュレーターを現在の給与飼料で初期化
+  simInit(rows, stage, bwNow, req);
+}
+
+// =============================================
+// 配合シミュレーター
+// =============================================
+let _simRows = [];   // [{feed, amount}]
+let _simStage = 'pre';
+let _simBW = 500;
+let _simReq = null;
+
+function simInit(rows, stage, bw, req){
+  _simStage = stage;
+  _simBW    = bw;
+  _simReq   = req;
+  // 現在の給与飼料をコピー（0.05kg未満は除外）
+  _simRows = rows.filter(r=>r.amount>=0.05).map(r=>({feed:r.feed, amount:r.amount}));
+  simRender();
+}
+
+function simRender(){
+  const listEl = document.getElementById('sim-feed-list');
+  if(!listEl) return;
+  if(_simRows.length===0){
+    listEl.innerHTML = '<div class="note" style="text-align:center;padding:10px;margin-bottom:8px;">飼料を追加してください</div>';
+    simUpdateResult();
+    return;
+  }
+  const dmiMax = _simBW * (_simReq.dmi_max_pct||1.5) / 100;
+  listEl.innerHTML = _simRows.map((r,i)=>{
+    const maxKg = isRoughage(r.feed)
+      ? Math.min(20, dmiMax/(1-r.feed.moisture/100))
+      : Math.min(10, Math.max(8, r.amount*4));
+    const pct = Math.round(r.amount/maxKg*100);
+    const catLabel = isRoughage(r.feed)
+      ? '<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:1px 5px;border-radius:8px;margin-left:4px;">粗</span>'
+      : '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:8px;margin-left:4px;">濃</span>';
+    return `<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;">${esc(r.feed.name)}${catLabel}</span>
+        <button type="button" onclick="simRemoveFeed(${i})" style="background:none;border:none;color:var(--ng);cursor:pointer;font-size:14px;padding:0 4px;">✕</button>
+      </div>
+      <div class="sim-feed-row">
+        <input type="range" min="0" max="${maxKg}" step="0.1" value="${r.amount}"
+          style="--pct:${pct}%"
+          oninput="simUpdateAmount(${i},parseFloat(this.value),this)"
+          onchange="simUpdateAmount(${i},parseFloat(this.value),this)">
+        <div class="sim-kg" id="sim-kg-${i}">${r.amount.toFixed(1)}<span style="font-size:10px;color:var(--text-sub);">kg</span></div>
+        <div style="font-size:10px;color:var(--text-sub);text-align:right;">${r.feed.cp}%CP<br>${r.feed.tdn}%TDN</div>
+      </div>
+    </div>`;
+  }).join('');
+  simUpdateResult();
+}
+
+function simUpdateAmount(idx, val, slider){
+  if(!_simRows[idx]) return;
+  _simRows[idx].amount = val;
+  const kgEl = document.getElementById('sim-kg-'+idx);
+  if(kgEl) kgEl.innerHTML = val.toFixed(1)+'<span style="font-size:10px;color:var(--text-sub);">kg</span>';
+  // スライダーの色を更新
+  const max = parseFloat(slider.max);
+  const pct = max>0 ? Math.round(val/max*100) : 0;
+  slider.style.setProperty('--pct', pct+'%');
+  simUpdateResult();
+}
+
+function simRemoveFeed(idx){
+  _simRows.splice(idx,1);
+  simRender();
+}
+
+function simOpenAddFeed(){
+  const picker = document.getElementById('sim-add-picker');
+  if(!picker) return;
+  const isOpen = picker.style.display !== 'none';
+  picker.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const inp = document.getElementById('sim-search-input');
+    if(inp){ inp.value=''; inp.focus(); }
+    simRenderPicker();
+  }
+}
+
+function simRenderPicker(){
+  const q = (document.getElementById('sim-search-input')||{value:''}).value.trim().toLowerCase();
+  const allFeeds = loadFeeds();
+  const usedNames = new Set(_simRows.map(r=>r.feed.name));
+  const filtered = allFeeds.filter(f=>
+    !usedNames.has(f.name) &&
+    (!q || f.name.toLowerCase().includes(q) || (f.cat||'').toLowerCase().includes(q))
+  ).slice(0,30);
+  const listEl = document.getElementById('sim-picker-list');
+  if(!listEl) return;
+  if(filtered.length===0){
+    listEl.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text-sub);">該当なし</div>';
+    return;
+  }
+  listEl.innerHTML = filtered.map(f=>{
+    const catLabel = isRoughage(f)
+      ? '<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:1px 5px;border-radius:8px;">粗</span>'
+      : '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:8px;">濃</span>';
+    return `<div onclick="simAddFeed('${f.name.replace(/'/g,"&#39;")}')"
+      style="padding:8px 6px;cursor:pointer;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center;"
+      onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+      <span>${esc(f.name)} ${catLabel}</span>
+      <span style="color:var(--text-sub);font-size:10px;">CP${f.cp}% TDN${f.tdn}%</span>
+    </div>`;
+  }).join('');
+}
+
+function simAddFeed(feedName){
+  const allFeeds = loadFeeds();
+  const feed = allFeeds.find(f=>f.name===feedName);
+  if(!feed) return;
+  // デフォルト給与量: 粗飼料3kg, 濃厚飼料1kg
+  const defaultKg = isRoughage(feed) ? 3.0 : 1.0;
+  _simRows.push({feed, amount:defaultKg});
+  document.getElementById('sim-add-picker').style.display='none';
+  simRender();
+}
+
+function simUpdateResult(){
+  const el = document.getElementById('sim-result-area');
+  if(!el) return;
+  if(_simRows.length===0 || !_simReq){
+    el.innerHTML='';
+    return;
+  }
+  const req = _simReq;
+  const bw = _simBW;
+  const stage = _simStage;
+
+  let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,roughDM=0,concDM=0,concKg=0,strawDM=0;
+  _simRows.forEach(r=>{
+    const d=r.amount*(1-r.feed.moisture/100);
+    dm+=d; cp+=d*r.feed.cp/100*1000; tdn+=d*r.feed.tdn/100;
+    fat+=d*(r.feed.fat||0)/100; ca+=d*(r.feed.ca||0)/100*1000; p+=d*(r.feed.p||0)/100*1000;
+    if(isRoughage(r.feed)){roughDM+=d;}else{concDM+=d; concKg+=r.amount;}
+    if(r.feed.name.indexOf('稲わら')>=0) strawDM+=d;
+  });
+
+  const fatPct=dm>0?fat/dm*100:0;
+  const cpPct=Math.round(cp/req.cp*100);
+  const tdnPct=Math.round(tdn/req.tdn*100);
+  const dmPct=Math.round(dm/req.dm*100);
+  const caPct=Math.round(ca/req.ca*100);
+  const pPct=Math.round(p/req.p*100);
+  const dmiPct=bw>0?dm/bw*100:0;
+  const concRatioPct=dm>0?concDM/dm*100:0;
+  const strawPct=dm>0?strawDM/dm*100:0;
+  const ct=concTargets[stage]||{lo:30,hi:45};
+  const ckKg=concTargetKg[stage]||{lo:1.0,hi:4.5};
+  const dmiMax=req.dmi_max_pct||1.5;
+
+  function barColor(pct){
+    if(pct>=90&&pct<=115) return '#4caf50';
+    if(pct>=75&&pct<=130) return '#ff9800';
+    return '#f44336';
+  }
+  function bar(label, pct, val, unit){
+    const w=Math.min(100,pct);
+    const col=barColor(pct);
+    const bg=pct>=90&&pct<=115?'#e8f5e9':pct>=75&&pct<=130?'#fff3e0':'#ffebee';
+    return `<div class="sim-bar-row" style="background:${bg};border-radius:6px;padding:4px 6px;">
+      <span style="font-weight:700;">${label}</span>
+      <div style="background:#e0e0e0;border-radius:3px;height:10px;overflow:hidden;">
+        <div class="sim-bar" style="width:${w}%;background:${col};height:10px;"></div>
+      </div>
+      <span style="text-align:right;font-weight:700;color:${col};">${val}${unit}<br><span style="font-size:9px;">${pct}%</span></span>
+    </div>`;
+  }
+
+  // 現場感覚バッジ
+  function badge3(label, val, lo, hi, unit, invert=false){
+    const ok = val>=lo&&val<=hi;
+    const warn2 = !ok && (val>=(lo*0.8)&&val<=(hi*1.2));
+    const col = ok?'#e8f5e9':warn2?'#fff3e0':'#ffebee';
+    const icon = ok?'✓':warn2?'△':'✗';
+    return `<span class="mini-result" style="background:${col};">${icon} ${label} ${val.toFixed(1)}${unit}</span>`;
+  }
+
+  const nr = cp>0?(tdn*1000-cp)/cp:0;
+
+  el.innerHTML = `
+    <div style="border-top:1px solid var(--border);padding-top:10px;">
+      <div style="font-size:11px;font-weight:700;color:#1565c0;margin-bottom:8px;">📊 リアルタイム栄養結果</div>
+      <div class="sim-bars">
+        ${bar('CP', cpPct, Math.round(cp)+'g', '')}
+        ${bar('TDN', tdnPct, tdn.toFixed(2)+'kg', '')}
+        ${bar('DM', dmPct, dm.toFixed(2)+'kg', '')}
+        ${bar('Ca', caPct, Math.round(ca)+'g', '')}
+        ${bar('P', pPct, Math.round(p)+'g', '')}
+      </div>
+      <div class="mini-results" style="gap:4px;flex-wrap:wrap;margin-top:4px;">
+        <span class="mini-result" style="background:${fatPct>5?'#ffebee':'#e8f5e9'};">脂肪 ${fatPct.toFixed(1)}% ${fatPct>5?'⚠':'✓'}</span>
+        <span class="mini-result">NR ${nr.toFixed(1)}</span>
+        <span class="mini-result" style="background:${dmiPct>dmiMax?'#ffebee':'#e8f5e9'};">DMI ${dmiPct.toFixed(1)}%BW ${dmiPct>dmiMax?'⚠':'✓'}</span>
+      </div>
+      <div class="mini-results" style="gap:4px;flex-wrap:wrap;margin-top:4px;">
+        ${badge3('濃厚', concRatioPct, ct.lo, ct.hi, '%DM')}
+        ${badge3('稲わら', strawPct, 0, 30, '%DM')}
+        ${badge3('配合', concKg, ckKg.lo, ckKg.hi, 'kg')}
+      </div>
+      <div style="font-size:10px;color:var(--text-sub);margin-top:6px;text-align:right;">目安: 濃${ct.lo}〜${ct.hi}%DM / 稲わら≤30% / 配合${ckKg.lo}〜${ckKg.hi}kg</div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;gap:8px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label style="font-size:11px;color:var(--text-sub);">農家名（任意）</label>
+          <input type="text" id="sim-save-farmer" placeholder="例: 田中牧場" style="margin-top:3px;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:11px;color:var(--text-sub);">メモ（任意）</label>
+          <input type="text" id="sim-save-memo" placeholder="例: シミュレーション案" style="margin-top:3px;">
+        </div>
+        <button type="button" class="btn btn-accent btn-sm" onclick="simSaveResult()" style="white-space:nowrap;padding:10px 14px;">💾 保存</button>
+      </div>
+    </div>`;
+}
+
+function simSaveResult(){
+  if(_simRows.length===0){ showToast('飼料を追加してください'); return; }
+  const req=_simReq, bw=_simBW, stage=_simStage;
+  if(!req){ showToast('先に計算タブで計算してください'); return; }
+
+  // 栄養計算
+  let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,nfc=0,rdp=0,strawDM=0;
+  _simRows.forEach(r=>{
+    const d=r.amount*(1-r.feed.moisture/100);
+    dm+=d; cp+=d*r.feed.cp/100*1000; tdn+=d*r.feed.tdn/100;
+    fat+=d*(r.feed.fat||0)/100; ca+=d*(r.feed.ca||0)/100*1000; p+=d*(r.feed.p||0)/100*1000;
+    if(r.feed.nfc!=null) nfc+=d*r.feed.nfc/100;
+    if(r.feed.rdp!=null) rdp+=d*r.feed.rdp/100*1000;
+    if(r.feed.name.indexOf('稲わら')>=0) strawDM+=d;
+  });
+  const fatPct = dm>0 ? fat/dm*100 : 0;
+  const cpPct  = dm>0 ? cp/dm/10 : 0;
+  const nfcPct = dm>0 ? nfc/dm*100 : 0;
+  const nr = cp>0 ? (tdn*1000-cp)/cp : 0;
+  const dmiPct = bw>0 ? parseFloat((dm/bw*100).toFixed(1)) : null;
+  const strawRatioPct = dm>0 ? Math.round(strawDM/dm*100) : 0;
+  const rdpNfcRatio = nfc>0 ? rdp/nfc : null;
+
+  const farmer = (document.getElementById('sim-save-farmer')||{value:''}).value.trim();
+  const memo   = (document.getElementById('sim-save-memo')||{value:''}).value.trim();
+  const saveDate = new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'/');
+
+  const entry = {
+    stage, stageName: (STAGE_NAMES&&STAGE_NAMES[stage])||stage,
+    bw,
+    reqSnapshot: JSON.parse(JSON.stringify(req)),
+    feeds: _simRows.map(r=>({name:r.feed.name, amount:r.amount})),
+    cp: Math.round(cp), tdn: parseFloat(tdn.toFixed(2)),
+    dm:  parseFloat(dm.toFixed(2)),  ca: Math.round(ca), p: Math.round(p),
+    pctCP:  Math.round(cp/req.cp*100),
+    pctTDN: Math.round(tdn/req.tdn*100),
+    pctDM:  Math.round(dm/req.dm*100),
+    cpPct: parseFloat(cpPct.toFixed(1)),
+    fatPct: parseFloat(fatPct.toFixed(1)),
+    nfcPct: parseFloat(nfcPct.toFixed(1)),
+    nr: parseFloat(nr.toFixed(1)),
+    rdpNfc: rdpNfcRatio ? `1:${(1/rdpNfcRatio).toFixed(1)}` : '-',
+    dmiPct, strawRatio: strawRatioPct,
+    farmer, memo: (memo||'シミュレーター結果'),
+    date: saveDate,
+    simResult: true  // シミュレーター由来フラグ
+  };
+
+  const h = JSON.parse(lsGet('cattle_history','[]'));
+  h.unshift(entry);
+  if(h.length>50) h.pop();
+  lsSet('cattle_history', JSON.stringify(h));
+
+  // 入力をクリア
+  const fe=document.getElementById('sim-save-farmer'), me=document.getElementById('sim-save-memo');
+  if(fe) fe.value=''; if(me) me.value='';
+  showToast('💾 シミュレーター結果を保存しました！履歴タブで確認できます。');
 }
 
 // --- 粗飼料/濃厚飼料の分類 ---
 const ROUGHAGE_CATS = ['自給飼料','購入粗飼料'];
+// ステージ別 濃厚飼料DM比 目標範囲
+const concTargets = {maint:{lo:20,hi:30}, pre:{lo:35,hi:45}, post0:{lo:40,hi:50}, post90:{lo:35,hi:48}};
+// ステージ別 配合飼料原物給与量 目標範囲（kg/日）
+const concTargetKg = {maint:{lo:0.5,hi:2.0}, pre:{lo:2.5,hi:4.5}, post0:{lo:3.0,hi:5.5}, post90:{lo:2.5,hi:4.5}};
 function isRoughage(feed){ return ROUGHAGE_CATS.includes(feed.cat); }
 
 function calcTotals(rows) {
@@ -2642,10 +3129,17 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
     if(caShort && f.ca > 0.3){
       score += f.ca * 8; reasons.push(`Ca ${f.ca}%`);
     }
-    // CP過剰 → 低CP飼料を推奨
+    // CP過剰 → 濃厚飼料の減量を優先。低CP粗飼料の追加はDMI余裕がある場合のみ
     if(cpOver){
-      if(f.cp < 10 && f.tdn > 50){ score += (10 - f.cp) * 1.5; reasons.push(`低CP(${f.cp}%) → CP希釈`); }
-      else score -= f.cp * 0.5;
+      if(dmiRoom > 0.5 && f.cp < 10 && f.tdn > 50 && !f.name.includes('稲わら')){
+        // DMI余裕あり + 低CP粗飼料（稲わら以外）
+        score += (10 - f.cp) * 1.0; reasons.push(`低CP(${f.cp}%) → CP希釈`);
+      } else if(isExisting && f.cp < 15){
+        // 既存濃厚飼料の減量（addAmountKgをマイナスにしない方針のため強くペナルティ）
+        score -= f.cp * 0.5;
+      } else {
+        score -= f.cp * 0.8; // CP高い飼料は追加しない
+      }
     }
     // 脂肪過剰 → 低脂肪飼料
     if(fatOver){
@@ -2763,7 +3257,10 @@ function buildCase3(totals, req, rows, issues, stage){
 
   // CP過剰
   const cpOverIssue = issues.find(i=>i.type==='cp_over');
-  if(cpOverIssue){
+  const dmiOverIssue = issues.find(i=>i.type==='dmi_over');
+  if(cpOverIssue && dmiOverIssue){
+    comments.push('⚠️ <b>CP過剰かつDMI超過</b>の状態です。飼料の追加ではなく<b>濃厚飼料（特にCP高いもの）の減量</b>が先決です。下の「配合提案A」を参考に総量を減らしながらバランスを整えてください。');
+  } else if(cpOverIssue){
     comments.push('⚠️ <b>CP充足率が130%を超えています。</b> 過剰なCPはルーメンでアンモニアに分解され、BUN（血中尿素窒素）が上昇し、<b>受胎率の低下</b>を引き起こす可能性があります。CP源の飼料を減らしてください。');
   }
 
@@ -3403,6 +3900,134 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Noto S
 // 繁殖管理モジュール
 // ===================================================================
 
+// --- 和暦/西暦 日付入力コンポーネント ---
+const ERAS = [
+  {name:'令和', start:2019},
+  {name:'平成', start:1989},
+  {name:'昭和', start:1926},
+  {name:'大正', start:1912},
+];
+
+function seirekiToWareki(year){
+  for(const e of ERAS){
+    if(year >= e.start) return {era:e.name, year:year-e.start+1};
+  }
+  return {era:'西暦', year:year};
+}
+
+function warekiToSeireki(eraName, eraYear){
+  const e = ERAS.find(x=>x.name===eraName);
+  if(!e) return parseInt(eraYear)||2000;
+  return e.start + (parseInt(eraYear)||1) - 1;
+}
+
+function initWarekiInput(containerId, hiddenName){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const eraOpts = ERAS.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
+  container.innerHTML = `
+    <div class="wareki-toggle">
+      <button type="button" class="active" onclick="toggleWarekiMode('${hiddenName}','seireki',this)">西暦</button>
+      <button type="button" onclick="toggleWarekiMode('${hiddenName}','wareki',this)">和暦</button>
+    </div>
+    <div class="wareki-fields" id="wf-${hiddenName}-seireki">
+      <input type="date" id="${hiddenName}" style="flex:1;">
+    </div>
+    <div class="wareki-fields" id="wf-${hiddenName}-wareki" style="display:none;">
+      <select id="wera-${hiddenName}">${eraOpts}</select>
+      <input type="number" id="wyr-${hiddenName}" min="1" max="99" placeholder="年" style="width:48px;">
+      <span class="wareki-sep">年</span>
+      <input type="number" id="wmo-${hiddenName}" min="1" max="12" placeholder="月" style="width:48px;">
+      <span class="wareki-sep">月</span>
+      <input type="number" id="wdy-${hiddenName}" min="1" max="31" placeholder="日" style="width:48px;">
+      <span class="wareki-sep">日</span>
+    </div>`;
+}
+
+function toggleWarekiMode(hiddenName, mode, btn){
+  const parent = btn.parentElement;
+  parent.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sEl = document.getElementById('wf-'+hiddenName+'-seireki');
+  const wEl = document.getElementById('wf-'+hiddenName+'-wareki');
+  if(mode==='seireki'){
+    sEl.style.display='flex'; wEl.style.display='none';
+    // 和暦→西暦に値を同期
+    const era = document.getElementById('wera-'+hiddenName).value;
+    const yr = document.getElementById('wyr-'+hiddenName).value;
+    const mo = document.getElementById('wmo-'+hiddenName).value;
+    const dy = document.getElementById('wdy-'+hiddenName).value;
+    if(yr && mo && dy){
+      const sy = warekiToSeireki(era, yr);
+      document.getElementById(hiddenName).value = `${sy}-${String(mo).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
+    }
+  } else {
+    sEl.style.display='none'; wEl.style.display='flex';
+    // 西暦→和暦に値を同期
+    const val = document.getElementById(hiddenName).value;
+    if(val){
+      const d = new Date(val);
+      const w = seirekiToWareki(d.getFullYear());
+      document.getElementById('wera-'+hiddenName).value = w.era;
+      document.getElementById('wyr-'+hiddenName).value = w.year;
+      document.getElementById('wmo-'+hiddenName).value = d.getMonth()+1;
+      document.getElementById('wdy-'+hiddenName).value = d.getDate();
+    }
+  }
+}
+
+function setWarekiValue(hiddenName, isoDate){
+  const el = document.getElementById(hiddenName);
+  if(el) el.value = isoDate||'';
+  // 和暦側もクリア
+  const weraEl = document.getElementById('wera-'+hiddenName);
+  const wyrEl = document.getElementById('wyr-'+hiddenName);
+  const wmoEl = document.getElementById('wmo-'+hiddenName);
+  const wdyEl = document.getElementById('wdy-'+hiddenName);
+  if(isoDate && weraEl){
+    const d = new Date(isoDate);
+    const w = seirekiToWareki(d.getFullYear());
+    weraEl.value = w.era;
+    if(wyrEl) wyrEl.value = w.year;
+    if(wmoEl) wmoEl.value = d.getMonth()+1;
+    if(wdyEl) wdyEl.value = d.getDate();
+  } else {
+    if(wyrEl) wyrEl.value='';
+    if(wmoEl) wmoEl.value='';
+    if(wdyEl) wdyEl.value='';
+  }
+  // 西暦モードに戻す
+  const sEl = document.getElementById('wf-'+hiddenName+'-seireki');
+  const wEl = document.getElementById('wf-'+hiddenName+'-wareki');
+  if(sEl) sEl.style.display='flex';
+  if(wEl) wEl.style.display='none';
+  const toggle = sEl?.parentElement?.querySelector('.wareki-toggle');
+  if(toggle){
+    toggle.querySelectorAll('button').forEach((b,i)=>{
+      b.classList.toggle('active', i===0);
+    });
+  }
+}
+
+function getWarekiValue(hiddenName){
+  // 和暦モードが表示中なら和暦から変換
+  const wEl = document.getElementById('wf-'+hiddenName+'-wareki');
+  if(wEl && wEl.style.display !== 'none'){
+    const era = document.getElementById('wera-'+hiddenName).value;
+    const yr = document.getElementById('wyr-'+hiddenName).value;
+    const mo = document.getElementById('wmo-'+hiddenName).value;
+    const dy = document.getElementById('wdy-'+hiddenName).value;
+    if(yr && mo && dy){
+      const sy = warekiToSeireki(era, yr);
+      return `${sy}-${String(mo).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
+    }
+    return '';
+  }
+  // 西暦モード
+  const el = document.getElementById(hiddenName);
+  return el ? el.value : '';
+}
+
 // --- データ層 ---
 function loadFarms(){ return JSON.parse(lsGet('breed_farms','[]')); }
 function saveFarms(d){ lsSet('breed_farms', JSON.stringify(d)); }
@@ -3428,7 +4053,7 @@ function showBreedSub(sub, btn){
   document.querySelectorAll('.breed-sub-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('breed-sub-'+sub).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(sub==='dashboard') renderDashboard();
+  if(sub==='dashboard'){ renderDashboard(); renderBCSGraph(); }
   if(sub==='farms') renderFarmList();
   if(sub==='calendar') renderBreedCalendar();
   if(sub==='schedule') renderVisitSchedule();
@@ -3587,30 +4212,34 @@ function openFarmDetail(farmId){
 function openCowModal(farmId, editId){
   document.getElementById('cow-farm-id').value = farmId;
   document.getElementById('cow-edit-id').value = editId||'';
+  // 和暦入力コンポーネントを初期化
+  initWarekiInput('wi-cow-birth','cow-birth');
+  initWarekiInput('wi-cow-last-calving','cow-last-calving');
+  initWarekiInput('wi-cow-last-ai','cow-last-ai');
   if(editId){
     const cow = loadCows().find(c=>c.id===editId);
     if(!cow) return;
     document.getElementById('cow-modal-title').textContent = '🐄 個体編集';
     document.getElementById('cow-ear-tag').value = cow.earTag||'';
     document.getElementById('cow-name').value = cow.name||'';
-    document.getElementById('cow-birth').value = cow.birth||'';
+    setWarekiValue('cow-birth', cow.birth||'');
     document.getElementById('cow-parity').value = cow.parity||0;
     document.getElementById('cow-weight').value = cow.weight||500;
     document.getElementById('cow-stage').value = cow.stage||'maint';
-    document.getElementById('cow-last-calving').value = cow.lastCalving||'';
-    document.getElementById('cow-last-ai').value = cow.lastAI||'';
+    setWarekiValue('cow-last-calving', cow.lastCalving||'');
+    setWarekiValue('cow-last-ai', cow.lastAI||'');
     document.getElementById('cow-bcs').value = cow.bcs||3.0;
     document.getElementById('cow-memo').value = cow.memo||'';
   } else {
     document.getElementById('cow-modal-title').textContent = '🐄 個体追加';
     document.getElementById('cow-ear-tag').value='';
     document.getElementById('cow-name').value='';
-    document.getElementById('cow-birth').value='';
+    setWarekiValue('cow-birth','');
     document.getElementById('cow-parity').value=0;
     document.getElementById('cow-weight').value=500;
     document.getElementById('cow-stage').value='maint';
-    document.getElementById('cow-last-calving').value='';
-    document.getElementById('cow-last-ai').value='';
+    setWarekiValue('cow-last-calving','');
+    setWarekiValue('cow-last-ai','');
     document.getElementById('cow-bcs').value=3.0;
     document.getElementById('cow-memo').value='';
   }
@@ -3624,12 +4253,12 @@ function saveCow(){
   const data = {
     farmId, earTag:document.getElementById('cow-ear-tag').value.trim(),
     name:document.getElementById('cow-name').value.trim(),
-    birth:document.getElementById('cow-birth').value,
+    birth:getWarekiValue('cow-birth'),
     parity:parseInt(document.getElementById('cow-parity').value)||0,
     weight:parseInt(document.getElementById('cow-weight').value)||500,
     stage:document.getElementById('cow-stage').value,
-    lastCalving:document.getElementById('cow-last-calving').value,
-    lastAI:document.getElementById('cow-last-ai').value,
+    lastCalving:getWarekiValue('cow-last-calving'),
+    lastAI:getWarekiValue('cow-last-ai'),
     bcs:parseFloat(document.getElementById('cow-bcs').value)||3.0,
     memo:document.getElementById('cow-memo').value.trim()
   };
@@ -3991,6 +4620,587 @@ function renderDashboard(){
     }
   });
   document.getElementById('breed-alerts-content').innerHTML = alerts || '<div class="note" style="text-align:center;padding:10px;">注意が必要な個体はありません</div>';
+}
+
+// =============================================
+// 簡易LPソルバー（座標降下法）
+// 目的: CP/TDN/DM を req に近づけつつ DMI上限・脂肪<5%・Ca:P適正 を満たす
+// =============================================
+function solveMixLP(feedList, req, bw, stage, maxIter=1000){
+  const n = feedList.length;
+  if(n===0) return null;
+  const dmiMax = bw * (req.dmi_max_pct||1.5) / 100;
+  const ct   = (stage && concTargets[stage])   || {lo:30, hi:45};
+  const ckKg = (stage && concTargetKg[stage])  || {lo:1.0, hi:4.5};
+
+  function objective(x){
+    let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,roughDM=0,concDM=0,concKgRaw=0,strawDM=0;
+    for(let i=0;i<n;i++){
+      const f=feedList[i].feed;
+      const d=x[i]*(1-f.moisture/100);
+      dm+=d; cp+=d*f.cp/100*1000; tdn+=d*f.tdn/100;
+      fat+=d*(f.fat||0)/100; ca+=d*(f.ca||0)/100*1000; p+=d*(f.p||0)/100*1000;
+      if(isRoughage(f)){roughDM+=d;}else{concDM+=d; concKgRaw+=x[i];}
+      if(f.name.indexOf('稲わら')>=0) strawDM+=d;
+    }
+    const fatPct  = dm>0 ? fat/dm*100   : 0;
+    const concPct = dm>0 ? concDM/dm*100: 0;
+    const strawPct= dm>0 ? strawDM/dm*100:0;
+    const caPR    = p>0  ? ca/p         : 0;
+    let loss=0;
+    // 栄養素
+    const cpRat=cp/req.cp, tdnRat=tdn/req.tdn;
+    loss += Math.pow(cpRat-1,2)*5 + Math.pow(tdnRat-1,2)*5;
+    if(cpRat<0.9)  loss += Math.pow(0.9-cpRat,2)*8;
+    if(tdnRat<0.9) loss += Math.pow(0.9-tdnRat,2)*8;
+    // DM
+    const dmRat=dm/req.dm;
+    loss += Math.pow(Math.max(0,dmRat-1.12),2)*10 + Math.pow(Math.max(0,0.83-dmRat),2)*3;
+    if(dm>dmiMax) loss += Math.pow((dm-dmiMax)/dmiMax,2)*15;
+    // 粗濃比制約
+    if(concPct>ct.hi)  loss += Math.pow((concPct-ct.hi)/10,2)*8;
+    if(concPct<ct.lo && dm>0) loss += Math.pow((ct.lo-concPct)/10,2)*4;
+    // 配合飼料量制約
+    if(concKgRaw>ckKg.hi) loss += Math.pow((concKgRaw-ckKg.hi)/ckKg.hi,2)*6;
+    // 稲わら制約
+    if(strawPct>30) loss += Math.pow((strawPct-30)/20,2)*5;
+    if(strawPct>50) loss += Math.pow((strawPct-50)/10,2)*10;
+    // 脂肪・Ca:P
+    if(fatPct>5)   loss += Math.pow((fatPct-5)/5,2)*4;
+    if(caPR<1.0 && ca>0 && p>0) loss += Math.pow(1.0-caPR,2)*2;
+    if(caPR>3.0)   loss += Math.pow(caPR-3.0,2);
+    return {loss,dm,cp,tdn,fatPct,ca,p,caPR,concPct,strawPct,concKgRaw};
+  }
+
+  let x = feedList.map(f=>(f.minKg+f.maxKg)/2);
+  const phases=[{iter:Math.floor(maxIter*0.6),lr:0.18},{iter:Math.floor(maxIter*0.4),lr:0.06}];
+  for(const ph of phases){
+    for(let iter=0;iter<ph.iter;iter++){
+      for(let i=0;i<n;i++){
+        const lo=feedList[i].minKg, hi=feedList[i].maxKg;
+        const step=(hi-lo)*ph.lr*Math.max(0.02,(ph.iter-iter)/ph.iter);
+        const cur=x[i], base=objective(x).loss;
+        x[i]=Math.max(lo,Math.min(hi,cur+step));
+        const up=objective(x).loss;
+        x[i]=Math.max(lo,Math.min(hi,cur-step));
+        const dn=objective(x).loss;
+        if(base<=up&&base<=dn) x[i]=cur;
+        else if(up<dn) x[i]=Math.max(lo,Math.min(hi,cur+step));
+        else x[i]=Math.max(lo,Math.min(hi,cur-step));
+      }
+    }
+  }
+  return {amounts:x, ...objective(x)};
+}
+
+function renderMixTable(feedList, amounts, req, bw, stage, label, badge){
+  const n=feedList.length;
+  let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,concKg=0,strawDM=0,roughDM=0,concDM=0;
+  let rows='';
+  for(let i=0;i<n;i++){
+    const f=feedList[i].feed;
+    const amt=parseFloat(amounts[i].toFixed(2));
+    if(amt<0.05) continue;
+    const d=amt*(1-f.moisture/100);
+    dm+=d; cp+=d*f.cp/100*1000; tdn+=d*f.tdn/100;
+    fat+=d*(f.fat||0)/100; ca+=d*(f.ca||0)/100*1000; p+=d*(f.p||0)/100*1000;
+    if(isRoughage(f)){roughDM+=d;}else{concDM+=d; concKg+=amt;}
+    if(f.name.indexOf('稲わら')>=0) strawDM+=d;
+    const catL=isRoughage(f)?'<span style="font-size:9px;color:#558b2f;">粗</span>':'<span style="font-size:9px;color:#e65100;">濃</span>';
+    rows+=`<tr><td>${f.name} ${catL}</td><td style="text-align:right;font-weight:700;">${amt.toFixed(2)}</td><td style="text-align:right;font-size:11px;color:var(--text-sub);">${d.toFixed(2)}</td></tr>`;
+  }
+  if(dm===0) return '<div class="note warn">配合を計算できませんでした。</div>';
+  const fatPct=fat/dm*100, concPct=(roughDM+concDM)>0?concDM/(roughDM+concDM)*100:0;
+  const strawPct=(roughDM+concDM)>0?strawDM/(roughDM+concDM)*100:0;
+  const caPR=p>0?ca/p:0, dmiPct=bw>0?dm/bw*100:0;
+  const ct2=(stage&&concTargets[stage])||{lo:30,hi:45};
+  const ckKg2=(stage&&concTargetKg[stage])||{lo:1.0,hi:4.5};
+  function sc2(v){return v>=90&&v<=115?'ok':v>=75&&v<=130?'warn':'ng';}
+  function mini(l,v,pv){const c=sc2(pv)==='ok'?'#e8f5e9':sc2(pv)==='warn'?'#fff3e0':'#ffebee';return `<span class="mini-result" style="background:${c}">${l} ${v} (${pv}%)</span>`;}
+  const cpPct=Math.round(cp/req.cp*100),tdnPct=Math.round(tdn/req.tdn*100),dmPct=Math.round(dm/req.dm*100);
+  const concRB=concPct>ct2.hi?`<span class="mini-result" style="background:#ffebee;">濃${concPct.toFixed(0)}%⚠</span>`:concPct<ct2.lo?`<span class="mini-result" style="background:#fff3e0;">濃${concPct.toFixed(0)}%△</span>`:`<span class="mini-result" style="background:#e8f5e9;">濃${concPct.toFixed(0)}%✓</span>`;
+  const strawB=strawPct>50?`<span class="mini-result" style="background:#ffebee;">稲わら${strawPct.toFixed(0)}%⚠</span>`:strawPct>30?`<span class="mini-result" style="background:#fff3e0;">稲わら${strawPct.toFixed(0)}%△</span>`:strawPct>0?`<span class="mini-result" style="background:#e8f5e9;">稲わら${strawPct.toFixed(0)}%✓</span>`:'';
+  const concKgB=concKg>ckKg2.hi?`<span class="mini-result" style="background:#ffebee;">配合${concKg.toFixed(1)}kg⚠</span>`:`<span class="mini-result" style="background:#e8f5e9;">配合${concKg.toFixed(1)}kg✓</span>`;
+  const dmiB=dmiPct>(req.dmi_max_pct||1.5)*100?`<span class="mini-result" style="background:#ffebee;">DMI${dmiPct.toFixed(1)}%⚠</span>`:`<span class="mini-result">DMI${dmiPct.toFixed(1)}%BW</span>`;
+  const caPB=caPR>=1.5&&caPR<=2.5?`<span class="mini-result" style="background:#e8f5e9;">Ca:P${caPR.toFixed(1)}✓</span>`:caPR<1.0?`<span class="mini-result" style="background:#ffebee;">Ca:P${caPR.toFixed(1)}⚠</span>`:`<span class="mini-result">Ca:P${caPR.toFixed(1)}</span>`;
+  return `<div style="margin-bottom:4px;">
+    ${badge?`<div style="margin-bottom:6px;">${badge}</div>`:''}
+    <table class="full-result-table" style="margin-bottom:8px;">
+      <tr><th>飼料名</th><th style="text-align:right">給与量(kg)</th><th style="text-align:right">DM(kg)</th></tr>
+      ${rows}
+      <tr style="border-top:2px solid var(--border);"><td><b>合計DM</b></td><td style="text-align:right;font-weight:700;">${dm.toFixed(2)}kg</td><td></td></tr>
+    </table>
+    <div class="mini-results" style="gap:4px;flex-wrap:wrap;">
+      ${mini('CP',Math.round(cp)+'g',cpPct)} ${mini('TDN',tdn.toFixed(2)+'kg',tdnPct)} ${mini('DM',dm.toFixed(2)+'kg',dmPct)}
+      <span class="mini-result">脂肪${fatPct.toFixed(1)}%</span> ${caPB} ${dmiB}
+    </div>
+    <div class="mini-results" style="gap:4px;margin-top:4px;flex-wrap:wrap;">
+      ${concRB} ${strawB} ${concKgB}
+      <span class="mini-result" style="font-size:10px;color:var(--text-sub);">目標:濃${ct2.lo}〜${ct2.hi}%DM / 稲わら≤30%DM / 配合${ckKg2.lo}〜${ckKg2.hi}kg</span>
+    </div>
+  </div>`;
+}
+
+// =============================================
+// 配合提案A: 現有飼料の給与量を最適化
+// =============================================
+function buildOptimalMix(rows, req, bw, stage){
+  if(rows.length===0) return '';
+  const totals=calcTotals(rows);
+  const issues=detectIssues(totals,req,rows,bw,stage);
+  if(issues.length===0){
+    return `<div><div class="suggest-title">③ 配合提案A（現有飼料の最適量）</div>
+      <div class="note" style="background:#e8f5e9;color:#1b5e20;">✓ 現在の配合は概ね適正です。</div></div>`;
+  }
+  const dmiMax=bw*(req.dmi_max_pct||1.5)/100;
+  const ckKg=concTargetKg[stage]||{lo:1.0,hi:4.5};
+  const ct=concTargets[stage]||{lo:30,hi:45};
+
+  // Feasibility check: 現有飼料で制約を同時に満たせるか事前確認
+  // 稲わら系飼料のみ or 低栄養粗飼料のみの場合は実現不能
+  const hasHighCP = rows.some(r=>r.feed.cp>12); // CP12%超の飼料があるか
+  const hasConc   = rows.some(r=>!isRoughage(r.feed)); // 濃厚飼料があるか
+  const allStraw  = rows.every(r=>r.feed.name.indexOf('稲わら')>=0);
+  const infeasible = !hasHighCP || !hasConc || allStraw;
+
+  if(infeasible){
+    const reason = !hasConc ? '現在の給与飼料に濃厚飼料（配合飼料・副産物等）が含まれていません'
+      : !hasHighCP ? '現在の給与飼料はCP含量が低く（全飼料CP<12%）、要求量を満たすことが困難です'
+      : '稲わらのみの構成では栄養要求を満たせません';
+    return `<div>
+      <div class="suggest-title">③ 配合提案A（現有飼料の最適量）</div>
+      <div class="note warn" style="margin-bottom:6px;">⚠️ <b>現有飼料のみでは、粗濃比・稲わら制約・栄養要求量をすべて同時に満たすことができません。</b><br>${reason}。<b>④配合提案B（リセット案）</b>も参照してください。</div>
+    </div>`;
+  }
+
+  const feedList=rows.map(r=>{
+    const isStraw=r.feed.name.indexOf('稲わら')>=0;
+    // 稲わらの最大量: DMI上限の28%まで（30%制約に余裕を持たせる）
+    const strawMaxDM=dmiMax*0.28;
+    const maxKg=isRoughage(r.feed)
+      ? (isStraw ? Math.min(10, strawMaxDM/(1-r.feed.moisture/100)) : Math.min(20, dmiMax/(1-r.feed.moisture/100)))
+      : Math.min(ckKg.hi*1.2, r.amount*5);
+    return {feed:r.feed, minKg:0, maxKg};
+  });
+  const result=solveMixLP(feedList,req,bw,stage);
+  if(!result) return '';
+  const badge=`<span class="badge badge-info" style="font-size:10px;">現有${rows.length}種・粗濃比/稲わら制約あり</span>`;
+  return `<div>
+    <div class="suggest-title">③ 配合提案A（現有飼料の最適量）</div>
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;">現在使用中の飼料の給与量を<b>粗濃比（濃${ct.lo}〜${ct.hi}%DM）・稲わら上限（DM30%）・配合量（${ckKg.lo}〜${ckKg.hi}kg）</b>の制約下で最適化した案です。</p>
+    ${renderMixTable(feedList,result.amounts,req,bw,stage,'',badge)}
+  </div>`;
+}
+
+// =============================================
+// 配合提案B: 飼料DBから最適な飼料を選び直し
+// =============================================
+function buildResetMix(rows, req, bw, stage){
+  const allFeeds=loadFeeds();
+  const ct=concTargets[stage]||{lo:30,hi:45};
+  const ckKg=concTargetKg[stage]||{lo:1.0,hi:4.5};
+  function scoreFeedForMix(f){
+    if(f.fat>10||f.moisture>80) return -999;
+    let score=0;
+    score += f.cp  * (stage==='pre'?1.0:stage==='maint'?0.5:1.2);
+    score += f.tdn * (stage==='maint'?0.4:0.6);
+    score += (f.ca||0)*10;
+    score -= (f.fat>5?(f.fat-5)*2:0);
+    score -= (f.moisture>60?3:0);
+    if(f.name.indexOf('稲わら')>=0) score -= 15;  // 稲わらはB案では低優先
+    return score;
+  }
+  const roughages=allFeeds.filter(isRoughage).filter(f=>f.tdn>40)
+    .sort((a,b)=>scoreFeedForMix(b)-scoreFeedForMix(a)).slice(0,2);
+  const concs=allFeeds.filter(f=>!isRoughage(f)).filter(f=>f.cp>10||f.tdn>65)
+    .sort((a,b)=>scoreFeedForMix(b)-scoreFeedForMix(a)).slice(0,2);
+  const selected=[...roughages,...concs];
+  if(selected.length<2) return `<div><div class="suggest-title">④ 配合提案B（推奨配合）</div>
+    <div class="note warn">飼料DBから適切な組合せが見つかりませんでした。</div></div>`;
+  const roughDmTarget=req.dm*(1-ct.hi/100);
+  const concDmTarget =req.dm*(ct.lo/100+(ct.hi-ct.lo)/200);
+  const feedList=selected.map(f=>{
+    const isStraw=f.name.indexOf('稲わら')>=0;
+    const dmTarget=isRoughage(f)?roughDmTarget/Math.max(1,roughages.length):concDmTarget/Math.max(1,concs.length);
+    const kgTarget=dmTarget/(1-f.moisture/100);
+    const maxKg=isStraw
+      ? Math.min(8, bw*(req.dmi_max_pct||1.5)/100*0.28/(1-f.moisture/100))
+      : Math.min(20, kgTarget*2.2);
+    return {feed:f, minKg:0, maxKg};
+  });
+  const result=solveMixLP(feedList,req,bw,stage);
+  if(!result) return '';
+  const feedNames=selected.map(f=>{
+    const isStraw=f.name.indexOf('稲わら')>=0;
+    const col=isRoughage(f)?(isStraw?'#795548':'#2e7d32'):'#e65100';
+    return `<span class="badge" style="background:#f5f5f5;color:${col};font-size:10px;">${f.name}</span>`;
+  }).join(' ');
+  const badge=`<span class="badge badge-warn" style="font-size:10px;">DBから${selected.length}種選択・粗濃比制約あり</span>`;
+  return `<div>
+    <div class="suggest-title">④ 配合提案B（推奨配合・リセット案）</div>
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:6px;">飼料DBから選び直した理想的な配合案です。<b>粗濃比（濃${ct.lo}〜${ct.hi}%DM）・稲わら制約・配合量（${ckKg.lo}〜${ckKg.hi}kg）</b>を守って最適化しています。</p>
+    <div style="margin-bottom:8px;">${feedNames}</div>
+    ${renderMixTable(feedList,result.amounts,req,bw,stage,'',badge)}
+    <div class="note" style="margin-top:6px;font-size:11px;">※現在使用中の飼料と異なる場合があります。入手可能な飼料に合わせて調整してください。</div>
+  </div>`;
+}
+
+// =============================================
+// 個体連携（計算タブ→繁殖データ）
+// =============================================
+let _linkedCowId = null;
+
+function toggleCowLink(){
+  const listEl = document.getElementById('cow-link-list');
+  const noneEl = document.getElementById('cow-link-none');
+  const btn = document.getElementById('cow-link-toggle-btn');
+  if(listEl.style.display !== 'none'){
+    listEl.style.display='none'; noneEl.style.display='none';
+    btn.textContent='選択する';
+    return;
+  }
+  renderCowLinkList();
+}
+
+function renderCowLinkList(){
+  const farms = loadFarms();
+  const cows = loadCows();
+  const listEl = document.getElementById('cow-link-list');
+  const noneEl = document.getElementById('cow-link-none');
+  const btn = document.getElementById('cow-link-toggle-btn');
+  if(farms.length===0 || cows.length===0){
+    listEl.style.display='none'; noneEl.style.display='block';
+    btn.textContent='▲ 閉じる';
+    return;
+  }
+  let html = '';
+  farms.forEach(f=>{
+    const fcows = cows.filter(c=>c.farmId===f.id);
+    if(fcows.length===0) return;
+    html += `<div style="font-size:11px;font-weight:700;color:var(--primary);padding:4px 0 2px;">${esc(f.name)}</div>`;
+    fcows.forEach(c=>{
+      const nm = c.name||c.earTag||'名称未設定';
+      const meta = [c.parity+'産', c.weight+'kg', 'BCS'+c.bcs, STAGE_BADGE[c.stage]||c.stage].filter(Boolean).join(' / ');
+      const sel = _linkedCowId===c.id ? 'selected' : '';
+      html += `<div class="cow-select-btn ${sel}" onclick="linkCow('${c.id}')">
+        <div>
+          <div class="csb-name">${esc(nm)}</div>
+          <div class="csb-meta">${meta}</div>
+        </div>
+        ${_linkedCowId===c.id?'<span style="color:var(--ok);">✓ 選択中</span>':''}
+      </div>`;
+    });
+  });
+  listEl.innerHTML = html;
+  listEl.style.display='block'; noneEl.style.display='none';
+  btn.textContent='▲ 閉じる';
+}
+
+function linkCow(cowId){
+  const cows = loadCows();
+  const cow = cows.find(c=>c.id===cowId);
+  if(!cow) return;
+  _linkedCowId = cowId;
+  // 体重をBWに反映
+  const bwSettings = loadBWSettings();
+  bwSettings.bw = cow.weight||500;
+  saveBWSettingsToLS(bwSettings);
+  applyBWToRequirements();
+  // ステージをセレクトに反映
+  const stageEl = document.getElementById('stage-select');
+  if(stageEl) stageEl.value = cow.stage||'maint';
+  // 乳量セット
+  if(cow.stage==='post0'||cow.stage==='post90'){
+    const milkEl = document.getElementById('milk-amount');
+    if(milkEl){
+      milkEl.value = cow.stage==='post0' ? 6 : 4;
+    }
+  }
+  onStageChange();
+  // 選択表示
+  const farm = loadFarms().find(f=>f.id===cow.farmId);
+  const nm = cow.name||cow.earTag||'名称未設定';
+  document.getElementById('cow-link-selected').innerHTML =
+    `<div style="background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;">
+      <div>✅ <b>${esc(nm)}</b>${farm?' ('+esc(farm.name)+')':''} — BW ${cow.weight}kg / ${STAGE_BADGE[cow.stage]||cow.stage}</div>
+      <button type="button" onclick="unlinkCow()" style="background:none;border:none;color:var(--ng);cursor:pointer;font-size:12px;">✕ 解除</button>
+    </div>`;
+  document.getElementById('cow-link-selected').style.display='block';
+  // リストを閉じる
+  document.getElementById('cow-link-list').style.display='none';
+  document.getElementById('cow-link-toggle-btn').textContent='変更';
+  showToast(`✅ ${nm} の体重・ステージをセットしました`);
+}
+
+function unlinkCow(){
+  _linkedCowId = null;
+  document.getElementById('cow-link-selected').style.display='none';
+  document.getElementById('cow-link-selected').innerHTML='';
+  document.getElementById('cow-link-toggle-btn').textContent='選択する';
+}
+
+// =============================================
+// BCS推移グラフ
+// =============================================
+function renderBCSGraph(){
+  const farms = loadFarms();
+  const cows = loadCows();
+  const events = loadEvents();
+  const filterFarm = document.getElementById('bcs-farm-filter').value;
+  const filterCow = document.getElementById('bcs-cow-filter').value;
+  const area = document.getElementById('bcs-graph-area');
+
+  // 農家フィルタ選択肢を更新
+  const farmSel = document.getElementById('bcs-farm-filter');
+  if(farmSel.options.length<=1){
+    farms.forEach(f=>{ const o=document.createElement('option'); o.value=f.id; o.textContent=f.name; farmSel.appendChild(o); });
+  }
+  // 個体フィルタ選択肢を更新
+  const cowSel = document.getElementById('bcs-cow-filter');
+  const filteredCows = filterFarm ? cows.filter(c=>c.farmId===filterFarm) : cows;
+  cowSel.innerHTML = '<option value="">全個体</option>';
+  filteredCows.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||c.earTag||'不明'; cowSel.appendChild(o); });
+
+  // 対象個体のBCSイベントを収集
+  const targetCows = filterCow ? filteredCows.filter(c=>c.id===filterCow) : filteredCows.slice(0,8); // 最大8頭
+  const COLORS = ['#2e7d32','#1565c0','#e65100','#6a1b9a','#c62828','#00695c','#f57c00','#37474f'];
+
+  // 各個体のBCSデータを構築
+  const cowData = [];
+  targetCows.forEach((c,i)=>{
+    const bcsEvts = events.filter(e=>e.cowId===c.id && e.type==='bcs' && e.date && e.bcsVal)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    // 現在のBCSも追加（イベントがあれば最新、なければcow.bcs）
+    const pts = bcsEvts.map(e=>({date:e.date, val:parseFloat(e.bcsVal)}));
+    if(c.bcs && pts.length===0){
+      pts.push({date:new Date().toISOString().slice(0,10), val:parseFloat(c.bcs)});
+    }
+    if(pts.length>=1){
+      cowData.push({cow:c, pts, color:COLORS[i%COLORS.length], name:c.name||c.earTag||'不明'});
+    }
+  });
+
+  if(cowData.length===0){
+    area.innerHTML='<div class="note" style="text-align:center;padding:10px;">BCSイベントを記録するとグラフが表示されます</div>';
+    return;
+  }
+
+  // 日付軸を統合
+  const allDates = [...new Set(cowData.flatMap(d=>d.pts.map(p=>p.date)))].sort();
+  if(allDates.length===0){ area.innerHTML='<div class="note" style="text-align:center;padding:10px;">グラフデータなし</div>'; return; }
+
+  // SVGグラフ描画
+  const W=340, H=180, PL=32, PR=12, PT=16, PB=30;
+  const gW=W-PL-PR, gH=H-PT-PB;
+  const minDate=allDates[0], maxDate=allDates[allDates.length-1];
+  const minD=new Date(minDate).getTime(), maxD=new Date(maxDate).getTime();
+  const spanD = maxD>minD ? maxD-minD : 1;
+
+  const BCS_MIN=1.5, BCS_MAX=4.5;
+  function xPos(dateStr){ return PL + gW*(new Date(dateStr).getTime()-minD)/spanD; }
+  function yPos(val){ return PT + gH*(1-(val-BCS_MIN)/(BCS_MAX-BCS_MIN)); }
+
+  // 目標レンジ帯（授精適期2.75〜3.75）
+  const yTop = yPos(3.75), yBot = yPos(2.75);
+  const rangeBand = `<rect x="${PL}" y="${yTop}" width="${gW}" height="${yBot-yTop}" fill="#e8f5e9" opacity="0.7"/>
+    <line x1="${PL}" y1="${yPos(3.0)}" x2="${PL+gW}" y2="${yPos(3.0)}" stroke="#4caf50" stroke-width="1" stroke-dasharray="4,3" opacity="0.8"/>`;
+
+  // Y軸目盛り
+  let yAxis='';
+  [2.0,2.5,3.0,3.5,4.0].forEach(v=>{
+    const y=yPos(v);
+    yAxis+=`<line x1="${PL}" y1="${y}" x2="${PL+gW}" y2="${y}" stroke="#e0e0e0" stroke-width="1"/>
+      <text x="${PL-4}" y="${y+4}" font-size="9" text-anchor="end" fill="#9e9e9e">${v}</text>`;
+  });
+
+  // X軸: 最大5点の日付ラベル
+  let xAxis='';
+  const step = Math.max(1, Math.floor(allDates.length/4));
+  for(let i=0;i<allDates.length;i+=step){
+    const x=xPos(allDates[i]);
+    const d=new Date(allDates[i]);
+    xAxis+=`<text x="${x}" y="${H-4}" font-size="9" text-anchor="middle" fill="#9e9e9e">${d.getMonth()+1}/${d.getDate()}</text>`;
+  }
+
+  // 折れ線
+  let lines='', dots='';
+  cowData.forEach(({pts,color,name})=>{
+    if(pts.length>=2){
+      const path=pts.map((p,i)=>`${i===0?'M':'L'}${xPos(p.date).toFixed(1)},${yPos(p.val).toFixed(1)}`).join(' ');
+      lines+=`<path d="${path}" stroke="${color}" stroke-width="2" fill="none"/>`;
+    }
+    pts.forEach(p=>{
+      dots+=`<circle cx="${xPos(p.date).toFixed(1)}" cy="${yPos(p.val).toFixed(1)}" r="4" fill="${color}" stroke="white" stroke-width="1.5">
+        <title>${name}: BCS ${p.val} (${p.date})</title></circle>`;
+    });
+  });
+
+  const svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;">
+    ${rangeBand}${yAxis}${xAxis}${lines}${dots}
+    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+gH}" stroke="#bdbdbd" stroke-width="1"/>
+    <line x1="${PL}" y1="${PT+gH}" x2="${PL+gW}" y2="${PT+gH}" stroke="#bdbdbd" stroke-width="1"/>
+    <text x="${PL+gW/2}" y="${PT-4}" font-size="10" text-anchor="middle" fill="#4caf50" opacity="0.8">🟩 授精適期BCS 2.75〜3.75</text>
+  </svg>`;
+
+  // 凡例
+  let legend='<div class="bcs-legend">';
+  cowData.forEach(({color,name})=>{
+    legend+=`<div class="bcs-legend-item"><div class="bcs-legend-dot" style="background:${color};"></div>${esc(name)}</div>`;
+  });
+  legend+='</div>';
+
+  area.innerHTML=`<div class="bcs-chart-wrap">${svg}</div>${legend}`;
+}
+
+// =============================================
+// CSV エクスポート / インポート
+// =============================================
+function downloadCSV(filename, csvStr){
+  const bom='\uFEFF'; // UTF-8 BOM（Excelで文字化けしないように）
+  const blob=new Blob([bom+csvStr],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function csvEsc(v){
+  if(v==null) return '';
+  const s=String(v);
+  if(s.includes(',')||s.includes('"')||s.includes('\n')) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+
+function exportBreedCSV(type){
+  const farms=loadFarms(), cows=loadCows(), events=loadEvents();
+  const today=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  if(type==='farms'||type==='all'){
+    const header='農家ID,農家名,住所,電話,メモ,巡回頻度,巡回間隔日';
+    const rows=farms.map(f=>[f.id,f.name,f.address||'',f.phone||'',f.memo||'',f.visitFreq||'monthly',f.customDays||''].map(csvEsc).join(','));
+    if(type==='farms'){ downloadCSV(`農家一覧_${today}.csv`,[header,...rows].join('\n')); return; }
+  }
+  if(type==='cows'||type==='all'){
+    const header='個体ID,農家ID,農家名,耳標,愛称,生年月日,産次,体重,ステージ,最終分娩日,最終授精日,BCS,メモ';
+    const rows=cows.map(c=>{
+      const farm=farms.find(f=>f.id===c.farmId);
+      return [c.id,c.farmId,farm?farm.name:'',c.earTag||'',c.name||'',c.birth||'',
+        c.parity||0,c.weight||'',c.stage||'',c.lastCalving||'',c.lastAI||'',c.bcs||'',c.memo||''].map(csvEsc).join(',');
+    });
+    if(type==='cows'){ downloadCSV(`個体一覧_${today}.csv`,[header,...rows].join('\n')); return; }
+  }
+  if(type==='events'||type==='all'){
+    const header='イベントID,個体ID,農家ID,個体名,農家名,日付,種類,BCS値,種雄牛,子牛性別,生時体重,分娩状況,メモ';
+    const rows=events.map(e=>{
+      const cow=cows.find(c=>c.id===e.cowId);
+      const farm=cow?farms.find(f=>f.id===cow.farmId):null;
+      return [e.id,e.cowId,farm?farm.id:'',cow?(cow.name||cow.earTag||''):'',farm?farm.name:'',
+        e.date||'',EVENT_LABELS[e.type]||e.type,e.bcsVal||'',e.sire||'',
+        e.calfSex||'',e.calfWeight||'',e.calvingStatus||'',e.memo||''].map(csvEsc).join(',');
+    });
+    if(type==='events'){ downloadCSV(`繁殖イベント_${today}.csv`,[header,...rows].join('\n')); return; }
+  }
+  if(type==='all'){
+    // 全データを1ファイルにまとめる（セクション区切り）
+    const farmsHeader='農家ID,農家名,住所,電話,メモ,巡回頻度,巡回間隔日';
+    const farmsRows=farms.map(f=>[f.id,f.name,f.address||'',f.phone||'',f.memo||'',f.visitFreq||'monthly',f.customDays||''].map(csvEsc).join(','));
+    const cowsHeader='個体ID,農家ID,農家名,耳標,愛称,生年月日,産次,体重,ステージ,最終分娩日,最終授精日,BCS,メモ';
+    const cowsRows=cows.map(c=>{
+      const farm=farms.find(f=>f.id===c.farmId);
+      return [c.id,c.farmId,farm?farm.name:'',c.earTag||'',c.name||'',c.birth||'',
+        c.parity||0,c.weight||'',c.stage||'',c.lastCalving||'',c.lastAI||'',c.bcs||'',c.memo||''].map(csvEsc).join(',');
+    });
+    const evHeader='イベントID,個体ID,農家ID,個体名,農家名,日付,種類,BCS値,種雄牛,子牛性別,生時体重,分娩状況,メモ';
+    const evRows=events.map(e=>{
+      const cow=cows.find(c=>c.id===e.cowId);
+      const farm=cow?farms.find(f=>f.id===cow.farmId):null;
+      return [e.id,e.cowId,farm?farm.id:'',cow?(cow.name||cow.earTag||''):'',farm?farm.name:'',
+        e.date||'',EVENT_LABELS[e.type]||e.type,e.bcsVal||'',e.sire||'',
+        e.calfSex||'',e.calfWeight||'',e.calvingStatus||'',e.memo||''].map(csvEsc).join(',');
+    });
+    const all=['## 農家一覧',farmsHeader,...farmsRows,'','## 個体一覧',cowsHeader,...cowsRows,'','## 繁殖イベント',evHeader,...evRows].join('\n');
+    downloadCSV(`繁殖管理全データ_${today}.csv`, all);
+  }
+}
+
+function importBreedCSV(input){
+  const file=input.files[0];
+  if(!file) return;
+  const resultEl=document.getElementById('csv-import-result');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,''); // BOM除去
+      const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+      let mode='', imported={farms:0,cows:0,events:0};
+      const farms=loadFarms(), cows=loadCows(), events=loadEvents();
+      const newFarms=[...farms], newCows=[...cows], newEvents=[...events];
+
+      lines.forEach(line=>{
+        if(line.startsWith('##')){
+          mode = line.includes('農家')?'farms':line.includes('個体')?'cows':line.includes('イベント')?'events':'';
+          return;
+        }
+        // ヘッダー行はスキップ
+        if(line.startsWith('農家ID')||line.startsWith('個体ID')||line.startsWith('イベントID')) return;
+        const cols=parseCSVLine(line);
+        if(!cols||cols.length<2) return;
+
+        if(mode==='farms'||(!mode && cols.length>=2)){
+          // 農家ID,農家名,住所,電話,メモ,巡回頻度,巡回間隔日
+          if(!cols[0]||!cols[1]) return;
+          const exists=newFarms.find(f=>f.id===cols[0]);
+          if(!exists){
+            newFarms.push({id:cols[0],name:cols[1],address:cols[2]||'',phone:cols[3]||'',
+              memo:cols[4]||'',visitFreq:cols[5]||'monthly',customDays:parseInt(cols[6])||null});
+            imported.farms++;
+          }
+        } else if(mode==='cows'){
+          if(!cols[0]||!cols[1]) return;
+          const exists=newCows.find(c=>c.id===cols[0]);
+          if(!exists){
+            newCows.push({id:cols[0],farmId:cols[1],earTag:cols[3]||'',name:cols[4]||'',
+              birth:cols[5]||'',parity:parseInt(cols[6])||0,weight:parseInt(cols[7])||500,
+              stage:cols[8]||'maint',lastCalving:cols[9]||'',lastAI:cols[10]||'',
+              bcs:parseFloat(cols[11])||3.0,memo:cols[12]||''});
+            imported.cows++;
+          }
+        } else if(mode==='events'){
+          if(!cols[0]||!cols[1]) return;
+          const exists=newEvents.find(ev=>ev.id===cols[0]);
+          if(!exists){
+            const typeKey=Object.keys(EVENT_LABELS).find(k=>EVENT_LABELS[k]===cols[6])||cols[6]||'other';
+            newEvents.push({id:cols[0],cowId:cols[1],date:cols[5]||'',type:typeKey,
+              bcsVal:parseFloat(cols[7])||null,sire:cols[8]||'',
+              calfSex:cols[9]||'',calfWeight:parseFloat(cols[10])||null,
+              calvingStatus:cols[11]||'',memo:cols[12]||''});
+            imported.events++;
+          }
+        }
+      });
+
+      saveFarms(newFarms); saveCows(newCows); saveEvents(newEvents);
+      const msg=`✅ 取込完了: 農家${imported.farms}件, 個体${imported.cows}件, イベント${imported.events}件`;
+      resultEl.innerHTML=`<span style="color:var(--ok);">${msg}</span>`;
+      renderDashboard(); renderBCSGraph();
+      showToast(msg);
+    } catch(err){
+      resultEl.innerHTML=`<span style="color:var(--ng);">❌ 取込失敗: ${err.message}</span>`;
+    }
+    input.value='';
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function parseCSVLine(line){
+  const cols=[];
+  let cur='', inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ if(inQ && line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
+    else if(c===','&&!inQ){ cols.push(cur.trim()); cur=''; }
+    else cur+=c;
+  }
+  cols.push(cur.trim());
+  return cols;
 }
 
 // --- カレンダー ---
