@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="栄養計算">
@@ -26,7 +26,8 @@
   .card-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
   label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; margin-top: 10px; }
   label:first-of-type { margin-top: 0; }
-  select, input[type=number], input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white; appearance: none; -webkit-appearance: none; }
+  /* 16px未満だとiOS Safariがフォーカス時に自動ズームする（§4.5）。maximum-scale禁止をやめた代わりにこれで防ぐ */
+  select, input[type=number], input[type=text], textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: white; appearance: none; -webkit-appearance: none; }
   select:focus, input:focus { outline: none; border-color: var(--primary-light); }
   .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; }
   .btn-primary { background: var(--primary); color: white; }
@@ -35,8 +36,8 @@
   .btn-danger { background: #c62828; color: white; }
   .btn-sm { padding: 7px 14px; font-size: 12px; width: auto; border-radius: 8px; display: inline-block; }
   .feed-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; margin-bottom: 8px; }
-  .feed-row select { font-size: 12px; padding: 8px; }
-  .feed-row input { width: 72px; padding: 8px; font-size: 13px; text-align: right; }
+  .feed-row select { font-size: 16px; padding: 8px; }
+  .feed-row input { width: 72px; padding: 8px; font-size: 16px; text-align: right; }
   .feed-row .del-btn { background: #ffebee; color: #c62828; border: none; border-radius: 8px; padding: 8px 10px; font-size: 14px; cursor: pointer; }
   .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
   .result-item { background: var(--bg); border-radius: 8px; padding: 10px; text-align: center; }
@@ -80,7 +81,7 @@
   .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .input-grid .input-group { display: flex; flex-direction: column; gap: 4px; }
   .input-grid label { margin-top: 0; }
-  .input-grid input { padding: 8px 10px; font-size: 13px; }
+  .input-grid input { padding: 8px 10px; font-size: 16px; }
   .master-feed-item { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
   .master-feed-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
   .master-feed-name { font-weight: 700; font-size: 13px; flex: 1; }
@@ -583,7 +584,15 @@
 <div id="tab-glossary" class="page">
   <div class="card">
     <div class="card-title">📖 栄養指標の解説</div>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:14px;">飼料の成分・指標の意味と繁殖和牛における役割を解説します。BW540kgの要求量は日本飼養標準・肉用牛2022年版に基づきます。</p>
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">飼料の成分・指標の意味と繁殖和牛における役割を解説します。</p>
+    <div class="note" style="background:#e3f2fd;color:#0d47a1;font-size:11px;line-height:1.7;margin-bottom:14px;">
+      <b>📚 基準値の出典区分</b><br>
+      <b>①【飼養標準】</b> 要求量（CP・TDN・DM・Ca・P）、Ca:P比、ビタミンA<br>
+      　→ <b>日本飼養標準・肉用牛2022年版</b>に基づく。<br>
+      <b>②【運用目安】</b> 粗濃比・配合飼料量・稲わら依存度・NR・DMI上限<br>
+      　→ <b>飼養標準には規定がなく</b>、現場マニュアル等を参考にした本アプリ独自の運用目安。
+      農場の実情に合わせて読み替えてください。
+    </div>
 
     <div style="font-size:13px;font-weight:700;color:var(--primary);margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--primary-light);">🥩 基本栄養成分（飼料分析値）</div>
 
@@ -611,7 +620,7 @@
     <div class="glossary-item">
       <div class="glossary-term">DMI <span class="glossary-en">乾物摂取量 Dry Matter Intake</span></div>
       <div class="glossary-desc">牛が1日に実際に食べる乾物の総量。DMIには生理的な上限があり、繁殖和牛では維持期・妊娠末期で体重の約1.5%、泌乳期で約2.0%が現実的な最大値。設計した給与量のDMがこの上限を超えている場合、実際には食べきれないため栄養計算が成り立たなくなる。分娩前の牛はDMIが低下しやすく、分娩後はエネルギー負バランス（NEB）が生じやすい。</div>
-      <div class="glossary-formula">計算式: DMI(kg) = Σ（各飼料の給与量 × 乾物率）<br>上限目安(BW540kg): 維持・妊娠末期 約8.1kg　／　泌乳期 約10.8kg</div>
+      <div class="glossary-formula">計算式: DMI(kg) = Σ（各飼料の給与量 × 乾物率）<br><b>②【運用目安】</b>上限(BW540kg): 維持・妊娠末期 約8.1kg（体重の1.5%）　／　泌乳期 約10.8kg（体重の2.0%）<br><span style="color:#c62828;">※飼養標準のDMI推定式は増体量(DG)を変数に含む肥育牛向けで、繁殖雌牛用の式はありません。本アプリは体重比の上限で代用しています。</span></div>
       <div class="glossary-tip">💡 このアプリではステージ別のDMI上限を超えると⚠️警告を表示します。</div>
     </div>
 
@@ -656,7 +665,7 @@
 
     <div class="glossary-item">
       <div class="glossary-term">Ca <span class="glossary-en">カルシウム Calcium</span></div>
-      <div class="glossary-desc">骨・歯の主成分であり、筋肉収縮・神経伝達・血液凝固にも関与する最重要ミネラル。繁殖牛では特に分娩前後の需要が急増し、不足すると「乳熱（低カルシウム血症）」を引き起こす。過剰摂取は逆にCa代謝調節能を低下させ分娩後の乳熱リスクを高めるため、分娩前は低Ca管理（DCAD管理）が推奨される場合もある。</div>
+      <div class="glossary-desc">骨・歯の主成分であり、筋肉収縮・神経伝達・血液凝固にも関与する最重要ミネラル。分娩前後に需要が増え、極端に不足・調節が乱れると「乳熱（低カルシウム血症）」を招く。ただし乳熱は本質的に高泌乳の乳牛の病気で、泌乳量の少ない黒毛和種では臨床乳熱はまれ。和牛では「分娩前にCaを過剰にしない・稲わら（高K）を多給しすぎない」程度の配慮で十分なことが多く、乳牛式の本格的なDCAD管理（陰イオン塩）は通常不要。</div>
       <div class="glossary-formula">BW540kgの1日要求量（日本飼養標準・肉用牛2022）:<br>維持期: 16.6g　／　妊娠末期: 30.6g　／　泌乳前期(乳6kg): 31.6g　／　泌乳後期(乳4kg): 26.6g</div>
       <div class="glossary-tip">💡 粗飼料（アルファルファ・ヘイキューブ）はCaが豊富。稲わらはCaが極めて低い（約0.34%DM）ので稲わら主体の設計では要注意。</div>
     </div>
@@ -664,8 +673,8 @@
     <div class="glossary-item">
       <div class="glossary-term">P <span class="glossary-en">リン Phosphorus</span></div>
       <div class="glossary-desc">Caと並ぶ骨格形成の主要ミネラル。エネルギー代謝（ATP合成）・核酸合成・細胞膜構成にも不可欠。Caとのバランス（Ca:P比）が重要で、Pが不足すると発情不整・受胎率低下・食欲低下を引き起こす。穀類・ぬか類はPが高く、粗飼料はPが低い傾向がある。</div>
-      <div class="glossary-formula">Ca:P比の目安 = 1.5:1 〜 2:1（Caが常にPより多い状態が理想）<br>BW540kgの1日P要求量: 維持期17.8g　／　妊娠末期21.8g　／　泌乳前期24.4g　／　泌乳後期22.2g</div>
-      <div class="glossary-tip">💡 稲わら主体の飼料設計ではP不足になりやすい。ふすま・大豆粕の添加でPを補給できる。</div>
+      <div class="glossary-formula">Ca:P比（日本飼養標準・肉用牛2022）= <b>1:1〜7:1</b>（Pが充足していればこの範囲で生産性に影響しない）<br>BW540kgの1日P要求量: 維持期17.8g　／　妊娠末期21.8g　／　泌乳前期24.4g　／　泌乳後期22.2g</div>
+      <div class="glossary-tip">💡 稲わら主体の飼料設計ではP不足になりやすい。ふすま・大豆粕の添加でPを補給できる。<br>⚠️ 逆に米ぬか（P2.3%）等の多給はP過剰を招く。<b>Ca:P比が1:1を下回らないこと</b>が飼養標準の要件。繁殖雌牛では、P過剰はCaの吸収を阻害し、胎子骨格形成・泌乳でCa要求が高まる時期にCa供給不足を招く。</div>
     </div>
 
     <div class="glossary-item">
@@ -676,16 +685,16 @@
 
     <div class="glossary-item">
       <div class="glossary-term">K（カリウム） <span class="glossary-en">Potassium</span></div>
-      <div class="glossary-desc">細胞内液の主要陽イオンで、浸透圧維持・神経伝達・筋肉収縮に関わる。牧草・稲わら・麦わらに多く含まれ、特に稲わら（K≒1.87%DM）は黒毛和種の主要粗飼料の中で最もK含量が高い。Kが多いとDCADがプラス方向に上昇し、分娩前の陰イオン食管理を困難にする。また多量のKはMg・Naの腸管吸収を競合阻害する。</div>
+      <div class="glossary-desc">細胞内液の主要陽イオンで、浸透圧維持・神経伝達・筋肉収縮に関わる。牧草・稲わら・麦わらに多く含まれ、特に稲わら（K≒1.87%DM）は黒毛和種の主要粗飼料の中で最もK含量が高い。Kが多いとDCAD（陽イオン−陰イオン差）がプラス方向に上昇する。多量のKはMg・Naの腸管吸収を競合阻害するため、Mg補給の観点でも過剰は避けたい。</div>
       <div class="glossary-formula">稲わらのK含量: ≒1.87%DM　　DCAD = (Na⁺+K⁺)−(Cl⁻+S²⁻)：Kが増えるとDCADがプラスに傾く</div>
-      <div class="glossary-tip">💡 分娩前の妊娠末期ステージで稲わらを多給するとK過多→DCAD上昇→乳熱リスク上昇につながる。</div>
+      <div class="glossary-tip">💡 分娩前に稲わらを多給しすぎるとK過多になりやすい。乳牛では高K→高DCAD→乳熱リスクとされるが、和牛は臨床乳熱がまれ。過度な高K稲わら＋Ca過剰を避ける程度の配慮で十分なことが多い。</div>
     </div>
 
     <div class="glossary-item">
       <div class="glossary-term">DCAD <span class="glossary-en">飼料陽イオン・陰イオン差 Dietary Cation-Anion Difference</span></div>
-      <div class="glossary-desc">飼料中の主要イオン（Na⁺・K⁺・Cl⁻・S²⁻）のバランスを mEq/kg DM で表した指標。DCADが高い（プラス）と体液がアルカリ性に傾き、Ca調節機構が鈍くなる。分娩前に意図的にDCADをマイナスにすること（陰イオン食）で体液を軽度に酸性化し、副甲状腺ホルモン（PTH）の働きを高めて骨からのCa動員を促進。分娩後の「乳熱（低Ca血症）」・胎盤停滞・産後マヒを予防できる。稲わらはKが多くDCADをプラス方向に引き上げるため、分娩前の多給には注意が必要。</div>
-      <div class="glossary-formula">計算式: DCAD = (Na⁺ + K⁺) − (Cl⁻ + S²⁻)　単位: mEq/kg DM<br>分娩前目標: −50〜−150 mEq/kg DM　／　泌乳期目標: +200〜+400 mEq/kg DM</div>
-      <div class="glossary-tip">💡 陰イオン塩（塩化アンモニウム・硫酸アンモニウム等）を添加してDCADをマイナスに調整します。効果の確認には尿pH（目標6.0〜6.8）のモニタリングが有効です。このアプリでは分娩前ステージで稲わら割合が高い場合に⚠️DCAD注意を表示します。</div>
+      <div class="glossary-desc">飼料中の主要イオン（Na⁺・K⁺・Cl⁻・S²⁻）のバランスを mEq/kg DM で表した指標。DCADが高い（プラス）と体液がアルカリ性に傾く。<b>乳牛</b>では分娩前に意図的にDCADをマイナスにする陰イオン食で体液を軽度に酸性化し、PTHの働きを高めて骨からのCa動員を促進、分娩後の乳熱を予防する（確立した手法）。<b>ただし黒毛和種の繁殖牛では話が別。</b>和牛は泌乳量が少なく臨床乳熱がまれで、日本飼養標準・肉用牛2022もDCADを繁殖牛の乳熱ではなく<b>肥育牛の尿石症</b>（高K→尿アルカリ化→結石）の文脈でしか扱っていない。したがって和牛繁殖牛で乳牛式の陰イオン塩によるDCAD管理を行う必要は通常ない。</div>
+      <div class="glossary-formula">計算式: DCAD = (Na⁺ + K⁺) − (Cl⁻ + S²⁻)　単位: mEq/kg DM<br>（−50〜−150 mEq/kg DM は<b>乳牛</b>の分娩前陰イオン食の目標。和牛繁殖牛の基準ではない）</div>
+      <div class="glossary-tip">💡 このアプリの「分娩前K過多」表示は陰イオン塩によるDCAD管理を促すものではなく、<b>分娩前に高K稲わらを多給しすぎていないか</b>という実務的なリスク喚起です（稲わらNDFが全体の40%超で⚠️）。和牛では過度な高K稲わら＋Ca過剰を避け、各養分を過不足なく整えるのが基本です。</div>
     </div>
 
     <div style="font-size:13px;font-weight:700;color:var(--primary);margin:18px 0 10px;padding-top:14px;border-top:2px solid var(--primary-light);">🧬 タンパク質・ルーメン代謝</div>
@@ -716,14 +725,14 @@
       <div class="glossary-term">NR <span class="glossary-en">栄養率 Nutritive Ratio</span></div>
       <div class="glossary-desc">飼料中の炭水化物（非タンパク性成分）とタンパク質のバランスを示す指標。NRが低い（＝タンパク質が相対的に多い）と筋肉形成・産乳に有利。NRが高い（＝炭水化物が相対的に多い）と肥育・エネルギー蓄積に向く。繁殖牛では各ステージに応じた目安値がある。</div>
       <div class="glossary-formula">計算式: NR = (TDN − CP) ÷ CP　　※TDN・CPともにg換算で計算</div>
-      <div class="glossary-tip">💡 目安（BW540kg）: 維持期5.0、妊娠末期4.5、泌乳前期(乳6kg)4.0、泌乳後期(乳4kg)4.0。NRが低いほどタンパク質リッチ、高いほど炭水化物リッチ。</div>
+      <div class="glossary-tip">💡 <b>②【運用目安】</b>（BW540kg）: 維持期5.0、妊娠末期4.5、泌乳前期(乳6kg)4.0、泌乳後期(乳4kg)4.0。NRが低いほどタンパク質リッチ、高いほど炭水化物リッチ。<br><span style="color:#c62828;">※日本飼養標準・肉用牛2022に「栄養率(NR)」の記載はありません。要求量のCP・TDNから導いた本アプリの運用目安です。</span></div>
     </div>
 
     <div class="glossary-item">
       <div class="glossary-term">Ca:P比 <span class="glossary-en">カルシウム・リン比率</span></div>
-      <div class="glossary-desc">カルシウムとリンの摂取量比率。両者は相互に吸収を競合するためバランスが重要。Caが少なくPが多い状態（逆転）が続くと副甲状腺ホルモン（PTH）過剰分泌→骨からのCa溶出増加→骨粗鬆症・発情不整のリスクがある。一方、分娩前にCaを過剰給与するとCa調節機構が鈍くなり分娩後の乳熱（低Ca血症）を招きやすくなる（DCAD管理が重要な理由）。</div>
-      <div class="glossary-formula">目標: Ca:P = 1.5:1 〜 2.5:1（Caが常にPより多い状態が理想）</div>
-      <div class="glossary-tip">💡 稲わら主体の設計はCaが極端に低くなりやすい（稲わらCa≒0.34%DM）。アルファルファ・ヘイキューブはCa1.2〜1.7%DMと豊富で補完に有効。</div>
+      <div class="glossary-desc">カルシウムとリンの摂取量比率。両者は相互に吸収を競合するためバランスが重要。Caが少なくPが多い状態（逆転）が続くと、P過剰がCaの吸収を阻害し、副甲状腺ホルモン（PTH）分泌増→骨からのCa動員が起こる。<b>日本飼養標準・肉用牛2022では、従来1.5:1〜2:1が推奨されていたが、Pが充足していればCa:P比1:1〜7:1でも生産性に影響しない</b>とされる。ただし<b>1:1を下回らないこと</b>は要件で、配合飼料はCaが低くPが高いため<b>炭酸カルシウム等でCaを十分に補給</b>する。<br><b>■繁殖雌牛での意味</b>：妊娠末期の胎子骨格形成と泌乳でCa要求が高まるため、Ca:Pの逆転は<b>Ca供給不足のサイン</b>として読む。<br><b>■対象牛の注意</b>：標準が根拠に挙げる「0.8:1で体重増加と飼料効率が低下」は<b>育成・肥育</b>の指標、「尿石症の多発」は<b>去勢牛</b>の疾病であり、いずれも繁殖雌牛のデータではない（雌は解剖学的に尿石症がほぼ問題にならない）。さらに標準は「Caの補給は尿pH上昇を介してストルバイト結石を増やす可能性もあり、尿石症の予防としてCa多給は好ましくない」とも述べる。<b>炭酸カルシウムの補給は「尿石症対策」ではなく、Ca:Pの是正とCa確保の手段</b>と理解すること。</div>
+      <div class="glossary-formula">許容: Ca:P = <b>1:1 〜 7:1</b>（Pが充足している場合）／ 是正必須: <b>1:1未満</b>（Ca供給不足・P過剰によるCa吸収阻害）</div>
+      <div class="glossary-tip">💡 稲わら主体の設計はCaが極端に低くなりやすい（稲わらCa≒0.34%DM）。アルファルファ・ヘイキューブはCa1.2〜1.7%DMと豊富で補完に有効。<br>💡 Ca:P比が1:1を下回る主因は米ぬか等の高P副産物の多給。<b>まず高P飼料を減らし</b>、それでも戻らなければ炭酸カルシウムでCaを補う（飼養標準の順序）。</div>
     </div>
 
     <div class="glossary-item">
@@ -752,21 +761,21 @@
     <div class="glossary-item">
       <div class="glossary-term">粗濃比（粗飼料:濃厚飼料 DM比） <span class="glossary-en">Roughage-Concentrate Ratio</span></div>
       <div class="glossary-desc">乾物ベースで粗飼料と濃厚飼料が占める割合の比率。ルーメン発酵の安定性を左右する最重要な飼料構成指標。粗飼料が多すぎるとNDF過剰でエネルギー・CPが不足しやすく、濃厚飼料が多すぎるとルーメンアシドーシス・過肥・難産・ケトーシスのリスクが高まる。繁殖和牛では稲わら等の低栄養粗飼料を「バルク役（DM確保・飽腹・反芻刺激）」として使い、配合飼料でCP・TDNを補う設計が基本（家畜改良センター鳥取牧場）。</div>
-      <div class="glossary-formula">ステージ別 濃厚飼料の目安: 維持期20〜30%DM、妊娠末期35〜45%DM、泌乳前期40〜50%DM<br>出典: 三重県和牛繁殖マニュアル・栃木県飼料作物マニュアル</div>
+      <div class="glossary-formula"><b>②【運用目安】</b>ステージ別 濃厚飼料: 維持期20〜30%DM、妊娠末期35〜45%DM、泌乳前期40〜50%DM<br>出典: 三重県和牛繁殖マニュアル・栃木県飼料作物マニュアル<br><span style="color:#c62828;">※飼養標準の「粗濃比」の記述は肥育牛の繊維水準・肉質の文脈のみで、繁殖雌牛の目標値はありません。</span></div>
       <div class="glossary-tip">💡 三重県標準例：配合3kg＋チモシー2kg＋麦わら3kg（濃約39%DM）。栃木県例：乾草5kg＋配合4kg（濃約45%DM）。急な変更は5〜7日かけて移行する。</div>
     </div>
 
     <div class="glossary-item">
       <div class="glossary-term">稲わら依存度（稲わら%DM） <span class="glossary-en">Rice Straw Dependency</span></div>
       <div class="glossary-desc">乾物全体に占める稲わらの割合。稲わらはCP5〜7%・TDN43〜50%・Ca0.34%DMと低栄養だが、NDF高く（約63%DM）反芻刺激・バルク役として優れており品質が安定していれば主粗飼料として利用できる（鳥取牧場）。ただし依存度が高いとCP・TDN・Ca不足を招き、K含量が多いため（K≒1.87%DM）分娩前のDCAD上昇につながる。</div>
-      <div class="glossary-formula">目安: 30%DM以下が理想、30〜50%DM は要注意、50%DM超は不適切</div>
+      <div class="glossary-formula"><b>②【運用目安】</b>30%DM以下が理想、30〜50%DM は要注意、50%DM超は不適切<br><span style="color:#c62828;">※飼養標準に稲わら依存度の規定はありません（本アプリの運用目安）。</span></div>
       <div class="glossary-tip">💡 稲わら主体の設計では必ず繁殖用配合飼料を3〜4kg給与してCP・TDNを補完する。一部をヘイキューブ・アルファルファに置き換えるとCaも補完できる。</div>
     </div>
 
     <div class="glossary-item">
       <div class="glossary-term">配合飼料量（kg/日） <span class="glossary-en">Concentrate Feed Amount</span></div>
       <div class="glossary-desc">1日に給与する繁殖用配合飼料の原物量。エネルギー・タンパク質の補完役として最も調整しやすい飼料。多すぎると過肥・ルーメンアシドーシス・難産リスクが高まり、少なすぎるとCP・TDN不足に直結する。急激な増減はルーメン微生物叢の乱れを招くため、変更時は5〜7日かけて段階的に移行する。繁殖和牛の配合飼料は育成用（グロアー等）ではなく、繁殖専用（繁殖かーちゃん・繁殖きづな等）を使用すること。</div>
-      <div class="glossary-formula">ステージ別目安（BW540kg、日本飼養標準・肉用牛2022）: 維持期1〜2kg、妊娠末期2.5〜4.5kg、泌乳前期3〜5.5kg<br>出典: 三重県和牛繁殖マニュアル・栃木県飼料作物マニュアル</div>
+      <div class="glossary-formula"><b>②【運用目安】</b>ステージ別（BW540kg）: 維持期0.5〜2kg、妊娠末期2.5〜4.5kg、泌乳前期3〜5.5kg<br>出典: 三重県和牛繁殖マニュアル・栃木県飼料作物マニュアル<br><span style="color:#c62828;">※日本飼養標準・肉用牛2022に配合飼料量の規定はありません。</span></div>
       <div class="glossary-tip">💡 分娩前60日から徐々に増給し、分娩後も2〜3日ごとに0.5kgずつ増量するのが基本。急増はルーメンアシドーシスの原因になる。</div>
     </div>
 
@@ -807,7 +816,7 @@
       ・TDN不足 → 血中インスリン・IGF-1低下 → 卵巣機能低下・受胎率低下<br>
       ・NFC不足（＝RDP過剰） → 血中BUN上昇 → 子宮内環境悪化 → 受精卵着床障害<br>
       ・ビタミンA欠乏 → 子宮内膜の上皮障害 → 流産・胎盤停滞<br>
-      ・分娩前のK過多（DCAD↑） → 分娩後の低Ca血症（乳熱）→ 子宮弛緩・感染リスク上昇</div>
+      ・分娩前の高K稲わら多給＋Ca過剰 → 分娩前後のCa調節の乱れ → 子宮弛緩・感染リスク上昇（※和牛は泌乳量が少なく臨床乳熱はまれ。乳牛式のDCAD管理は通常不要）</div>
       <div class="glossary-formula">目標とする繁殖成績の目安: 分娩間隔380〜400日（≒1年1産）<br>空胎日数: 85〜110日以内　／　初回授精日数: 分娩後60〜80日</div>
       <div class="glossary-tip">💡 栄養充足率が良くても、BCS推移・飼料の質・飼料変更の頻度・飼養環境など複合的な要因が絡む。このアプリの栄養計算は「飼料設計の基礎評価ツール」として、繁殖タブのBCS記録・繁殖イベントと組み合わせて使うことで最大限活用できます。</div>
     </div>
@@ -846,7 +855,7 @@
     </div>
     <div style="margin-bottom:16px;">
       <label>メモ</label>
-      <textarea id="save-memo" placeholder="例: 分娩予定3/25、BCS3.0" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      <textarea id="save-memo" placeholder="例: 分娩予定3/25、BCS3.0" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
     </div>
     <button class="btn btn-accent" onclick="confirmSave()">保存する</button>
   </div>
@@ -915,7 +924,7 @@
     </div>
     <div style="margin-bottom:16px;">
       <label>メモ</label>
-      <textarea id="edit-memo" placeholder="例: 分娩予定3/25、BCS3.0" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
+      <textarea id="edit-memo" placeholder="例: 分娩予定3/25、BCS3.0" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;min-height:80px;resize:vertical;font-family:inherit;"></textarea>
     </div>
     <button class="btn btn-primary" onclick="confirmEditHistory()">保存する</button>
   </div>
@@ -997,7 +1006,7 @@
     </div>
     <div style="margin-bottom:14px;">
       <label>レポートメモ（任意）</label>
-      <textarea id="report-note" placeholder="例: 次回訪問時に持参。分娩予定は〇月〇日。" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;min-height:60px;resize:vertical;font-family:inherit;margin-top:6px;"></textarea>
+      <textarea id="report-note" placeholder="例: 次回訪問時に持参。分娩予定は〇月〇日。" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;min-height:60px;resize:vertical;font-family:inherit;margin-top:6px;"></textarea>
     </div>
     <button class="btn btn-primary" onclick="generateFarmerReport()" style="background:#6a1b9a;">📄 レポートを生成する</button>
   </div>
@@ -1008,107 +1017,209 @@
 <script>
 
 // localStorage安全ラッパー（file://環境対応）
+/* STORE: JSONキーのメモリキャッシュ（§2.2）。読み出しは lsGetJSON がメモリを正とし、
+   lsSet / lsRemove が必ず無効化するので古い値は返らない。
+   localStorage を直接触るコード（テスト等）は lsCacheClear() を呼ぶこと */
+const _lsCache = {};
+function lsGetJSON(key, fallbackJson){
+  if(!(key in _lsCache)) _lsCache[key] = JSON.parse(lsGet(key, fallbackJson));
+  return _lsCache[key];
+}
+function lsCacheClear(){ Object.keys(_lsCache).forEach(k=>delete _lsCache[k]); }
+
 function lsGet(key, fallback){
   try{ const v=localStorage.getItem(key); return v===null?fallback:v; }catch(e){ return fallback; }
 }
 function lsSet(key, val){
-  try{ localStorage.setItem(key, val); }catch(e){}
+  if(window._schemaTooNew){ return false; }   // 新バージョンのデータを壊さない（§2.3）
+  delete _lsCache[key];                        // 書き込みは必ずキャッシュを無効化
+  try{ localStorage.setItem(key, val); return true; }
+  catch(e){
+    // 保存失敗を握り潰さない（CLAUDE.md §2.1）。QuotaExceededErrorは名前がブラウザ依存のためcodeも見る
+    const quota = e && (e.name==='QuotaExceededError' || e.code===22 || e.code===1014);
+    showToast(quota ? '⚠️ 保存容量が不足しています。履歴をエクスポートして古いデータを削除してください'
+                    : '⚠️ 保存に失敗しました（プライベートブラウズ中の可能性）');
+    console.error('[lsSet]', key, e);
+    return false;
+  }
 }
 function lsRemove(key){
+  delete _lsCache[key];
   try{ localStorage.removeItem(key); }catch(e){}
 }
 
+/* UTIL: HTMLエスケープ（§4.1）。テキストノードには esc、属性値には escAttr。
+   esc は & < > のみ（テキスト用）。属性に入れる文字列は必ず escAttr（" ' も潰す）。
+   HTMLに埋める ${} は例外なくどちらかを通すこと。 */
+function esc(s){ return String(s??'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function escAttr(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* UTIL: 入力文字列→数値（§3.3）。ユーザーが入力した値の変換は必ずこれを通す。
+   ・全角数字（iPhone日本語キーボード）を半角に直して受け付ける
+   ・"1.2kg" のような末尾ゴミ付きは無効として fallback（既定 null）を返す
+   （parseFloat は末尾ゴミを黙って捨て、全角で NaN を返すため入力境界では使わない） */
+function num(v, fallback = null){
+  if(v === '' || v == null) return fallback;
+  const s = String(v).trim()
+    .replace(/[０-９．－ー]/g, c => '0123456789.--'['０１２３４５６７８９．－ー'.indexOf(c)]);
+  const n = Number(s);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+// 各飼料の id は不変の識別子（単価・削除フラグの紐付けに使う）。
+// 新しい飼料を追加するときは既存の id を絶対に再利用しないこと（末尾の番号を進める）。
 const DEFAULT_FEEDS = [
-  {cat:"育成用配合飼料",name:"セレクトグロアー",cp:16.7,fat:2.2,cf:13.3,adf:null,ndf:null,ash:11.1,tdn:77.8,ca:0.7,p:0.4,mg:null,k:null,nfc:40.0,rdp:11.67,moisture:10.0},
-  {cat:"育成用配合飼料",name:"Yグロアー",cp:17.2,fat:0.0,cf:16.7,adf:null,ndf:null,ash:11.1,tdn:80.6,ca:0.6,p:0.3,mg:null,k:null,nfc:40.0,rdp:12.06,moisture:10.0},
-  {cat:"配合飼料",name:"NOSANグレート",cp:15.6,fat:1.7,cf:11.1,adf:null,ndf:null,ash:11.1,tdn:77.8,ca:0.7,p:0.5,mg:null,k:null,nfc:40.0,rdp:10.89,moisture:10.0},
-  {cat:"配合飼料",name:"繁殖きづな",cp:17.8,fat:2.2,cf:16.7,adf:null,ndf:null,ash:11.1,tdn:76.7,ca:0.9,p:0.4,mg:null,k:null,nfc:40.0,rdp:12.44,moisture:10.0},
-  {cat:"配合飼料",name:"繁殖かーちゃん",cp:16.7,fat:2.2,cf:11.1,adf:null,ndf:null,ash:11.1,tdn:75.6,ca:0.9,p:0.7,mg:null,k:null,nfc:40.0,rdp:11.67,moisture:10.0},
-  {cat:"濃厚飼料",name:"大麦",cp:12.0,fat:2.4,cf:5.0,adf:6.7,ndf:22.7,ash:2.6,tdn:84.0,ca:0.1,p:0.4,mg:0.1,k:0.5,nfc:60.3,rdp:null,moisture:11.5},
-  {cat:"副産物",name:"大豆粕（標準）",cp:51.1,fat:2.2,cf:6.0,adf:9.6,ndf:15.5,ash:7.3,tdn:87.0,ca:0.4,p:0.7,mg:0.3,k:2.4,nfc:23.9,rdp:37.30,moisture:11.8},
-  {cat:"副産物",name:"ふすま（標準）",cp:18.1,fat:4.9,cf:10.9,adf:14.1,ndf:42.7,ash:5.9,tdn:72.3,ca:0.1,p:1.1,mg:0.5,k:1.3,nfc:28.4,rdp:14.35,moisture:13.2},
-  {cat:"副産物",name:"生米ぬか（標準）",cp:16.8,fat:21.0,cf:8.8,adf:11.7,ndf:28.3,ash:10.0,tdn:91.5,ca:0.0,p:2.3,mg:1.0,k:1.8,nfc:23.9,rdp:10.08,moisture:12.0},
-  {cat:"副産物",name:"ビール粕・乾（標準）",cp:25.5,fat:9.3,cf:15.1,adf:23.5,ndf:62.5,ash:4.1,tdn:71.5,ca:0.3,p:0.6,mg:0.2,k:0.0,nfc:-1.4,rdp:7.40,moisture:8.3},
-  {cat:"副産物",name:"アミノビーフ",cp:13.8,fat:3.7,cf:0.0,adf:18.2,ndf:64.5,ash:4.4,tdn:73.1,ca:0.3,p:0.6,mg:0.3,k:0.9,nfc:13.6,rdp:null,moisture:45.7},
-  {cat:"副産物",name:"ビール粕生202306",cp:27.3,fat:11.9,cf:null,adf:26.2,ndf:47.7,ash:4.3,tdn:71.0,ca:0.39,p:0.75,mg:0.25,k:0.05,nfc:8.9,rdp:7.92,moisture:67.27},
-  {cat:"自給飼料",name:"籾米サイレージ（山形大）",cp:5.2,fat:2.7,cf:10.0,adf:0.0,ndf:20.6,ash:5.4,tdn:77.7,ca:0,p:0,mg:0,k:0,nfc:66.1,rdp:null,moisture:32.4},
-  {cat:"自給飼料",name:"大島24イタリアン1番-1",cp:11.7,fat:2.9,cf:null,adf:40.3,ndf:60.3,ash:6.1,tdn:56.0,ca:0.4,p:0.32,mg:0.26,k:2.71,nfc:20.9,rdp:null,moisture:40.5},
-  {cat:"自給飼料",name:"大島24イタリアン1番-2",cp:8.8,fat:3.1,cf:null,adf:34.7,ndf:57.0,ash:7.4,tdn:61.0,ca:0.38,p:0.44,mg:0.25,k:3.63,nfc:24.4,rdp:null,moisture:48.7},
-  {cat:"自給飼料",name:"大島24イタリアン2番",cp:16.7,fat:2.6,cf:null,adf:37.2,ndf:60.9,ash:7.3,tdn:57.0,ca:0.32,p:0.49,mg:0.28,k:3.27,nfc:16.4,rdp:null,moisture:19.6},
-  {cat:"自給飼料",name:"リードカナリーS1番草",cp:8.1,fat:2.6,cf:0.0,adf:40.3,ndf:66.1,ash:0.0,tdn:55.5,ca:0.31,p:0.26,mg:0.16,k:2.69,nfc:0,rdp:null,moisture:26.1},
-  {cat:"自給飼料",name:"リードカナリーS3番草",cp:8.2,fat:2.6,cf:0.0,adf:43.5,ndf:72.9,ash:0.0,tdn:55.4,ca:0.20,p:0.35,mg:0.32,k:2.48,nfc:0,rdp:null,moisture:65.7},
-  {cat:"自給飼料",name:"稲わら（分析値1）",cp:6.9,fat:0.4,cf:38.4,adf:42.9,ndf:70.4,ash:0.0,tdn:49.5,ca:0.01,p:0.21,mg:0.19,k:2.36,nfc:22.3,rdp:4.62,moisture:11.0},
-  {cat:"自給飼料",name:"稲わら（分析値2）",cp:4.8,fat:1.4,cf:35.8,adf:40.0,ndf:67.8,ash:0.0,tdn:50.5,ca:0.01,p:0.19,mg:0.12,k:3.18,nfc:26.0,rdp:3.21,moisture:10.7},
-  {cat:"自給飼料",name:"稲わら（標準値）",cp:5.4,fat:2.1,cf:32.3,adf:39.2,ndf:63.1,ash:17.4,tdn:42.9,ca:0.34,p:0.16,mg:0.15,k:1.87,nfc:12.1,rdp:3.59,moisture:12.2},
-  {cat:"自給飼料",name:"稲わら（2022榊枝義二）",cp:3.6,fat:1.6,cf:null,adf:51.1,ndf:70.8,ash:18.8,tdn:46.0,ca:0.32,p:0.12,mg:0.21,k:1.57,nfc:7.1,rdp:2.41,moisture:17.5},
-  {cat:"自給飼料",name:"トウモロコシS（黄熟期・全国）",cp:8.0,fat:3.0,cf:22.7,adf:29.2,ndf:47.7,ash:6.1,tdn:66.3,ca:0.91,p:0.95,mg:0.49,k:6.25,nfc:35.2,rdp:null,moisture:73.6},
-  {cat:"自給飼料",name:"トウモロコシS（黄熟期・北海道）",cp:8.5,fat:3.1,cf:24.7,adf:31.7,ndf:51.0,ash:6.2,tdn:67.6,ca:0,p:0,mg:0,k:0,nfc:31.3,rdp:null,moisture:74.1},
-  {cat:"自給飼料",name:"トウモロコシS（黄熟期・東日本）",cp:8.5,fat:3.3,cf:23.5,adf:30.1,ndf:48.9,ash:6.6,tdn:68.0,ca:0,p:0,mg:0,k:0,nfc:32.7,rdp:null,moisture:72.8},
-  {cat:"自給飼料",name:"トウモロコシS（義二2022）",cp:12.4,fat:4.4,cf:0.0,adf:35.1,ndf:49.7,ash:7.5,tdn:65.6,ca:0.28,p:0.37,mg:0.14,k:2.01,nfc:26.0,rdp:null,moisture:78.7},
-  {cat:"自給飼料",name:"トウモロコシS（義二2022-2）",cp:8.6,fat:3.8,cf:null,adf:26.5,ndf:43.6,ash:4.8,tdn:64.0,ca:0.14,p:0.36,mg:0.13,k:1.65,nfc:39.3,rdp:null,moisture:74.8},
-  {cat:"自給飼料",name:"トウモロコシS（義二2023）",cp:9.2,fat:3.5,cf:null,adf:29.7,ndf:51.6,ash:5.0,tdn:64.0,ca:0.17,p:0.53,mg:0.23,k:1.72,nfc:32.1,rdp:6.99,moisture:75.6},
-  {cat:"自給飼料",name:"トウモロコシS（金徳2023）",cp:8.3,fat:3.1,cf:null,adf:26.0,ndf:44.6,ash:3.6,tdn:64.0,ca:0.15,p:0.33,mg:0.17,k:1.46,nfc:40.3,rdp:5.48,moisture:59.5},
-  {cat:"自給飼料",name:"イタリアン・オーチャード23・2番草",cp:13.1,fat:2.6,cf:null,adf:41.4,ndf:66.9,ash:8.8,tdn:55.0,ca:0.24,p:0.51,mg:0.18,k:4.08,nfc:12.2,rdp:null,moisture:16.9},
-  {cat:"自給飼料",name:"オーチャードイタリアンS（熊谷定信2022）",cp:19.4,fat:3.9,cf:0.0,adf:32.5,ndf:46.8,ash:10.7,tdn:60.8,ca:0.61,p:0.43,mg:0.28,k:2.17,nfc:19.2,rdp:null,moisture:42.5},
-  {cat:"自給飼料",name:"イタリアンS2番草（熊谷定信2022）",cp:14.3,fat:3.5,cf:null,adf:36.4,ndf:60.4,ash:10.9,tdn:55.0,ca:0.25,p:0.51,mg:0.24,k:3.78,nfc:14.5,rdp:null,moisture:19.2},
-  {cat:"自給飼料",name:"オーチャード(石井利行2023)",cp:9.7,fat:2.2,cf:null,adf:37.3,ndf:57.4,ash:8.7,tdn:58.0,ca:0.56,p:0.35,mg:0.21,k:2.85,nfc:23.2,rdp:null,moisture:20.7},
-  {cat:"自給飼料",name:"オーチャードS1番草・出穂期（標準）",cp:13.8,fat:4.4,cf:31.0,adf:36.3,ndf:61.5,ash:9.4,tdn:61.3,ca:0,p:0,mg:0,k:0,nfc:10.9,rdp:null,moisture:58.7},
-  {cat:"自給飼料",name:"イタリアンS1番草・出穂期（標準）",cp:12.5,fat:4.6,cf:30.7,adf:36.2,ndf:61.1,ash:10.6,tdn:66.9,ca:0,p:0,mg:0,k:0,nfc:11.2,rdp:null,moisture:67.1},
-  {cat:"自給飼料",name:"イネWCS（黄塾期・標準）",cp:5.8,fat:2.4,cf:26,adf:31.1,ndf:48.3,ash:14.6,tdn:54,ca:0.23,p:0.19,mg:0.11,k:1.2,nfc:28.9,rdp:3.60,moisture:61},
-  {cat:"自給飼料",name:"オーチャード1番(間野目政俊2022)",cp:10.6,fat:3.0,cf:null,adf:44.7,ndf:69.0,ash:7.3,tdn:53.0,ca:0.2,p:0.34,mg:0.14,k:3.19,nfc:10.5,rdp:null,moisture:47.0},
-  {cat:"自給飼料",name:"イタリアン１番(間野目政俊2022)",cp:11.1,fat:2.5,cf:null,adf:40.1,ndf:61.5,ash:8.8,tdn:53.0,ca:0.31,p:0.4,mg:0.19,k:2.83,nfc:17.2,rdp:null,moisture:25.5},
-  {cat:"自給飼料",name:"イタリアン1番草出穂期",cp:11.3,fat:2.7,cf:28.5,adf:39.2,ndf:64.2,ash:9.7,tdn:62.2,ca:0.45,p:0.28,mg:null,k:null,nfc:null,rdp:null,moisture:14.2},
-  {cat:"自給飼料",name:"イタリアン1番2025薄井",cp:5.2,fat:0.9,cf:null,adf:41.7,ndf:63.3,ash:6.9,tdn:57.0,ca:0.31,p:0.25,mg:0.14,k:1.96,nfc:24.2,rdp:3.85,moisture:17.4},
-  {cat:"自給飼料",name:"オーチャード1番2025薄井",cp:11.4,fat:1.7,cf:null,adf:38.2,ndf:50.5,ash:10.6,tdn:57.0,ca:0.64,p:0.43,mg:0.31,k:4.07,nfc:26.0,rdp:8.32,moisture:21.76},
-  {cat:"購入粗飼料",name:"輸入チモシー（分析値1）",cp:7.0,fat:1.3,cf:36.9,adf:41.4,ndf:69.0,ash:0,tdn:51.7,ca:0.69,p:0.19,mg:0.25,k:0.80,nfc:13.3,rdp:4.70,moisture:7.23},
-  {cat:"購入粗飼料",name:"輸入チモシー（分析値2）",cp:8.6,fat:2.0,cf:37.6,adf:41.8,ndf:69.2,ash:null,tdn:54.3,ca:0.34,p:0.21,mg:0.17,k:1.52,nfc:11.8,rdp:5.73,moisture:6.64},
-  {cat:"購入粗飼料",name:"輸入チモシー（分析値3）",cp:3.9,fat:1.3,cf:41.8,adf:47.3,ndf:79.1,ash:null,tdn:55.0,ca:0.12,p:0.09,mg:0.11,k:0.18,nfc:13.0,rdp:2.59,moisture:7.02},
-  {cat:"購入粗飼料",name:"輸入チモシー（2023.5）",cp:5.8,fat:1.4,cf:null,adf:6,ndf:66.4,ash:4.4,tdn:57,ca:0.2,p:0.18,mg:0.13,k:1.5,nfc:22,rdp:3.86,moisture:11.33},
-  {cat:"購入粗飼料",name:"輸入チモシー（2023.6）",cp:11.5,fat:2.6,cf:null,adf:35.2,ndf:61.8,ash:6.6,tdn:58,ca:0.39,p:0.24,mg:0.24,k:1.51,nfc:20.3,rdp:7.66,moisture:11.74},
-  {cat:"購入粗飼料",name:"輸入チモシー（32%≦CF≦37%）",cp:7.5,fat:2.1,cf:34.3,adf:37.9,ndf:66.7,ash:null,tdn:54.4,ca:0.35,p:0.20,mg:0.13,k:1.83,nfc:16.9,rdp:5.02,moisture:11.1},
-  {cat:"購入粗飼料",name:"北海道産乾草（分析値1）",cp:10.1,fat:0.9,cf:37.9,adf:44.6,ndf:72.9,ash:null,tdn:51.8,ca:0.85,p:0.23,mg:0.30,k:0.62,nfc:9.3,rdp:6.88,moisture:11.28},
-  {cat:"購入粗飼料",name:"北海道産乾草（分析値2）",cp:9.1,fat:1.4,cf:41.7,adf:46.0,ndf:73.4,ash:null,tdn:46.6,ca:0.25,p:0.23,mg:0.19,k:1.0,nfc:5.1,rdp:6.16,moisture:14.46},
-  {cat:"購入粗飼料",name:"北海道産乾草（202306義二）",cp:11,fat:1.7,cf:null,adf:40.1,ndf:67.3,ash:5.4,tdn:56,ca:0.26,p:0.26,mg:0.22,k:1.48,nfc:17.7,rdp:7.48,moisture:14.42},
-  {cat:"購入粗飼料",name:"北海道産乾草（平均値）",cp:10.1,fat:1.3,cf:39.8,adf:43.6,ndf:71.2,ash:5.4,tdn:51.5,ca:0.45,p:0.24,mg:0.24,k:1.03,nfc:10.7,rdp:6.84,moisture:13.39},
-  {cat:"購入粗飼料",name:"アルファルファ(17<CP<20)",cp:18.5,fat:1.9,cf:29.3,adf:34.0,ndf:44.1,ash:null,tdn:56.8,ca:0,p:0,mg:0,k:0,nfc:31.0,rdp:12.97,moisture:12.0},
-  {cat:"購入粗飼料",name:"輸入オーツヘイ2023.06",cp:9.8,fat:2.9,cf:null,adf:28.9,ndf:54,ash:3.8,tdn:65,ca:0.2,p:0.19,mg:0.19,k:1.43,nfc:28.9,rdp:7.15,moisture:17.43},
-  {cat:"購入粗飼料",name:"輸入ライグラス202306",cp:5.8,fat:1.6,cf:null,adf:39.5,ndf:68.2,ash:4.6,tdn:58,ca:0.4,p:0.17,mg:0.15,k:1.51,nfc:20.3,rdp:3.89,moisture:12.01},
-  {cat:"購入粗飼料",name:"輸入オーツヘイ30CF35標準値",cp:6.4,fat:1.7,cf:37.3,adf:39.4,ndf:61,ash:7.2,tdn:52.8,ca:0.22,p:0.17,mg:0.14,k:1.52,nfc:23.7,rdp:4.61,moisture:12.0},
+  {id:"d001",cat:"育成用配合飼料",name:"セレクトグロアー",cp:16.7,fat:2.2,cf:13.3,adf:null,ndf:null,ash:11.1,tdn:77.8,ca:0.7,p:0.4,mg:null,k:null,nfc:40.0,rdp:11.67,moisture:10.0},
+  {id:"d002",cat:"育成用配合飼料",name:"Yグロアー",cp:17.2,fat:0.0,cf:16.7,adf:null,ndf:null,ash:11.1,tdn:80.6,ca:0.6,p:0.3,mg:null,k:null,nfc:40.0,rdp:12.06,moisture:10.0},
+  {id:"d003",cat:"配合飼料",name:"NOSANグレート",cp:15.6,fat:1.7,cf:11.1,adf:null,ndf:null,ash:11.1,tdn:77.8,ca:0.7,p:0.5,mg:null,k:null,nfc:40.0,rdp:10.89,moisture:10.0},
+  {id:"d004",cat:"配合飼料",name:"繁殖きづな",cp:17.8,fat:2.2,cf:16.7,adf:null,ndf:null,ash:11.1,tdn:76.7,ca:0.9,p:0.4,mg:null,k:null,nfc:40.0,rdp:12.44,moisture:10.0},
+  {id:"d005",cat:"配合飼料",name:"繁殖かーちゃん",cp:16.7,fat:2.2,cf:11.1,adf:null,ndf:null,ash:11.1,tdn:75.6,ca:0.9,p:0.7,mg:null,k:null,nfc:40.0,rdp:11.67,moisture:10.0},
+  {id:"d006",cat:"濃厚飼料",name:"大麦",cp:12.0,fat:2.4,cf:5.0,adf:6.7,ndf:22.7,ash:2.6,tdn:84.0,ca:0.1,p:0.4,mg:0.1,k:0.5,nfc:60.3,rdp:null,moisture:11.5},
+  {id:"d007",cat:"副産物",name:"大豆粕（標準）",cp:51.1,fat:2.2,cf:6.0,adf:9.6,ndf:15.5,ash:7.3,tdn:87.0,ca:0.4,p:0.7,mg:0.3,k:2.4,nfc:23.9,rdp:37.30,moisture:11.8},
+  {id:"d008",cat:"副産物",name:"ふすま（標準）",cp:18.1,fat:4.9,cf:10.9,adf:14.1,ndf:42.7,ash:5.9,tdn:72.3,ca:0.1,p:1.1,mg:0.5,k:1.3,nfc:28.4,rdp:14.35,moisture:13.2},
+  {id:"d009",cat:"副産物",name:"生米ぬか（標準）",cp:16.8,fat:21.0,cf:8.8,adf:11.7,ndf:28.3,ash:10.0,tdn:91.5,ca:0.0,p:2.3,mg:1.0,k:1.8,nfc:23.9,rdp:10.08,moisture:12.0},
+  {id:"d010",cat:"副産物",name:"ビール粕・乾（標準）",cp:25.5,fat:9.3,cf:15.1,adf:23.5,ndf:62.5,ash:4.1,tdn:71.5,ca:0.3,p:0.6,mg:0.2,k:0.0,nfc:-1.4,rdp:7.40,moisture:8.3},
+  {id:"d011",cat:"副産物",name:"アミノビーフ",cp:13.8,fat:3.7,cf:0.0,adf:18.2,ndf:64.5,ash:4.4,tdn:73.1,ca:0.3,p:0.6,mg:0.3,k:0.9,nfc:13.6,rdp:null,moisture:45.7},
+  {id:"d012",cat:"副産物",name:"ビール粕生202306",cp:27.3,fat:11.9,cf:null,adf:26.2,ndf:47.7,ash:4.3,tdn:71.0,ca:0.39,p:0.75,mg:0.25,k:0.05,nfc:8.9,rdp:7.92,moisture:67.27},
+  // ミネラル剤: 日本飼養標準・肉用牛2022 が Ca:P比を1:1以上に保つ手段として名指しする炭酸カルシウム。
+  // 飼料用炭酸カルシウム(石灰石粉末)は Ca 約38%・P 0%。栄養価(CP/TDN)は持たない。
+  {id:"d057",cat:"濃厚飼料",name:"炭酸カルシウム（飼料用）",cp:0,fat:0,cf:0,adf:null,ndf:null,ash:99.0,tdn:0,ca:38.5,p:0,mg:0.5,k:0,nfc:0,rdp:null,moisture:0},
+  {id:"d013",cat:"自給飼料",name:"籾米サイレージ（山形大）",cp:5.2,fat:2.7,cf:10.0,adf:0.0,ndf:20.6,ash:5.4,tdn:77.7,ca:0,p:0,mg:0,k:0,nfc:66.1,rdp:null,moisture:32.4},
+  {id:"d014",cat:"自給飼料",name:"大島24イタリアン1番-1",cp:11.7,fat:2.9,cf:null,adf:40.3,ndf:60.3,ash:6.1,tdn:56.0,ca:0.4,p:0.32,mg:0.26,k:2.71,nfc:20.9,rdp:null,moisture:40.5},
+  {id:"d015",cat:"自給飼料",name:"大島24イタリアン1番-2",cp:8.8,fat:3.1,cf:null,adf:34.7,ndf:57.0,ash:7.4,tdn:61.0,ca:0.38,p:0.44,mg:0.25,k:3.63,nfc:24.4,rdp:null,moisture:48.7},
+  {id:"d016",cat:"自給飼料",name:"大島24イタリアン2番",cp:16.7,fat:2.6,cf:null,adf:37.2,ndf:60.9,ash:7.3,tdn:57.0,ca:0.32,p:0.49,mg:0.28,k:3.27,nfc:16.4,rdp:null,moisture:19.6},
+  {id:"d017",cat:"自給飼料",name:"リードカナリーS1番草",cp:8.1,fat:2.6,cf:0.0,adf:40.3,ndf:66.1,ash:0.0,tdn:55.5,ca:0.31,p:0.26,mg:0.16,k:2.69,nfc:0,rdp:null,moisture:26.1},
+  {id:"d018",cat:"自給飼料",name:"リードカナリーS3番草",cp:8.2,fat:2.6,cf:0.0,adf:43.5,ndf:72.9,ash:0.0,tdn:55.4,ca:0.20,p:0.35,mg:0.32,k:2.48,nfc:0,rdp:null,moisture:65.7},
+  {id:"d019",cat:"自給飼料",name:"稲わら（分析値1）",cp:6.9,fat:0.4,cf:38.4,adf:42.9,ndf:70.4,ash:0.0,tdn:49.5,ca:0.01,p:0.21,mg:0.19,k:2.36,nfc:22.3,rdp:4.62,moisture:11.0},
+  {id:"d020",cat:"自給飼料",name:"稲わら（分析値2）",cp:4.8,fat:1.4,cf:35.8,adf:40.0,ndf:67.8,ash:0.0,tdn:50.5,ca:0.01,p:0.19,mg:0.12,k:3.18,nfc:26.0,rdp:3.21,moisture:10.7},
+  {id:"d021",cat:"自給飼料",name:"稲わら（標準値）",cp:5.4,fat:2.1,cf:32.3,adf:39.2,ndf:63.1,ash:17.4,tdn:42.9,ca:0.34,p:0.16,mg:0.15,k:1.87,nfc:12.1,rdp:3.59,moisture:12.2},
+  {id:"d022",cat:"自給飼料",name:"稲わら（2022榊枝義二）",cp:3.6,fat:1.6,cf:null,adf:51.1,ndf:70.8,ash:18.8,tdn:46.0,ca:0.32,p:0.12,mg:0.21,k:1.57,nfc:7.1,rdp:2.41,moisture:17.5},
+  {id:"d023",cat:"自給飼料",name:"トウモロコシS（黄熟期・全国）",cp:8.0,fat:3.0,cf:22.7,adf:29.2,ndf:47.7,ash:6.1,tdn:66.3,ca:0.91,p:0.95,mg:0.49,k:6.25,nfc:35.2,rdp:null,moisture:73.6},
+  {id:"d024",cat:"自給飼料",name:"トウモロコシS（黄熟期・北海道）",cp:8.5,fat:3.1,cf:24.7,adf:31.7,ndf:51.0,ash:6.2,tdn:67.6,ca:0,p:0,mg:0,k:0,nfc:31.3,rdp:null,moisture:74.1},
+  {id:"d025",cat:"自給飼料",name:"トウモロコシS（黄熟期・東日本）",cp:8.5,fat:3.3,cf:23.5,adf:30.1,ndf:48.9,ash:6.6,tdn:68.0,ca:0,p:0,mg:0,k:0,nfc:32.7,rdp:null,moisture:72.8},
+  {id:"d026",cat:"自給飼料",name:"トウモロコシS（義二2022）",cp:12.4,fat:4.4,cf:0.0,adf:35.1,ndf:49.7,ash:7.5,tdn:65.6,ca:0.28,p:0.37,mg:0.14,k:2.01,nfc:26.0,rdp:null,moisture:78.7},
+  {id:"d027",cat:"自給飼料",name:"トウモロコシS（義二2022-2）",cp:8.6,fat:3.8,cf:null,adf:26.5,ndf:43.6,ash:4.8,tdn:64.0,ca:0.14,p:0.36,mg:0.13,k:1.65,nfc:39.3,rdp:null,moisture:74.8},
+  {id:"d028",cat:"自給飼料",name:"トウモロコシS（義二2023）",cp:9.2,fat:3.5,cf:null,adf:29.7,ndf:51.6,ash:5.0,tdn:64.0,ca:0.17,p:0.53,mg:0.23,k:1.72,nfc:32.1,rdp:6.99,moisture:75.6},
+  {id:"d029",cat:"自給飼料",name:"トウモロコシS（金徳2023）",cp:8.3,fat:3.1,cf:null,adf:26.0,ndf:44.6,ash:3.6,tdn:64.0,ca:0.15,p:0.33,mg:0.17,k:1.46,nfc:40.3,rdp:5.48,moisture:59.5},
+  {id:"d030",cat:"自給飼料",name:"イタリアン・オーチャード23・2番草",cp:13.1,fat:2.6,cf:null,adf:41.4,ndf:66.9,ash:8.8,tdn:55.0,ca:0.24,p:0.51,mg:0.18,k:4.08,nfc:12.2,rdp:null,moisture:16.9},
+  {id:"d031",cat:"自給飼料",name:"オーチャードイタリアンS（熊谷定信2022）",cp:19.4,fat:3.9,cf:0.0,adf:32.5,ndf:46.8,ash:10.7,tdn:60.8,ca:0.61,p:0.43,mg:0.28,k:2.17,nfc:19.2,rdp:null,moisture:42.5},
+  {id:"d032",cat:"自給飼料",name:"イタリアンS2番草（熊谷定信2022）",cp:14.3,fat:3.5,cf:null,adf:36.4,ndf:60.4,ash:10.9,tdn:55.0,ca:0.25,p:0.51,mg:0.24,k:3.78,nfc:14.5,rdp:null,moisture:19.2},
+  {id:"d033",cat:"自給飼料",name:"オーチャード(石井利行2023)",cp:9.7,fat:2.2,cf:null,adf:37.3,ndf:57.4,ash:8.7,tdn:58.0,ca:0.56,p:0.35,mg:0.21,k:2.85,nfc:23.2,rdp:null,moisture:20.7},
+  {id:"d034",cat:"自給飼料",name:"オーチャードS1番草・出穂期（標準）",cp:13.8,fat:4.4,cf:31.0,adf:36.3,ndf:61.5,ash:9.4,tdn:61.3,ca:0,p:0,mg:0,k:0,nfc:10.9,rdp:null,moisture:58.7},
+  {id:"d035",cat:"自給飼料",name:"イタリアンS1番草・出穂期（標準）",cp:12.5,fat:4.6,cf:30.7,adf:36.2,ndf:61.1,ash:10.6,tdn:66.9,ca:0,p:0,mg:0,k:0,nfc:11.2,rdp:null,moisture:67.1},
+  {id:"d036",cat:"自給飼料",name:"イネWCS（黄塾期・標準）",cp:5.8,fat:2.4,cf:26,adf:31.1,ndf:48.3,ash:14.6,tdn:54,ca:0.23,p:0.19,mg:0.11,k:1.2,nfc:28.9,rdp:3.60,moisture:61},
+  {id:"d037",cat:"自給飼料",name:"オーチャード1番(間野目政俊2022)",cp:10.6,fat:3.0,cf:null,adf:44.7,ndf:69.0,ash:7.3,tdn:53.0,ca:0.2,p:0.34,mg:0.14,k:3.19,nfc:10.5,rdp:null,moisture:47.0},
+  {id:"d038",cat:"自給飼料",name:"イタリアン１番(間野目政俊2022)",cp:11.1,fat:2.5,cf:null,adf:40.1,ndf:61.5,ash:8.8,tdn:53.0,ca:0.31,p:0.4,mg:0.19,k:2.83,nfc:17.2,rdp:null,moisture:25.5},
+  {id:"d039",cat:"自給飼料",name:"イタリアン1番草出穂期",cp:11.3,fat:2.7,cf:28.5,adf:39.2,ndf:64.2,ash:9.7,tdn:62.2,ca:0.45,p:0.28,mg:null,k:null,nfc:null,rdp:null,moisture:14.2},
+  {id:"d040",cat:"自給飼料",name:"イタリアン1番2025薄井",cp:5.2,fat:0.9,cf:null,adf:41.7,ndf:63.3,ash:6.9,tdn:57.0,ca:0.31,p:0.25,mg:0.14,k:1.96,nfc:24.2,rdp:3.85,moisture:17.4},
+  {id:"d041",cat:"自給飼料",name:"オーチャード1番2025薄井",cp:11.4,fat:1.7,cf:null,adf:38.2,ndf:50.5,ash:10.6,tdn:57.0,ca:0.64,p:0.43,mg:0.31,k:4.07,nfc:26.0,rdp:8.32,moisture:21.76},
+  {id:"d042",cat:"購入粗飼料",name:"輸入チモシー（分析値1）",cp:7.0,fat:1.3,cf:36.9,adf:41.4,ndf:69.0,ash:0,tdn:51.7,ca:0.69,p:0.19,mg:0.25,k:0.80,nfc:13.3,rdp:4.70,moisture:7.23},
+  {id:"d043",cat:"購入粗飼料",name:"輸入チモシー（分析値2）",cp:8.6,fat:2.0,cf:37.6,adf:41.8,ndf:69.2,ash:null,tdn:54.3,ca:0.34,p:0.21,mg:0.17,k:1.52,nfc:11.8,rdp:5.73,moisture:6.64},
+  {id:"d044",cat:"購入粗飼料",name:"輸入チモシー（分析値3）",cp:3.9,fat:1.3,cf:41.8,adf:47.3,ndf:79.1,ash:null,tdn:55.0,ca:0.12,p:0.09,mg:0.11,k:0.18,nfc:13.0,rdp:2.59,moisture:7.02},
+  {id:"d045",cat:"購入粗飼料",name:"輸入チモシー（2023.5）",cp:5.8,fat:1.4,cf:null,adf:6,ndf:66.4,ash:4.4,tdn:57,ca:0.2,p:0.18,mg:0.13,k:1.5,nfc:22,rdp:3.86,moisture:11.33},
+  {id:"d046",cat:"購入粗飼料",name:"輸入チモシー（2023.6）",cp:11.5,fat:2.6,cf:null,adf:35.2,ndf:61.8,ash:6.6,tdn:58,ca:0.39,p:0.24,mg:0.24,k:1.51,nfc:20.3,rdp:7.66,moisture:11.74},
+  {id:"d047",cat:"購入粗飼料",name:"輸入チモシー（32%≦CF≦37%）",cp:7.5,fat:2.1,cf:34.3,adf:37.9,ndf:66.7,ash:null,tdn:54.4,ca:0.35,p:0.20,mg:0.13,k:1.83,nfc:16.9,rdp:5.02,moisture:11.1},
+  {id:"d048",cat:"購入粗飼料",name:"北海道産乾草（分析値1）",cp:10.1,fat:0.9,cf:37.9,adf:44.6,ndf:72.9,ash:null,tdn:51.8,ca:0.85,p:0.23,mg:0.30,k:0.62,nfc:9.3,rdp:6.88,moisture:11.28},
+  {id:"d049",cat:"購入粗飼料",name:"北海道産乾草（分析値2）",cp:9.1,fat:1.4,cf:41.7,adf:46.0,ndf:73.4,ash:null,tdn:46.6,ca:0.25,p:0.23,mg:0.19,k:1.0,nfc:5.1,rdp:6.16,moisture:14.46},
+  {id:"d050",cat:"購入粗飼料",name:"北海道産乾草（202306義二）",cp:11,fat:1.7,cf:null,adf:40.1,ndf:67.3,ash:5.4,tdn:56,ca:0.26,p:0.26,mg:0.22,k:1.48,nfc:17.7,rdp:7.48,moisture:14.42},
+  {id:"d051",cat:"購入粗飼料",name:"北海道産乾草（平均値）",cp:10.1,fat:1.3,cf:39.8,adf:43.6,ndf:71.2,ash:5.4,tdn:51.5,ca:0.45,p:0.24,mg:0.24,k:1.03,nfc:10.7,rdp:6.84,moisture:13.39},
+  {id:"d052",cat:"購入粗飼料",name:"アルファルファ(17<CP<20)",cp:18.5,fat:1.9,cf:29.3,adf:34.0,ndf:44.1,ash:null,tdn:56.8,ca:0,p:0,mg:0,k:0,nfc:31.0,rdp:12.97,moisture:12.0},
+  {id:"d053",cat:"購入粗飼料",name:"輸入オーツヘイ2023.06",cp:9.8,fat:2.9,cf:null,adf:28.9,ndf:54,ash:3.8,tdn:65,ca:0.2,p:0.19,mg:0.19,k:1.43,nfc:28.9,rdp:7.15,moisture:17.43},
+  {id:"d054",cat:"購入粗飼料",name:"輸入ライグラス202306",cp:5.8,fat:1.6,cf:null,adf:39.5,ndf:68.2,ash:4.6,tdn:58,ca:0.4,p:0.17,mg:0.15,k:1.51,nfc:20.3,rdp:3.89,moisture:12.01},
+  {id:"d055",cat:"購入粗飼料",name:"輸入オーツヘイ30CF35標準値",cp:6.4,fat:1.7,cf:37.3,adf:39.4,ndf:61,ash:7.2,tdn:52.8,ca:0.22,p:0.17,mg:0.14,k:1.52,nfc:23.7,rdp:4.61,moisture:12.0},
 
   // ===== 追加飼料（2025年調査・第一飼料原物値DM換算 + 日本標準飼料成分表2009年版）=====
-  {cat:"購入粗飼料",name:"ヘイキューブ普及品",cp:16.5,fat:2.9,cf:30,adf:36.9,ndf:45.6,ash:12.9,tdn:55.2,ca:1.66,p:0.25,mg:0.35,k:2.5,nfc:22.1,rdp:11.55,moisture:10.8},
+  {id:"d056",cat:"購入粗飼料",name:"ヘイキューブ普及品",cp:16.5,fat:2.9,cf:30,adf:36.9,ndf:45.6,ash:12.9,tdn:55.2,ca:1.66,p:0.25,mg:0.35,k:2.5,nfc:22.1,rdp:11.55,moisture:10.8},
 ];
 
-// デフォルト値（BW=540kg, 経産牛想定）。applyBWToRequirements()で動的に上書きされる
-const REQUIREMENTS = {
-  pre:   {cp:782,  tdn:4.45,dm:7.93,ca:30.6,p:21.8,fat_max:5,cp_pct:10,nfc_range:"20〜25",nr:4.5,dmi_max_pct:1.5},
-  post0: {cp:1126, tdn:5.63,dm:8.73,ca:31.6,p:24.4,fat_max:5,cp_pct:11,nfc_range:"20〜25",nr:4.0,dmi_max_pct:2.0},
-  post90:{cp:932,  tdn:4.91,dm:8.13,ca:26.6,p:22.2,fat_max:5,cp_pct:11,nfc_range:"20〜25",nr:4.0,dmi_max_pct:2.0},
-  maint: {cp:544,  tdn:3.47,dm:6.93,ca:16.6,p:17.8,fat_max:5,cp_pct:8, nfc_range:"18〜20",nr:5.0,dmi_max_pct:1.5},
-  maint_preg: {cp:544, tdn:3.47,dm:6.93,ca:16.6,p:17.8,fat_max:5,cp_pct:8, nfc_range:"18〜20",nr:5.0,dmi_max_pct:1.5},
-};
+/* ============ STORE: スキーマ移行（CLAUDE.md §2.3） ============
+   保存データの形を変えるときは MIGRATIONS に up を「追記」する。
+   過去の up は書き換えない（既存ユーザーの手元では適用済みのため）。
+   migrateStorage() は起動時に一度だけ実行され、移行前に自動バックアップを取る。 */
+function genUUID(){
+  return (crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);});
+}
+
+const SCHEMA_VERSION = 2;
+const MIGRATIONS = [
+  // v1: バージョン管理の導入（データ形状は不変）
+  { to: 1, up: function(){} },
+  // v2: 飼料ID化（§1.5）。カスタム飼料にid付与、deleted_feeds(名前)→deleted_feed_ids、
+  //     feed_prices のキーを名前→IDへ。名前が見つからないエントリは破棄（何も参照していないため）
+  { to: 2, up: function(){
+      const customs = lsGetJSON('custom_feeds','[]');
+      customs.forEach(f=>{ if(!f.id) f.id = genUUID(); });
+      lsSet('custom_feeds', JSON.stringify(customs));
+      // 削除フラグは常にデフォルト飼料を指す → デフォルトのみの対応表で引く
+      const defaultNameToId = {};
+      DEFAULT_FEEDS.forEach(f=>{ defaultNameToId[f.name] = f.id; });
+      const deletedNames = JSON.parse(lsGet('deleted_feeds','[]'));
+      lsSet('deleted_feed_ids', JSON.stringify(deletedNames.map(n=>defaultNameToId[n]).filter(Boolean)));
+      lsRemove('deleted_feeds');
+      // 単価は「その名前で今見えている飼料」= カスタム優先で引く
+      const nameToId = Object.assign({}, defaultNameToId);
+      customs.forEach(f=>{ nameToId[f.name] = f.id; });
+      const oldPrices = lsGetJSON('feed_prices','{}');
+      const newPrices = {};
+      Object.keys(oldPrices).forEach(n=>{
+        if(nameToId[n]!=null && oldPrices[n]!=null) newPrices[nameToId[n]] = oldPrices[n];
+      });
+      lsSet('feed_prices', JSON.stringify(newPrices));
+  }},
+];
+
+function migrateStorage(){
+  let v = parseInt(lsGet('schema_v','0'),10) || 0;
+  if(v > SCHEMA_VERSION){
+    // 新しいアプリで作られたデータを古いアプリで開いた → 読まずに拒否（§2.3）
+    window._schemaTooNew = true;
+    alert('保存データはこのファイルより新しいバージョンのアプリで作成されています。\n最新の nutrition.html で開いてください。データ保護のため、この画面では保存できません。');
+    return false;
+  }
+  if(v === SCHEMA_VERSION) return true;
+  // 移行前バックアップ（移行が壊れても復旧できるように）
+  const backup = {};
+  ['custom_feeds','deleted_feeds','deleted_feed_ids','feed_prices','cattle_history','bw_settings'].forEach(k=>{ backup[k] = lsGet(k, null); });
+  lsSet('backup_before_v'+SCHEMA_VERSION, JSON.stringify({from:v, savedAt:todayISO(), data:backup}));
+  for(const m of MIGRATIONS){
+    if(v < m.to){ m.up(); v = m.to; lsSet('schema_v', String(v)); }
+  }
+  return true;
+}
+
+// 既定要求量（BW=540kg, 経産牛想定）の参照表。実際の要求量はグローバルを書き換えず
+// getRequirements() で毎回導出する（CLAUDE.md §1.3「導出せよ、書き換えるな」）
+const DEFAULT_REQUIREMENTS = Object.freeze({
+  pre:   Object.freeze({cp:782,  tdn:4.45,dm:7.93,ca:30.6,p:21.8,fat_max:5,cp_pct:10,nfc_range:"20〜25",nr:4.5,dmi_max_pct:1.5}),
+  post0: Object.freeze({cp:1126, tdn:5.63,dm:8.73,ca:31.6,p:24.4,fat_max:5,cp_pct:11,nfc_range:"20〜25",nr:4.0,dmi_max_pct:2.0}),
+  post90:Object.freeze({cp:932,  tdn:4.91,dm:8.13,ca:26.6,p:22.2,fat_max:5,cp_pct:11,nfc_range:"20〜25",nr:4.0,dmi_max_pct:2.0}),
+  maint: Object.freeze({cp:544,  tdn:3.47,dm:6.93,ca:16.6,p:17.8,fat_max:5,cp_pct:8, nfc_range:"18〜20",nr:5.0,dmi_max_pct:1.5}),
+  maint_preg: Object.freeze({cp:544, tdn:3.47,dm:6.93,ca:16.6,p:17.8,fat_max:5,cp_pct:8, nfc_range:"18〜20",nr:5.0,dmi_max_pct:1.5}),
+});
 const STAGE_NAMES = {pre:"分娩60日前",post0:"分娩後0〜90日(泌乳6kg)",post90:"分娩後90日〜(泌乳4kg)",maint:"維持期（空胎）",maint_preg:"維持期（妊娠中）"};
 
 function loadFeeds() {
-  const custom = JSON.parse(lsGet('custom_feeds', '[]'));
-  const deleted = JSON.parse(lsGet('deleted_feeds', '[]'));
-  return [...DEFAULT_FEEDS.filter(f=>!deleted.includes(f.name)),...custom];
+  const custom = lsGetJSON('custom_feeds', '[]');
+  const deletedIds = lsGetJSON('deleted_feed_ids', '[]');
+  return [...DEFAULT_FEEDS.filter(f=>!deletedIds.includes(f.id)),...custom];
 }
 function saveCustomFeed(feed) {
-  const c=JSON.parse(lsGet('custom_feeds', '[]')); c.push(feed);
-  lsSet('custom_feeds', JSON.stringify(c));
+  if(!feed.id) feed.id = genUUID();          // IDは不変。名前は表示用の可変フィールド（§1.5）
+  const c=lsGetJSON('custom_feeds', '[]'); c.push(feed);
+  return lsSet('custom_feeds', JSON.stringify(c));
 }
-function deleteFeed(name,isCustom) {
-  if(isCustom){let c=JSON.parse(lsGet('custom_feeds', '[]'));c=c.filter(f=>f.name!==name);lsSet('custom_feeds', JSON.stringify(c));}
-  else{const d=JSON.parse(lsGet('deleted_feeds', '[]'));if(!d.includes(name))d.push(name);lsSet('deleted_feeds', JSON.stringify(d));}
+function deleteFeedById(id, isCustom) {
+  if(isCustom){let c=lsGetJSON('custom_feeds', '[]');c=c.filter(f=>f.id!==id);lsSet('custom_feeds', JSON.stringify(c));}
+  else{const d=lsGetJSON('deleted_feed_ids', '[]');if(!d.includes(id))d.push(id);lsSet('deleted_feed_ids', JSON.stringify(d));}
 }
-function isCustomFeed(name){return JSON.parse(lsGet('custom_feeds', '[]')).some(f=>f.name===name);}
+function isCustomFeedId(id){return lsGetJSON('custom_feeds', '[]').some(f=>f.id===id);}
 
 let feedRowCount=0;
 function getFeedOptions(){
   const feeds=loadFeeds(); const cats=[...new Set(feeds.map(f=>f.cat))];
   let h='<option value="">-- 飼料を選択 --</option>';
-  cats.forEach(cat=>{h+=`<optgroup label="${cat}">`;feeds.filter(f=>f.cat===cat).forEach(f=>{h+=`<option value="${f.name}">${f.name}</option>`;});h+='</optgroup>';});
+  cats.forEach(cat=>{h+=`<optgroup label="${escAttr(cat)}">`;feeds.filter(f=>f.cat===cat).forEach(f=>{h+=`<option value="${escAttr(f.name)}">${esc(f.name)}</option>`;});h+='</optgroup>';});
   return h;
 }
 function addFeedRow(name='',amount=''){
@@ -1138,29 +1249,8 @@ function onStageChange(){
     }
   }
 
-  const bwSet = loadBWSettings();
-  // 乳量を取得（泌乳期のみ）
-  let milk = null;
-  if(isMilk){
-    const defaultMilk = stage === 'post0' ? 6 : 4;
-    milk = parseFloat(milkInput ? milkInput.value : defaultMilk) || defaultMilk;
-  }
-
-  // 2022年版の公式式で要求量を算出（手動上書きは考慮）
-  const auto = calcReqFromBW(bwSet.bw, stage, milk);
-  const ov = (bwSet.overrides||{})[stage]||{};
-  const req = {
-    cp:   ov.cp  !=null ? ov.cp   : auto.cp,
-    tdn:  ov.tdn !=null ? ov.tdn  : auto.tdn,
-    dm:   ov.dm  !=null ? ov.dm   : auto.dm,
-    ca:   ov.ca  !=null ? ov.ca   : auto.ca,
-    p:    ov.p   !=null ? ov.p    : auto.p,
-    fat_max: auto.fat_max, cp_pct: auto.cp_pct,
-    nfc_range: auto.nfc_range, nr: auto.nr,
-    dmi_max_pct: auto.dmi_max_pct
-  };
-  // REQUIREMENTSを一時更新
-  REQUIREMENTS[stage] = req;
+  // 要求量はグローバルを書き換えず、毎回UI状態から導出する（§1.3）
+  const req = currentRequirements(stage);
 
   document.getElementById('stage-req-info').innerHTML=
     `要求量: CP ${req.cp}g / TDN ${req.tdn}kg / DM ${req.dm}kg / Ca ${req.ca}g / P ${req.p}g`;
@@ -1197,7 +1287,7 @@ function getCurrentFeedRows(){
   document.querySelectorAll('[id^="feed-row-"]').forEach(row=>{
     const id=row.id.replace('feed-row-','');
     const name=document.getElementById(`feed-name-${id}`).value;
-    const amt=parseFloat(document.getElementById(`feed-amt-${id}`).value)||0;
+    const amt=num(document.getElementById(`feed-amt-${id}`).value, 0);
     if(name&&amt>0){const feed=feeds.find(f=>f.name===name);if(feed)rows.push({feed,amount:amt});}
   });
   return rows;
@@ -1325,48 +1415,165 @@ function makeRadarNote(hasLegend){
   </div>`;
 }
 
-function calculate(){
-  const stage=document.getElementById('stage-select').value; const req=REQUIREMENTS[stage];
-  const rows=getCurrentFeedRows();
-  if(rows.length===0){showToast('飼料を入力してください');return;}
-  let totalDM=0,totalCP=0,totalTDN=0,totalCa=0,totalP=0,totalFat=0,totalNFC=0,totalRDP=0;
-  let rdpAvailable=true;
-  rows.forEach(({feed,amount})=>{
-    const dm=amount*(1-feed.moisture/100);
-    totalDM+=dm; totalCP+=dm*feed.cp/100*1000; totalTDN+=dm*feed.tdn/100;
-    totalCa+=dm*(feed.ca||0)/100*1000; totalP+=dm*(feed.p||0)/100*1000;
-    totalFat+=dm*(feed.fat||0)/100;
-    if(feed.nfc!=null)totalNFC+=dm*feed.nfc/100;
-    if(feed.rdp!=null)totalRDP+=dm*feed.rdp/100*1000; else rdpAvailable=false;
+/* CORE: 飼料rows([{feed,amount}])の成分合計を導出する純粋関数。DOM・localStorage禁止（CLAUDE.md §3.2）
+   null(未測定)は合算に入れず complete[key]=false で通知する。
+   未測定を0扱いで合算すると真の値より過小になり「不足」と誤判定するため、
+   complete:false の成分には ✓/✗ の判定を出さず「参考値」と表示すること。
+   （部分合計でも上限超過の警告は有効: 真の値は表示値以上のため） */
+const NUTRIENT_KEYS = ['cp','tdn','ca','p','fat','nfc','rdp'];
+function sumRationTotals(rows){
+  const t = {dm:0, cp:0, tdn:0, ca:0, p:0, fat:0, nfc:0, rdp:0};
+  const complete = {cp:true, tdn:true, ca:true, p:true, fat:true, nfc:true, rdp:true};
+  const IN_GRAMS = {cp:true, ca:true, p:true, rdp:true};   // cp/ca/p/rdpはg、tdn/fat/nfcはkgで集計
+  rows.forEach(({feed, amount})=>{
+    const dm_kg = amount*(1-(feed.moisture||0)/100);
+    t.dm += dm_kg;
+    NUTRIENT_KEYS.forEach(k=>{
+      if(feed[k] == null){ complete[k] = false; return; }   // == で null/undefined 両方を検知
+      t[k] += dm_kg*feed[k]/100*(IN_GRAMS[k]?1000:1);
+    });
   });
-  const fatPct=totalDM>0?totalFat/totalDM*100:0;
-  const cpPct=totalDM>0?totalCP/totalDM/10:0;
-  const nfcPct=totalDM>0?totalNFC/totalDM*100:0;
-  // NR = (TDN(g) - CP(g)) / CP(g)
-  const tdnG=totalTDN*1000;
-  const nr=totalCP>0?(tdnG-totalCP)/totalCP:0;
-  // RDP:NFC 比率
-  const rdpNfcRatio=totalNFC>0&&rdpAvailable?totalRDP/(totalNFC*1000):null;
+  t.complete = complete;
+  return t;
+}
 
-  const pctCP=totalCP/req.cp*100; const pctTDN=totalTDN/req.tdn*100;
-  const pctDM=totalDM/req.dm*100; const pctCa=totalCa/req.ca*100; const pctP=totalP/req.p*100;
-  function sc(pct){return(pct>=90&&pct<=120)?'ok':(((pct>=75&&pct<90)||(pct>120&&pct<=140)))?'warn':'ng';}
-  function badge(pct){const s=sc(pct);return`<span class="badge badge-${s}">${s==='ok'?'✓ 適正':s==='warn'?'△ 注意':'✗ 不足/超過'}</span>`;}
-  function bar(pct){const w=Math.min(pct,150);const c=sc(pct);const col=c==='ok'?'var(--ok)':c==='warn'?'var(--warn)':'var(--ng)';return`<div class="pct-bar"><div class="pct-bar-fill" style="width:${w/1.5}%;background:${col}"></div></div>`;}
+/* ============ CORE: 給与設計の評価（純粋関数。DOM・localStorage禁止） ============ */
+
+// 要求量比の判定しきい値。適正/注意/不足の基準を変えるときはここだけを直す
+function judgePct(pct){
+  return (pct>=90&&pct<=120)?'ok':(((pct>=75&&pct<90)||(pct>120&&pct<=140)))?'warn':'ng';
+}
+
+/* Ca:P比の判定しきい値。ここだけを直す（CLAUDE.md §1.2）。
+
+   出典: 日本飼養標準・肉用牛2022「カルシウム(Ca)とリン(P)」（一般ミネラル章。索引 Ca:P比 → p31, p210）
+     ・従来はCa:P 1.5:1〜2:1 が推奨されていたが、**Pが充足している場合は 1:1〜7:1 でも生産性に影響しない**
+     ・配合飼料の原料はCa含量が低くP含量が高いため、**炭酸カルシウム等によるCaの十分な補給で
+       Ca:P比が1:1を下回らないようにすることが必要**
+   → 是正が必須なのは「1:1未満」のみ。1:1〜7:1 は適正。7:1超は推奨範囲外（多くはP不足が原因）。
+   この記述は肥育牛限定ではなく肉用牛一般に対するものなので、繁殖雌牛にもそのまま適用してよい。
+
+   【対象牛の注意】標準が「1:1未満で悪い」根拠として挙げるのは
+     ・Ca:P 0.8:1 で「体重増加と飼料効率が低下」→ 増体・飼料効率は**育成/肥育**の指標
+     ・「**去勢牛では**Mg・P過剰によるストルバイト結石で尿石症が多発」→ **去勢牛**の疾病
+   であり、いずれも繁殖雌牛のデータではない（雌は解剖学的に尿石症がほぼ問題にならない）。
+   さらに標準は「Caの補給は尿pH上昇を介してストルバイト結石を増やす可能性もあり、
+   尿石症の予防としてCa多給は好ましくない」とも述べる。
+   → **炭酸カルシウム補給を「尿石症対策」として説明してはならない**。あくまでCa:P是正・Ca確保の手段。
+   繁殖雌牛でCa:Pの逆転が問題なのは、妊娠末期の胎子骨格形成・泌乳でCa要求が高まる時期に
+   **Caの供給不足**を意味し、**P過剰がCa吸収を阻害**して骨からのCa動員を招くため。 */
+const CAP_MIN = 1.0, CAP_MAX = 7.0;
+function judgeCaP(caPR){
+  if(!(caPR > 0)) return null;                 // P=0 や未算出は判定しない
+  if(caPR < CAP_MIN) return 'ng';              // 1:1未満 = Ca供給不足・P過剰（是正必須）
+  if(caPR <= CAP_MAX) return 'ok';             // 1:1〜7:1 = 許容（P充足が前提）
+  return 'warn';                               // 7:1超 = 推奨範囲外
+}
+const CAP_LABEL = {ng:'✗ Pが多い（1:1未満）', ok:'✓ 適正', warn:'△ 7:1超'};
+
+/* 給与設計 rows([{feed,amount}]) を要求量 req とコンテキスト ctx({stage,bw,month}) で評価する。
+   同じ入力なら常に同じ出力。画面への描画は renderRation()、履歴用の整形は buildResultSnapshot() */
+function computeRation(rows, req, ctx){
+  const totals=sumRationTotals(rows);
+  const comp=totals.complete;
+  const fatPct=totals.dm>0?totals.fat/totals.dm*100:0;
+  const cpPct=totals.dm>0?totals.cp/totals.dm/10:0;
+  const nfcPct=totals.dm>0?totals.nfc/totals.dm*100:0;
+  // NR = (TDN(g) - CP(g)) / CP(g)
+  const nr=totals.cp>0?(totals.tdn*1000-totals.cp)/totals.cp:0;
+  // RDP:NFC 比率（RDP未測定の飼料があれば判定不能）
+  const rdpNfcRatio=totals.nfc>0&&comp.rdp?totals.rdp/(totals.nfc*1000):null;
+  const pct={
+    cp:totals.cp/req.cp*100, tdn:totals.tdn/req.tdn*100,
+    dm:totals.dm/req.dm*100, ca:totals.ca/req.ca*100, p:totals.p/req.p*100,
+  };
+  const caPRatio=totals.p>0?totals.ca/totals.p:0;
+  // DMI（上限はステージ別: 維持・妊娠末期1.5%, 泌乳期2.0%）
+  const dmiPct=ctx.bw>0?parseFloat((totals.dm/ctx.bw*100).toFixed(1)):null;
+  const dmiMax=req.dmi_max_pct||1.5;
+  // 粗濃比（粗飼料DM vs 濃厚飼料DM）
+  let roughDM=0,concDM=0,concKgRaw=0;
+  rows.forEach(r=>{
+    const dm=r.amount*(1-(r.feed.moisture||0)/100);
+    if(ROUGHAGE_CATS.includes(r.feed.cat)){roughDM+=dm;}else{concDM+=dm;concKgRaw+=r.amount;}
+  });
+  const roughPct=totals.dm>0?roughDM/totals.dm*100:0;
+  const concPct=totals.dm>0?concDM/totals.dm*100:0;
+  const ct=concTargets[ctx.stage]||{lo:30,hi:45};
+  const ck=concTargetKg[ctx.stage]||{lo:1.0,hi:4.0};
+  // 稲わら依存度（DM比率）と DCAD 用の稲わらNDF比率
+  let strawDM=0,strawNDF=0,totalNDFkg=0;
+  rows.forEach(r=>{
+    const dm=r.amount*(1-(r.feed.moisture||0)/100);
+    totalNDFkg+=dm*(r.feed.ndf||0)/100;
+    if(r.feed.name.indexOf('稲わら')>=0){ strawDM+=dm; strawNDF+=dm*(r.feed.ndf||0)/100; }
+  });
+  const strawDMpct=totals.dm>0?strawDM/totals.dm*100:0;
+  const strawRatioPct=totalNDFkg>0?Math.round(strawNDF/totalNDFkg*100):0;
+  // ビタミンA供給源
+  const vitAFeeds=['アルファルファ','ヘイキューブ','イタリアン','オーチャード','チモシー','牧草','青刈り','トウモロコシサイレージ','トウモロコシS','ケールサイレージ'];
+  const hasVitASource=rows.some(r=>vitAFeeds.some(k=>r.feed.name.indexOf(k)>=0));
+  const isWinter=ctx.month>=11||ctx.month<=3;
+  const vitAAtRisk=(ctx.stage==='pre'||ctx.stage==='post0')&&!hasVitASource;
+  const hasGrowerFeed=rows.some(r=>r.feed.cat==='育成用配合飼料');
+  return {
+    stage:ctx.stage, bw:ctx.bw, req, totals, comp,
+    fatPct, cpPct, nfcPct, nr, rdpNfcRatio, pct, caPRatio,
+    dmiPct, dmiMax,
+    roughPct, concPct, concKgRaw, ct, ck,
+    strawDMpct, strawRatioPct,
+    hasVitASource, isWinter, vitAAtRisk, hasGrowerFeed,
+  };
+}
+
+/* CORE: 計算結果 → 履歴保存用スナップショット（§1.4: 入力と、その時点の判断根拠を凍結） */
+function buildResultSnapshot(R, rows){
+  return {
+    stage:R.stage, stageName:STAGE_NAMES[R.stage],
+    bw:R.bw,
+    reqSnapshot:JSON.parse(JSON.stringify(R.req)),
+    feeds:rows.map(r=>({name:r.feed.name,amount:r.amount})),
+    cp:Math.round(R.totals.cp),tdn:parseFloat(R.totals.tdn.toFixed(2)),
+    dm:parseFloat(R.totals.dm.toFixed(2)),ca:Math.round(R.totals.ca),p:Math.round(R.totals.p),
+    pctCP:Math.round(R.pct.cp),pctTDN:Math.round(R.pct.tdn),pctDM:Math.round(R.pct.dm),
+    cpPct:parseFloat(R.cpPct.toFixed(1)),fatPct:parseFloat(R.fatPct.toFixed(1)),nfcPct:parseFloat(R.nfcPct.toFixed(1)),nr:parseFloat(R.nr.toFixed(1)),
+    rdpNfc:R.rdpNfcRatio?`1:${(1/R.rdpNfcRatio).toFixed(1)}`:'-',
+    dmiPct:R.dmiPct, strawRatio:R.strawRatioPct,
+    concPct:parseFloat(R.concPct.toFixed(0)),
+    strawDMpct:parseFloat(R.strawDMpct.toFixed(0)),
+    vitAFlag:R.vitAAtRisk?'none':'ok',
+    // 未測定成分の記録（履歴で「この値は参考値だった」と分かるように）
+    incomplete:NUTRIENT_KEYS.filter(k=>!R.comp[k])
+  };
+}
+
+/* ============ VIEW: 計算結果の描画（計算しない。R の値を並べるだけ） ============ */
+function renderRation(R, rows, costResult, prices){
+  const req=R.req, comp=R.comp, totals=R.totals, stage=R.stage;
+  const refBadge='<span class="badge badge-info">⚠ 未測定あり・参考値</span>';
+  const badge=pct=>{const s=judgePct(pct);return`<span class="badge badge-${s}">${s==='ok'?'✓ 適正':s==='warn'?'△ 注意':'✗ 不足/超過'}</span>`;};
+  const bar=pct=>{const w=Math.min(pct,150);const c=judgePct(pct);const col=c==='ok'?'var(--ok)':c==='warn'?'var(--warn)':'var(--ng)';return`<div class="pct-bar"><div class="pct-bar-fill" style="width:${w/1.5}%;background:${col}"></div></div>`;};
   const items=[
-    {label:'CP',value:`${Math.round(totalCP)}g`,req:`要求: ${req.cp}g`,pct:pctCP},
-    {label:'TDN',value:`${totalTDN.toFixed(2)}kg`,req:`要求: ${req.tdn}kg`,pct:pctTDN},
-    {label:'DM',value:`${totalDM.toFixed(2)}kg`,req:`要求: ${req.dm}kg`,pct:pctDM},
-    {label:'Ca',value:`${Math.round(totalCa)}g`,req:`要求: ${req.ca}g`,pct:pctCa},
-    {label:'P',value:`${Math.round(totalP)}g`,req:`要求: ${req.p}g`,pct:pctP},
+    {label:'CP',value:`${Math.round(totals.cp)}g`,req:`要求: ${req.cp}g`,pct:R.pct.cp,complete:comp.cp},
+    {label:'TDN',value:`${totals.tdn.toFixed(2)}kg`,req:`要求: ${req.tdn}kg`,pct:R.pct.tdn,complete:comp.tdn},
+    {label:'DM',value:`${totals.dm.toFixed(2)}kg`,req:`要求: ${req.dm}kg`,pct:R.pct.dm,complete:true},
+    {label:'Ca',value:`${Math.round(totals.ca)}g`,req:`要求: ${req.ca}g`,pct:R.pct.ca,complete:comp.ca},
+    {label:'P',value:`${Math.round(totals.p)}g`,req:`要求: ${req.p}g`,pct:R.pct.p,complete:comp.p},
   ];
   let rHTML='<div class="result-grid">';
-  items.forEach(i=>{rHTML+=`<div class="result-item ${sc(i.pct)}"><div class="rlabel">${i.label}</div><div class="value">${i.value}</div><div class="req">${i.req}</div><div class="req">${Math.round(i.pct)}% ${badge(i.pct)}</div>${bar(i.pct)}</div>`;});
+  items.forEach(i=>{
+    if(i.complete){
+      rHTML+=`<div class="result-item ${judgePct(i.pct)}"><div class="rlabel">${i.label}</div><div class="value">${i.value}</div><div class="req">${i.req}</div><div class="req">${Math.round(i.pct)}% ${badge(i.pct)}</div>${bar(i.pct)}</div>`;
+    } else {
+      // 未測定の飼料を含む合計は過小の可能性 → 判定バッジ・バーを出さない（CLAUDE.md §3.2）
+      rHTML+=`<div class="result-item"><div class="rlabel">${i.label}</div><div class="value">${i.value}〜</div><div class="req">${i.req}</div><div class="req">${Math.round(i.pct)}%〜 ${refBadge}</div></div>`;
+    }
+  });
   rHTML+='</div>';
 
-  // レーダーチャート用HTML（カードの前に挿入）
-  const _radarVals = buildRadarData({cp:totalCP,tdn:totalTDN,dm:totalDM,p:totalP,ca:totalCa,nr:nr.toFixed(1)}, req);
-  const _nrActual  = nr.toFixed(1);
+  // レーダーチャート（カードの前に挿入）
+  const _radarVals = buildRadarData({cp:totals.cp,tdn:totals.tdn,dm:totals.dm,p:totals.p,ca:totals.ca,nr:R.nr.toFixed(1)}, req);
+  const _nrActual  = R.nr.toFixed(1);
   const _nrTarget  = req.nr||4.5;
   rHTML = makeRadarHTML('result-radar',false) + makeRadarNote(false) + makeRadarCards(_radarVals,_nrActual) + rHTML;
 
@@ -1374,11 +1581,9 @@ function calculate(){
   _radarChartInstance = destroyRadar(_radarChartInstance);
   _radarChartInstance = renderRadarChart('result-radar', _radarVals, null, _nrActual, _nrTarget, '現在', null);
 
-  // コスト計算
-  var costResult=calcDailyCost(rows);
+  // コストカード
   var costCardId='cost-card-area';
-  var existCost=document.getElementById(costCardId);
-  if(!existCost){
+  if(!document.getElementById(costCardId)){
     var costDiv=document.createElement('div');costDiv.id=costCardId;
     document.getElementById('result-content').after(costDiv);
   }
@@ -1390,19 +1595,19 @@ function calculate(){
     costHtml+='<tr style="color:var(--text-sub);"><th style="text-align:left;padding:4px 2px;">飼料</th><th style="text-align:right;padding:4px 2px;">給与量</th><th style="text-align:right;padding:4px 2px;">単価</th><th style="text-align:right;padding:4px 2px;">小計</th></tr>';
     costResult.lines.forEach(function(l){
       costHtml+='<tr style="border-top:1px solid var(--border);">';
-      costHtml+='<td style="padding:5px 2px;">'+l.name+'</td>';
+      costHtml+='<td style="padding:5px 2px;">'+esc(l.name)+'</td>';
       costHtml+='<td style="text-align:right;padding:5px 2px;">'+l.amount+'kg</td>';
       costHtml+='<td style="text-align:right;padding:5px 2px;">'+l.price+'円</td>';
       costHtml+='<td style="text-align:right;padding:5px 2px;">'+Math.round(l.cost)+'円</td>';
       costHtml+='</tr>';
     });
-    var unpriced=rows.filter(function(r){return JSON.parse(lsGet('feed_prices','{}'))[r.feed.name]==null;});
+    var unpriced=rows.filter(function(r){return prices[r.feed.id]==null;});
     costHtml+='<tr style="border-top:2px solid var(--primary);font-weight:700;">';
     costHtml+='<td colspan="3" style="padding:6px 2px;">合計</td>';
     costHtml+='<td style="text-align:right;padding:6px 2px;font-size:15px;color:var(--primary);">'+Math.round(costResult.total)+'円/日</td>';
     costHtml+='</tr>';
     if(unpriced.length>0){
-      costHtml+='<tr><td colspan="4" style="padding:4px 2px;font-size:11px;color:var(--text-sub);">※ 単価未設定: '+unpriced.map(function(r){return r.feed.name;}).join('、')+'</td></tr>';
+      costHtml+='<tr><td colspan="4" style="padding:4px 2px;font-size:11px;color:var(--text-sub);">※ 単価未設定: '+esc(unpriced.map(function(r){return r.feed.name;}).join('、'))+'</td></tr>';
     }
     costHtml+='</table>';
     costHtml+='<div style="font-size:11px;color:var(--text-sub);margin-top:8px;">月額目安: 約'+Math.round(costResult.total*30).toLocaleString()+'円 / 年額目安: 約'+Math.round(costResult.total*365/10000).toLocaleString()+'万円</div>';
@@ -1410,12 +1615,10 @@ function calculate(){
   }
   document.getElementById(costCardId).innerHTML=costHtml;
 
-  // RDP:NFC 判定
+  // RDP:NFC 行
   let rdpNfcHtml='';
-  if(rdpNfcRatio!==null){
-    // 目標は1:3 = 0.333
-    const ratio=rdpNfcRatio;
-    const targetRatio=1/3;
+  if(R.rdpNfcRatio!==null){
+    const ratio=R.rdpNfcRatio;                       // 目標は 1:3 = 0.333
     const rdpOk=ratio>=0.28&&ratio<=0.40;
     const ratioDisplay=`1 : ${(1/ratio).toFixed(1)}`;
     const rdpBadge=rdpOk?'<span class="badge badge-ok">✓ 適正</span>':ratio>0.40?'<span class="badge badge-ng">✗ RDP過剰</span>':'<span class="badge badge-warn">△ RDP不足</span>';
@@ -1424,115 +1627,80 @@ function calculate(){
     rdpNfcHtml=`<tr><td>RDP : NFC</td><td>-</td><td><span class="badge badge-info">RDP未入力の飼料あり</span></td></tr>`;
   }
 
-  // NR判定
-  const nrOk=Math.abs(nr-req.nr)<=0.5;
-  const nrHigh=nr>req.nr+0.5; const nrLow=nr<req.nr-0.5;
+  // NR 行
+  const nrOk=Math.abs(R.nr-req.nr)<=0.5;
+  const nrHigh=R.nr>req.nr+0.5;
   const nrBadge=nrOk?'<span class="badge badge-ok">✓ 適正</span>':nrHigh?'<span class="badge badge-warn">△ 炭水化物多め</span>':'<span class="badge badge-warn">△ タンパク多め</span>';
 
-  // Ca:P比計算
-  const caPRatio = totalP>0 ? totalCa/totalP : 0;
-  const caPOk = caPRatio>=1.5 && caPRatio<=2.5;
-  const caPBadge = caPRatio===0?'<span class="badge badge-info">P=0</span>':caPOk?'<span class="badge badge-ok">✓ 適正</span>':caPRatio<1.5?'<span class="badge badge-ng">✗ Pが多い</span>':'<span class="badge badge-warn">△ Caが多い</span>';
+  // Ca:P 行（judgeCaP に一本化。日本飼養標準: 1:1〜7:1 は許容、1:1未満のみ是正必須）
+  const _caPJ=judgeCaP(R.caPRatio);
+  const caPBadge=_caPJ===null?'<span class="badge badge-info">P=0</span>'
+    :`<span class="badge badge-${_caPJ==='ok'?'ok':_caPJ==='ng'?'ng':'warn'}">${CAP_LABEL[_caPJ]}</span>`;
 
-    // DMI計算（上限はステージ別: 維持・妊娠末期1.5%, 泌乳期2.0%）
-  const bwNow = loadBWSettings().bw;
-  const dmiPct = bwNow > 0 ? parseFloat((totalDM / bwNow * 100).toFixed(1)) : null;
-  const dmiMax = req.dmi_max_pct || 1.5;
-  const dmiBadge = dmiPct !== null && dmiPct > dmiMax
+  // DMI 行
+  const dmiBadge=R.dmiPct!==null&&R.dmiPct>R.dmiMax
     ? '<span class="badge badge-ng">⚠ 超過</span>'
     : '<span class="badge badge-ok">✓</span>';
-  const dmiHtml = dmiPct !== null
-    ? `<tr><td>DMI <span style="font-size:10px;color:var(--text-sub)">(体重比)</span></td><td>${totalDM.toFixed(2)}kg (${dmiPct}%)</td><td>${dmiBadge} 上限${dmiMax}%</td></tr>`
+  const dmiHtml=R.dmiPct!==null
+    ? `<tr><td>DMI <span style="font-size:10px;color:var(--text-sub)">(体重比)</span></td><td>${totals.dm.toFixed(2)}kg (${R.dmiPct}%)</td><td>${dmiBadge} 上限${R.dmiMax}%</td></tr>`
     : '';
 
-  // ── 粗濃比（粗飼料DM vs 濃厚飼料DM）──
-  let roughDM = 0, concDM = 0, concKgRaw = 0, roughKgRaw = 0;
-  rows.forEach(function(r){
-    const dm = r.amount*(1-(r.feed.moisture||0)/100);
-    if(ROUGHAGE_CATS.includes(r.feed.cat)){ roughDM+=dm; roughKgRaw+=r.amount; }
-    else { concDM+=dm; concKgRaw+=r.amount; }
-  });
-  const roughPct = totalDM>0 ? roughDM/totalDM*100 : 0;
-  const concPct  = totalDM>0 ? concDM/totalDM*100  : 0;
-  // ステージ別 目標粗濃比（DM基準）
-  const ct = concTargets[stage]||{lo:30,hi:45};
-  const concRatioBadge = concPct<ct.lo
+  // 粗濃比 行
+  const ct=R.ct, ck=R.ck;
+  const concRatioBadge=R.concPct<ct.lo
     ? `<span class="badge badge-warn">△ 濃厚飼料少なめ</span>`
-    : concPct>ct.hi
+    : R.concPct>ct.hi
       ? `<span class="badge badge-ng">✗ 濃厚飼料過多（過肥リスク）</span>`
       : `<span class="badge badge-ok">✓ 適正範囲</span>`;
-  const roughConcHtml = `<tr><td>粗:濃 DM比<span style="font-size:10px;color:var(--text-sub);display:block;">目標:濃 ${ct.lo}〜${ct.hi}%DM</span></td><td>${roughPct.toFixed(0)}%:${concPct.toFixed(0)}%</td><td>${concRatioBadge}</td></tr>`;
+  const roughConcHtml=`<tr><td>粗:濃 DM比<span style="font-size:10px;color:var(--text-sub);display:block;">目標:濃 ${ct.lo}〜${ct.hi}%DM</span></td><td>${R.roughPct.toFixed(0)}%:${R.concPct.toFixed(0)}%</td><td>${concRatioBadge}</td></tr>`;
 
-  // ── 稲わら依存度（DM比率）──
-  let strawDM = 0;
-  rows.forEach(function(r){
-    if(r.feed.name.indexOf('稲わら')>=0){
-      strawDM += r.amount*(1-(r.feed.moisture||0)/100);
-    }
-  });
-  const strawDMpct = totalDM>0 ? strawDM/totalDM*100 : 0;
-  const strawDMBadge = strawDMpct>50
+  // 稲わら依存度 行
+  const strawDMBadge=R.strawDMpct>50
     ? `<span class="badge badge-ng">✗ 依存過多 → CP・TDN低下の主因</span>`
-    : strawDMpct>30
+    : R.strawDMpct>30
       ? `<span class="badge badge-warn">△ やや多め（目安 ≤30%）</span>`
-      : strawDMpct>0
+      : R.strawDMpct>0
         ? `<span class="badge badge-ok">✓ 適正範囲</span>`
         : '';
-  const strawHtml = strawDMpct>0
-    ? `<tr><td>稲わら依存度<span style="font-size:10px;color:var(--text-sub);display:block;">目安 DM30%以下</span></td><td>${strawDMpct.toFixed(0)}%DM</td><td>${strawDMBadge}</td></tr>`
+  const strawHtml=R.strawDMpct>0
+    ? `<tr><td>稲わら依存度<span style="font-size:10px;color:var(--text-sub);display:block;">目安 DM30%以下</span></td><td>${R.strawDMpct.toFixed(0)}%DM</td><td>${strawDMBadge}</td></tr>`
     : '';
 
-  // ── 配合飼料 給与量（原物）──
-  const ck = concTargetKg[stage]||{lo:1.0,hi:4.0};
-  const concKgBadge = concKgRaw<ck.lo
+  // 配合飼料量 行
+  const concKgBadge=R.concKgRaw<ck.lo
     ? `<span class="badge badge-warn">△ 少なめ（目安 ${ck.lo}〜${ck.hi}kg）</span>`
-    : concKgRaw>ck.hi
+    : R.concKgRaw>ck.hi
       ? `<span class="badge badge-ng">✗ 多すぎ（過肥リスク）</span>`
       : `<span class="badge badge-ok">✓ 適正範囲</span>`;
-  const concKgHtml = `<tr><td>配合飼料量<span style="font-size:10px;color:var(--text-sub);display:block;">目安 ${ck.lo}〜${ck.hi}kg/日</span></td><td>${concKgRaw.toFixed(2)}kg</td><td>${concKgBadge}</td></tr>`;
+  const concKgHtml=`<tr><td>配合飼料量<span style="font-size:10px;color:var(--text-sub);display:block;">目安 ${ck.lo}〜${ck.hi}kg/日</span></td><td>${R.concKgRaw.toFixed(2)}kg</td><td>${concKgBadge}</td></tr>`;
 
-  // ── DCAD（稲わら割合）計算 ──
-  let strawNDF = 0;
-  const totalNDFkg = rows.reduce(function(s,r){
-    return s + r.amount*(1-(r.feed.moisture||0)/100)*(r.feed.ndf||0)/100;
-  }, 0);
-  rows.forEach(function(r){
-    if(r.feed.name.indexOf('稲わら')>=0){
-      const dm = r.amount*(1-(r.feed.moisture||0)/100);
-      strawNDF += dm*(r.feed.ndf||0)/100;
-    }
-  });
-  const strawRatioPct = totalNDFkg > 0 ? Math.round(strawNDF / totalNDFkg * 100) : 0;
-  const dcadHtml = stage === 'pre'
-    ? `<tr><td>DCAD管理<span style="font-size:10px;color:var(--text-sub);display:block;">目標 −50〜−150mEq</span></td><td>${strawRatioPct > 0 ? '稲わら' + strawRatioPct + '%NDF' : '-'}</td><td>${strawRatioPct > 40 ? '<span class="badge badge-warn">⚠ K過多</span>' : '<span class="badge badge-ok">✓ 管理可</span>'}</td></tr>`
+  // 分娩前の稲わら（高K）多給チェック（分娩前のみ）。
+  // ※乳牛の「DCAD管理（陰イオン食で乳熱予防）」とは別物。和牛は泌乳量が少なく臨床乳熱はまれで、
+  //   飼養標準2022もDCADを繁殖牛の乳熱ではなく肥育牛の尿石症の文脈でしか扱っていない（p190）。
+  //   ここで見ているのは「分娩前に高K稲わらを多給しすぎていないか」という実務的なリスク喚起。
+  const dcadHtml=stage==='pre'
+    ? `<tr><td>分娩前K過多<span style="font-size:10px;color:var(--text-sub);display:block;">稲わら(高K)の多給に注意</span></td><td>${R.strawRatioPct>0?'稲わら'+R.strawRatioPct+'%NDF':'-'}</td><td>${R.strawRatioPct>40?'<span class="badge badge-warn">⚠ K過多に注意</span>':'<span class="badge badge-ok">✓ 問題なし</span>'}</td></tr>`
     : '';
 
-  // ── ビタミンA 注意 ──
-  const vitAFeeds = ['アルファルファ','ヘイキューブ','イタリアン','オーチャード','チモシー','牧草','青刈り','トウモロコシサイレージ','トウモロコシS','ケールサイレージ'];
-  const hasVitASource = rows.some(r => vitAFeeds.some(k => r.feed.name.indexOf(k)>=0));
-  const calcMonth = (function(){
-    const v = getWarekiValue('calc-date');
-    return v ? new Date(v).getMonth()+1 : new Date().getMonth()+1;
-  })();
-  const isWinter = calcMonth>=11 || calcMonth<=3;
-  let vitAHtml = '';
-  if((stage==='pre'||stage==='post0') && !hasVitASource){
-    const winterNote = isWinter ? '（冬期：青草・サイレージが少ない時期）' : '';
-    vitAHtml = `<tr><td>ビタミンA<span style="font-size:10px;color:var(--text-sub);display:block;">妊娠末期・泌乳期</span></td><td>供給源なし${winterNote}</td><td><span class="badge badge-warn">⚠ 欠乏リスク</span></td></tr>`;
-  } else if(hasVitASource){
-    vitAHtml = `<tr><td>ビタミンA</td><td>供給源あり</td><td><span class="badge badge-ok">✓</span></td></tr>`;
+  // ビタミンA 行
+  let vitAHtml='';
+  if(R.vitAAtRisk){
+    const winterNote=R.isWinter?'（冬期：青草・サイレージが少ない時期）':'';
+    vitAHtml=`<tr><td>ビタミンA<span style="font-size:10px;color:var(--text-sub);display:block;">妊娠末期・泌乳期</span></td><td>供給源なし${winterNote}</td><td><span class="badge badge-warn">⚠ 欠乏リスク</span></td></tr>`;
+  } else if(R.hasVitASource){
+    vitAHtml=`<tr><td>ビタミンA</td><td>供給源あり</td><td><span class="badge badge-ok">✓</span></td></tr>`;
   }
 
   document.getElementById('result-detail').innerHTML=`<table class="full-result-table">
     <tr><th>指標</th><th>値</th><th>判定</th></tr>
-    <tr><td>粗脂肪%DM</td><td>${fatPct.toFixed(1)}%</td><td>${fatPct<=req.fat_max?'<span class="badge badge-ok">✓ <5%</span>':'<span class="badge badge-ng">✗ 超過</span>'}</td></tr>
-    <tr><td>CP%DM</td><td>${cpPct.toFixed(1)}%</td><td>${cpPct>=req.cp_pct?'<span class="badge badge-ok">✓ ≥'+req.cp_pct+'%</span>':'<span class="badge badge-warn">△ <'+req.cp_pct+'%</span>'}</td></tr>
-    <tr><td>NFC%DM</td><td>${nfcPct.toFixed(1)}%</td><td>目安: ${req.nfc_range}%</td></tr>
-    <tr><td>NR　<span style="font-size:10px;color:var(--text-sub)">(TDN-CP)/CP</span></td><td>${nr.toFixed(1)}</td><td>${nrBadge} 目安 ${req.nr}</td></tr>
-    <tr><td>Ca:P比</td><td>${caPRatio.toFixed(2)}</td><td>${caPBadge} 目安 1.5〜2.5</td></tr>
+    <tr><td>粗脂肪%DM</td><td>${R.fatPct.toFixed(1)}%${comp.fat?'':'〜'}</td><td>${R.fatPct>req.fat_max?'<span class="badge badge-ng">✗ 超過</span>':comp.fat?'<span class="badge badge-ok">✓ <5%</span>':refBadge}</td></tr>
+    <tr><td>CP%DM</td><td>${R.cpPct.toFixed(1)}%${comp.cp?'':'〜'}</td><td>${R.cpPct>=req.cp_pct?'<span class="badge badge-ok">✓ ≥'+req.cp_pct+'%</span>':comp.cp?'<span class="badge badge-warn">△ <'+req.cp_pct+'%</span>':refBadge}</td></tr>
+    <tr><td>NFC%DM</td><td>${R.nfcPct.toFixed(1)}%${comp.nfc?'':'〜'}</td><td>目安: ${req.nfc_range}%${comp.nfc?'':' '+refBadge}</td></tr>
+    <tr><td>NR　<span style="font-size:10px;color:var(--text-sub)">(TDN-CP)/CP</span></td><td>${R.nr.toFixed(1)}</td><td>${comp.cp&&comp.tdn?nrBadge:refBadge} 目安 ${req.nr}</td></tr>
+    <tr><td>Ca:P比</td><td>${R.caPRatio.toFixed(2)}</td><td>${comp.ca&&comp.p?caPBadge:refBadge} 許容 ${CAP_MIN}〜${CAP_MAX}（1:1未満は要是正）</td></tr>
     ${rdpNfcHtml}
     ${dmiHtml}
-    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──</td></tr>
+    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──<span style="display:block;font-weight:400;font-size:10px;color:var(--text-sub);">※飼養標準に規定がなく、現場マニュアル等に基づく運用目安（解説タブ参照）</span></td></tr>
     ${roughConcHtml}
     ${concKgHtml}
     ${strawHtml}
@@ -1540,39 +1708,36 @@ function calculate(){
     ${vitAHtml}
   </table>`;
 
+  // 注意メモ
   let notes='';
-  if(fatPct>5)notes+='<div class="note warn">⚠️ 脂肪が5%DM超。生米ぬかの配合率に注意。</div>';
-  if(nfcPct>0&&nfcPct<15)notes+='<div class="note warn">⚠️ NFCが低め。受胎率向上には18〜20%が目安。</div>';
-  if(nfcPct>25)notes+='<div class="note warn">⚠️ NFCが高め。ルーメンアシドーシスに注意。</div>';
-  if(rdpNfcRatio!==null&&rdpNfcRatio>0.40)notes+='<div class="note warn">⚠️ RDPがNFCに対して多すぎます。アンモニア産生過多のリスクあり。NFCを増やすか、RDPの低い飼料に変更を検討。</div>';
-  if(concPct>ct.hi)notes+=`<div class="note warn">⚠️ 濃厚飼料比率が高め（DM比${concPct.toFixed(0)}%）。妊娠末期の過肥は難産・脂肪肝・胎盤停滞リスクを高めます。粗飼料の割合を増やし、配合飼料を${ct.hi}%DM以内に抑えることを検討してください。</div>`;
-  if(concKgRaw>ck.hi)notes+=`<div class="note warn">⚠️ 配合飼料が${concKgRaw.toFixed(1)}kg/日と多めです。黒毛和種繁殖牛の一般的な目安は${ck.lo}〜${ck.hi}kg/日（三重・栃木県等の標準例）。BCSを確認して過肥に注意してください。</div>`;
-  if(strawDMpct>50)notes+=`<div class="note warn">⚠️ 稲わらDM比が${strawDMpct.toFixed(0)}%と高すぎます。稲わらはCP 3〜7%・TDN 43〜50%と低栄養で、多給するとCP・TDN不足の直接原因になります。一部をアルファルファ・ヘイキューブ・チモシーに置き換えることを検討してください。</div>`;
-  // 育成用配合飼料の誤給与を検知
-  const hasGrowerFeed = rows.some(r=>r.feed.cat==='育成用配合飼料');
-  if(hasGrowerFeed) notes+=`<div class="note warn">⚠️ <b>育成用配合飼料（グロアー等）が含まれています。</b>グロアーは生後3ヶ月〜初産前の育成牛向けの飼料です。経産繁殖牛には<b>繁殖用配合飼料（繁殖かーちゃん・繁殖きづな等）</b>をご使用ください。</div>`;
-  if((stage==='pre'||stage==='post0') && !hasVitASource){
-    const winterMsg = isWinter ? '冬期は特にビタミンA欠乏になりやすい時期です。' : '';
+  if(R.fatPct>5)notes+='<div class="note warn">⚠️ 脂肪が5%DM超。生米ぬかの配合率に注意。</div>';
+  if(comp.nfc&&R.nfcPct>0&&R.nfcPct<15)notes+='<div class="note warn">⚠️ NFCが低め。受胎率向上には18〜20%が目安。</div>';
+  if(R.nfcPct>25)notes+='<div class="note warn">⚠️ NFCが高め。ルーメンアシドーシスに注意。</div>';
+  if(R.rdpNfcRatio!==null&&R.rdpNfcRatio>0.40)notes+='<div class="note warn">⚠️ RDPがNFCに対して多すぎます。アンモニア産生過多のリスクあり。NFCを増やすか、RDPの低い飼料に変更を検討。</div>';
+  if(R.concPct>ct.hi)notes+=`<div class="note warn">⚠️ 濃厚飼料比率が高め（DM比${R.concPct.toFixed(0)}%）。妊娠末期の過肥は難産・脂肪肝・胎盤停滞リスクを高めます。粗飼料の割合を増やし、配合飼料を${ct.hi}%DM以内に抑えることを検討してください。</div>`;
+  if(R.concKgRaw>ck.hi)notes+=`<div class="note warn">⚠️ 配合飼料が${R.concKgRaw.toFixed(1)}kg/日と多めです。黒毛和種繁殖牛の一般的な目安は${ck.lo}〜${ck.hi}kg/日（三重・栃木県等の標準例）。BCSを確認して過肥に注意してください。</div>`;
+  if(R.strawDMpct>50)notes+=`<div class="note warn">⚠️ 稲わらDM比が${R.strawDMpct.toFixed(0)}%と高すぎます。稲わらはCP 3〜7%・TDN 43〜50%と低栄養で、多給するとCP・TDN不足の直接原因になります。一部をアルファルファ・ヘイキューブ・チモシーに置き換えることを検討してください。</div>`;
+  if(R.hasGrowerFeed) notes+=`<div class="note warn">⚠️ <b>育成用配合飼料（グロアー等）が含まれています。</b>グロアーは生後3ヶ月〜初産前の育成牛向けの飼料です。経産繁殖牛には<b>繁殖用配合飼料（繁殖かーちゃん・繁殖きづな等）</b>をご使用ください。</div>`;
+  if(R.vitAAtRisk){
+    const winterMsg=R.isWinter?'冬期は特にビタミンA欠乏になりやすい時期です。':'';
     notes+=`<div class="note warn">⚠️ ビタミンA供給源（アルファルファ・チモシー・トウモロコシサイレージ等）が見当たりません。${winterMsg}妊娠末期・泌乳期のビタミンA欠乏は流産・虚弱子牛・胎盤停滞リスクがあります。ビタミンAを含む飼料の追加、またはビタミン剤の使用を検討してください。</div>`;
   }
   document.getElementById('notes-area').innerHTML=notes;
   document.getElementById('result-area').style.display='block';
   document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
-  window._lastResult={
-    stage,stageName:STAGE_NAMES[stage],
-    bw: loadBWSettings().bw,
-    reqSnapshot: JSON.parse(JSON.stringify(req)),
-    feeds:rows.map(r=>({name:r.feed.name,amount:r.amount})),
-    cp:Math.round(totalCP),tdn:parseFloat(totalTDN.toFixed(2)),
-    dm:parseFloat(totalDM.toFixed(2)),ca:Math.round(totalCa),p:Math.round(totalP),
-    pctCP:Math.round(pctCP),pctTDN:Math.round(pctTDN),pctDM:Math.round(pctDM),
-    cpPct:parseFloat(cpPct.toFixed(1)),fatPct:parseFloat(fatPct.toFixed(1)),nfcPct:parseFloat(nfcPct.toFixed(1)),nr:parseFloat(nr.toFixed(1)),
-    rdpNfc:rdpNfcRatio?`1:${(1/rdpNfcRatio).toFixed(1)}`:'-',
-    dmiPct:dmiPct, strawRatio:strawRatioPct,
-    concPct:parseFloat(concPct.toFixed(0)),
-    strawDMpct:parseFloat(strawDMpct.toFixed(0)),
-    vitAFlag:((stage==='pre'||stage==='post0')&&!hasVitASource)?'none':'ok'
-  };
+}
+
+/* ============ WIRE: 計算ボタン。ここだけが DOM と Store を読み、CORE と VIEW を繋ぐ ============ */
+function calculate(){
+  const stage=document.getElementById('stage-select').value;
+  const req=currentRequirements(stage);
+  const rows=getCurrentFeedRows();
+  if(rows.length===0){showToast('飼料を入力してください');return;}
+  const _cd=getWarekiValue('calc-date');
+  const month=_cd?new Date(_cd).getMonth()+1:new Date().getMonth()+1;
+  const R=computeRation(rows, req, {stage, bw:loadBWSettings().bw, month});
+  renderRation(R, rows, calcDailyCost(rows), lsGetJSON('feed_prices','{}'));
+  window._lastResult=buildResultSnapshot(R, rows);
 }
 
 function openSaveModal(){
@@ -1628,16 +1793,16 @@ function buildSaveDiffHTML(){
     const simAmt  = sf ? parseFloat(sf.amount.toFixed(2)) : null;
     const changed = calcAmt !== simAmt;
     if(!changed) {
-      feedRows += `<tr><td style="font-size:12px;">${name}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;color:var(--text-sub);font-size:11px;">→</td><td style="text-align:right;font-size:12px;">${simAmt}kg</td><td></td></tr>`;
+      feedRows += `<tr><td style="font-size:12px;">${esc(name)}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;color:var(--text-sub);font-size:11px;">→</td><td style="text-align:right;font-size:12px;">${simAmt}kg</td><td></td></tr>`;
     } else if(calcAmt===null) {
-      feedRows += `<tr style="background:#e8f5e9;"><td style="font-size:12px;">${name}</td><td style="text-align:right;color:var(--text-sub);font-size:11px;">なし</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;font-size:12px;font-weight:700;color:var(--ok);">+${simAmt}kg</td><td style="font-size:11px;color:var(--ok);">🆕 追加</td></tr>`;
+      feedRows += `<tr style="background:#e8f5e9;"><td style="font-size:12px;">${esc(name)}</td><td style="text-align:right;color:var(--text-sub);font-size:11px;">なし</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;font-size:12px;font-weight:700;color:var(--ok);">+${simAmt}kg</td><td style="font-size:11px;color:var(--ok);">🆕 追加</td></tr>`;
     } else if(simAmt===null) {
-      feedRows += `<tr style="background:#ffebee;"><td style="font-size:12px;">${name}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;color:var(--text-sub);font-size:11px;">なし</td><td style="font-size:11px;color:var(--ng);">🗑 削除</td></tr>`;
+      feedRows += `<tr style="background:#ffebee;"><td style="font-size:12px;">${esc(name)}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;color:var(--text-sub);font-size:11px;">なし</td><td style="font-size:11px;color:var(--ng);">🗑 削除</td></tr>`;
     } else {
       const diff = simAmt - calcAmt;
       const diffStr = diff>0?`+${diff.toFixed(2)}`:diff.toFixed(2);
       const col = diff>0?'var(--ok)':'var(--ng)';
-      feedRows += `<tr style="background:${diff>0?'#e8f5e9':'#fff3e0'};"><td style="font-size:12px;">${name}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;font-size:12px;font-weight:700;">${simAmt}kg</td><td style="font-size:11px;font-weight:700;color:${col};">${diffStr}kg</td></tr>`;
+      feedRows += `<tr style="background:${diff>0?'#e8f5e9':'#fff3e0'};"><td style="font-size:12px;">${esc(name)}</td><td style="text-align:right;font-size:12px;">${calcAmt}kg</td><td style="text-align:center;font-size:11px;">→</td><td style="text-align:right;font-size:12px;font-weight:700;">${simAmt}kg</td><td style="font-size:11px;font-weight:700;color:${col};">${diffStr}kg</td></tr>`;
     }
   });
 
@@ -1709,7 +1874,7 @@ function confirmSave(){
   }
   h.unshift({...window._lastResult, farmer, memo, date:saveDate});
   if(h.length>50)h.pop();
-  lsSet('cattle_history', JSON.stringify(h));
+  if(!lsSet('cattle_history', JSON.stringify(h))) return;  // 失敗時はモーダルを開いたまま（lsSetがエラー通知済み）
   closeSaveModal();
   showToast('💾 保存しました！');
 }
@@ -1754,11 +1919,11 @@ function renderHistory(){
 
   container.innerHTML=sortedFiltered.map((h,i)=>{
     const realIdx=sortedIndexMap[i];
-    const fl=h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
+    const fl=esc(h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、'));
     const bwBadge=h.bw?`<span class="badge" style="background:#e8eaf6;color:#283593;font-size:11px;">BW ${h.bw}kg</span>`:'';
     const simBadge=h.simResult?'<span class="badge" style="background:#e3f2fd;color:#1565c0;font-size:10px;">🎛 シミュ</span>':'';
-    const farmerBadge=h.farmer?`<span class="badge badge-custom" style="font-size:12px;">🏠 ${h.farmer}</span>`:'';
-    const memoLine=h.memo?`<div style="font-size:12px;color:#795548;background:#fff8e1;border-radius:6px;padding:5px 8px;margin-bottom:6px;">📝 ${h.memo}</div>`:'';
+    const farmerBadge=h.farmer?`<span class="badge badge-custom" style="font-size:12px;">🏠 ${esc(h.farmer)}</span>`:'';
+    const memoLine=h.memo?`<div style="font-size:12px;color:#795548;background:#fff8e1;border-radius:6px;padding:5px 8px;margin-bottom:6px;">📝 ${esc(h.memo)}</div>`:'';
     return`<div class="history-item" style="cursor:pointer;${h.simResult?'border-left:3px solid #1565c0;':''}" onclick="showHistoryDetail(${realIdx})">
       <div class="history-header">
         <div style="display:flex;flex-direction:column;gap:4px;">
@@ -1773,10 +1938,10 @@ function renderHistory(){
       ${memoLine}
       <div class="history-feeds">${fl}</div>
       ${h.diffFeeds&&h.diffFeeds.length>0?`<div style="margin-bottom:6px;">${h.diffFeeds.map(d=>{
-        if(d.tag==='added')   return `<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">🆕 ${d.name} +${d.to}kg</span>`;
-        if(d.tag==='removed') return `<span style="font-size:11px;background:#ffebee;color:#c62828;padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">🗑 ${d.name}</span>`;
+        if(d.tag==='added')   return `<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">🆕 ${esc(d.name)} +${d.to}kg</span>`;
+        if(d.tag==='removed') return `<span style="font-size:11px;background:#ffebee;color:#c62828;padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">🗑 ${esc(d.name)}</span>`;
         const diff=d.to-d.from; const col=diff>0?'#2e7d32':'#c62828'; const bg=diff>0?'#e8f5e9':'#fff3e0';
-        return `<span style="font-size:11px;background:${bg};color:${col};padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">✏️ ${d.name} ${d.from}→${d.to}kg</span>`;
+        return `<span style="font-size:11px;background:${bg};color:${col};padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;display:inline-block;">✏️ ${esc(d.name)} ${d.from}→${d.to}kg</span>`;
       }).join('')}</div>`:''}
       <div class="mini-results">
         <span class="mini-result">CP ${h.cp}g (${h.pctCP}%)</span>
@@ -1817,23 +1982,23 @@ function renderMaster(){
   var list=filter?feeds.filter(function(f){return f.name.indexOf(filter)>=0||f.cat.indexOf(filter)>=0;}):feeds;
   var cats=[];
   list.forEach(function(f){if(cats.indexOf(f.cat)<0)cats.push(f.cat);});
-  var customNames=JSON.parse(lsGet('custom_feeds','[]')).map(function(f){return f.name;});
-  var prices=JSON.parse(lsGet('feed_prices','{}'));
+  var customIds=lsGetJSON('custom_feeds','[]').map(function(f){return f.id;});
+  var prices=lsGetJSON('feed_prices','{}');
   var html='';
   if(list.length===0){html='<div class="empty-state"><div class="icon">🔍</div><p>該当する飼料が見つかりません</p></div>';}
   cats.forEach(function(cat){
     var cf=list.filter(function(f){return f.cat===cat;});
-    html+='<div class="section-label"><span>'+cat+' ('+cf.length+'件)</span></div>';
+    html+='<div class="section-label"><span>'+esc(cat)+' ('+cf.length+'件)</span></div>';
     cf.forEach(function(f){
-      var cu=customNames.indexOf(f.name)>=0;
-      var nm=f.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-      var pd=prices[f.name]!=null?prices[f.name]+'円/kg':'<span style="color:var(--text-sub);">未設定</span>';
+      var cu=customIds.indexOf(f.id)>=0;
+      var nm=esc(f.name);
+      var pd=prices[f.id]!=null?prices[f.id]+'円/kg':'<span style="color:var(--text-sub);">未設定</span>';
       html+='<div class="master-feed-item">';
       html+='<div class="master-feed-header">';
       html+='<div class="master-feed-name">'+nm+(cu?' <span class="badge badge-custom">追加</span>':'')+'</div>';
       html+='<div class="master-feed-actions">';
-      html+='<button class="btn btn-outline btn-sm" data-name="'+nm+'" onclick="masterEditClick(this)" style="touch-action:manipulation;">編集</button>';
-      html+='<button class="btn btn-danger btn-sm" data-name="'+nm+'" data-custom="'+cu+'" onclick="masterDelClick(this)" style="touch-action:manipulation;">削除</button>';
+      html+='<button class="btn btn-outline btn-sm" data-id="'+f.id+'" onclick="masterEditClick(this)" style="touch-action:manipulation;">編集</button>';
+      html+='<button class="btn btn-danger btn-sm" data-id="'+f.id+'" data-name="'+escAttr(f.name)+'" data-custom="'+cu+'" onclick="masterDelClick(this)" style="touch-action:manipulation;">削除</button>';
       html+='</div></div>';
       html+='<div class="master-grid">';
       html+='<div><span>CP</span> '+(f.cp??'-')+'%</div><div><span>TDN</span> '+(f.tdn??'-')+'%</div>';
@@ -1841,22 +2006,16 @@ function renderMaster(){
       html+='<div><span>Ca</span> '+(f.ca??'-')+'%</div><div><span>P</span> '+(f.p??'-')+'%</div>';
       html+='<div><span>脂肪</span> '+(f.fat??'-')+'%</div><div><span>水分</span> '+(f.moisture??'-')+'%</div>';
       html+='<div style="grid-column:1/-1;"><span>💴 単価</span> '+pd+'</div>';
-      if(f.source){html+='<div style="grid-column:1/-1;font-size:11px;color:var(--text-sub);padding-top:2px;"><span>📋 出典</span> '+f.source.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>';}
+      if(f.source){html+='<div style="grid-column:1/-1;font-size:11px;color:var(--text-sub);padding-top:2px;"><span>📋 出典</span> '+esc(f.source)+'</div>';}
       html+='</div></div>';
     });
   });
   document.getElementById('master-list').innerHTML=html;
 }
 
-function confirmDeleteFeed(name,isCustom){
-  showConfirm(`「${name}」を削除しますか？`, ()=>{
-    deleteFeed(name,isCustom);renderMaster();showToast(`「${name}」を削除しました`);
-  });
-}
-
-let _editingName=null;
+let _editingId=null;
 function openAddModal(){
-  _editingName=null;
+  _editingId=null;
   document.getElementById('modal-title-text').textContent='飼料を追加';
   document.getElementById('modal-submit-btn').textContent='追加する';
   ['cat','name','cp','tdn','fat','ndf','adf','ash','nfc','rdp','ca','p','mg','k','moisture'].forEach(id=>{
@@ -1865,13 +2024,11 @@ function openAddModal(){
   });
   document.getElementById('m-price').value='';
   document.getElementById('m-source').value='';
-  var _prices=JSON.parse(lsGet('feed_prices','{}'));
-  document.getElementById('m-price').value=_prices[name]!=null?_prices[name]:'';
   document.getElementById('feed-modal').classList.add('open');
 }
-function openEditModal(name){
-  const feeds=loadFeeds(); const f=feeds.find(x=>x.name===name); if(!f)return;
-  _editingName=name;
+function openEditModal(id){
+  const feeds=loadFeeds(); const f=feeds.find(x=>x.id===id); if(!f)return;
+  _editingId=id;
   document.getElementById('modal-title-text').textContent='飼料を編集';
   document.getElementById('modal-submit-btn').textContent='更新する';
   document.getElementById('m-cat').value=f.cat;
@@ -1880,10 +2037,13 @@ function openEditModal(name){
     document.getElementById('m-'+k).value=f[k]??'';
   });
   document.getElementById('m-source').value=f.source??'';
+  // 既存の単価も表示する（空のまま更新すると単価が消えていた既存バグの修正）
+  const _prices=lsGetJSON('feed_prices','{}');
+  document.getElementById('m-price').value=_prices[id]!=null?_prices[id]:'';
   document.getElementById('feed-modal').classList.add('open');
 }
 function closeModal(){document.getElementById('feed-modal').classList.remove('open');}
-function n(id){const v=document.getElementById('m-'+id).value;return v===''?null:parseFloat(v);}
+function n(id){return num(document.getElementById('m-'+id).value);}
 function submitFeed(){
   const name=document.getElementById('m-name').value.trim();
   const cat=document.getElementById('m-cat').value;
@@ -1894,20 +2054,32 @@ function submitFeed(){
   let nfc=n('nfc');
   if(nfc===null&&ndf!==null)nfc=parseFloat((100-ndf-cp-fat-ash).toFixed(2));
   const _src=document.getElementById('m-source').value.trim();
-  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca')??0,p:n('p')??0,mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,source:_src||null,custom:true};
-  if(_editingName){
-    deleteFeed(_editingName,isCustomFeed(_editingName));
+  // ca/p が未入力なら null のまま保存する（0=測定値ゼロ と区別。#1 の参考値表示が働く）
+  const feed={cat,name,cp,fat,cf:null,adf:n('adf'),ndf,ash,tdn,ca:n('ca'),p:n('p'),mg:n('mg'),k:n('k'),nfc,rdp:n('rdp'),moisture,source:_src||null,custom:true};
+  if(_editingId){
+    if(isCustomFeedId(_editingId)){
+      feed.id = _editingId;                    // カスタムはID維持 → 単価・履歴の紐付けが切れない
+      deleteFeedById(_editingId, true);
+    } else {
+      deleteFeedById(_editingId, false);       // デフォルトは論理削除し、新カスタムとして保存
+    }
   } else {
     if(loadFeeds().find(f=>f.name===name)){showToast('同じ名前の飼料が既に存在します');return;}
   }
-  saveCustomFeed(feed);
-  var _pv=document.getElementById('m-price').value;
-  var _prices=JSON.parse(lsGet('feed_prices','{}'));
-  if(_pv!==''&&!isNaN(parseFloat(_pv))){_prices[name]=parseFloat(_pv);}
-  else{if(_editingName)delete _prices[_editingName]; delete _prices[name];}
+  if(!saveCustomFeed(feed)) return;  // 失敗時はモーダルを開いたまま（lsSetがエラー通知済み。feed.idはここで確定）
+  let _pv=document.getElementById('m-price').value;
+  var _prices=lsGetJSON('feed_prices','{}');
+  if(_editingId && _editingId!==feed.id){
+    // デフォルト→カスタム変換時: 旧IDの単価を新IDへ引き継いでから旧IDを消す
+    if(_pv===''&&_prices[_editingId]!=null){_pv=String(_prices[_editingId]);}
+    delete _prices[_editingId];
+  }
+  const _pn=num(_pv);
+  if(_pn!=null){_prices[feed.id]=_pn;}
+  else{delete _prices[feed.id];}
   lsSet('feed_prices',JSON.stringify(_prices));
   closeModal();renderMaster();
-  showToast(_editingName?`「${name}」を更新しました`:`「${name}」を追加しました`);
+  showToast(_editingId?`「${name}」を更新しました`:`「${name}」を追加しました`);
 }
 
 function showTab(tab,btn){
@@ -2009,10 +2181,10 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
       {key:'cpPct',   label:'CP%DM',      fmt:h=>(h.cpPct!=null?h.cpPct+'%':'-'), style:'min-width:60px;'},
       {key:'nfcPct',  label:'NFC%DM',     fmt:h=>(h.nfcPct!=null?h.nfcPct+'%':'-'), style:'min-width:65px;'},
       {key:'nr',      label:'NR',         fmt:h=>(h.nr!=null?h.nr:'-'), style:'min-width:45px;'},
-      {key:'caP',     label:'Ca:P比',     fmt:h=>(h.ca&&h.p&&h.p>0?(h.ca/h.p).toFixed(2):'-'), colorFn:h=>{const v=h.ca&&h.p&&h.p>0?h.ca/h.p:null;if(v==null)return'';return v>=1.5&&v<=2.5?'background:#e8f5e9;color:#1b5e20;':'background:#fff3e0;color:#e65100;';}},
+      {key:'caP',     label:'Ca:P比',     fmt:h=>(h.ca&&h.p&&h.p>0?(h.ca/h.p).toFixed(2):'-'), colorFn:h=>{const j=judgeCaP(h.ca&&h.p&&h.p>0?h.ca/h.p:null);if(!j)return'';return j==='ok'?'background:#e8f5e9;color:#1b5e20;':j==='ng'?'background:#ffebee;color:#c62828;':'background:#fff3e0;color:#e65100;';}},
       {key:'rdpNfc',  label:'RDP:NFC',    fmt:h=>(h.rdpNfc||'-'), style:'min-width:60px;'},
       {key:'dmiPct',  label:'DMI%',       fmt:h=>(h.dmiPct!=null?h.dmiPct+'%':'-'), colorFn:h=>h.dmiPct!=null?(parseFloat(h.dmiPct)>1.5?'background:#ffebee;color:#c62828;':'background:#e8f5e9;color:#1b5e20;'):''},
-      {key:'dcad',    label:'DCAD',       fmt:h=>stageKey==='pre'?(h.strawRatio!=null?'稲わら'+h.strawRatio+'%':'-'):'-', colorFn:h=>{if(stageKey!=='pre')return'background:#f5f5f5;color:#bbb;';return h.strawRatio!=null&&h.strawRatio>40?'background:#fff3e0;color:#e65100;':'background:#e8f5e9;color:#1b5e20;';}},
+      {key:'dcad',    label:'分娩前K',    fmt:h=>stageKey==='pre'?(h.strawRatio!=null?'稲わら'+h.strawRatio+'%':'-'):'-', colorFn:h=>{if(stageKey!=='pre')return'background:#f5f5f5;color:#bbb;';return h.strawRatio!=null&&h.strawRatio>40?'background:#fff3e0;color:#e65100;':'background:#e8f5e9;color:#1b5e20;';}},
     ];
 
     let th = COLS.map(c=>`<th style="padding:5px 8px;font-size:10px;white-space:nowrap;background:${sc2.bg};color:${sc2.color};position:sticky;top:0;${c.style||''}">${c.label}</th>`).join('');
@@ -2042,7 +2214,7 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
 
     html += `<div style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0;">
       <div style="font-size:13px;font-weight:700;color:var(--primary);padding:10px 12px;background:#e8f5e9;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleFarmerGroup('${farmerId}')">
-        <span>🏠 ${farmer}</span>
+        <span>🏠 ${esc(farmer)}</span>
         <span style="font-size:11px;color:var(--text-sub);font-weight:400;">${totalCount}件 ▸</span>
       </div>
       <div id="${farmerId}" style="padding:8px;display:none;">`;
@@ -2070,7 +2242,7 @@ function renderHistoryFarmerGroup(allHistory, filtered, indexMap){
         <div id="${stageId}">`;
 
       items.forEach(({h, realIdx})=>{
-        const fl = h.feeds.map(f=>`${f.name} ${f.amount}kg`).join('、');
+        const fl = h.feeds.map(f=>`${esc(f.name)} ${f.amount}kg`).join('、');
         const memoLine = h.memo ? `<div style="font-size:11px;color:#795548;margin-bottom:3px;">📝 ${h.memo}</div>` : '';
         const dmiLine  = h.dmiPct ? `<span class="mini-result" style="background:${parseFloat(h.dmiPct)>1.5?'#ffebee':'#e8f5e9'}">DMI ${h.dmiPct}%</span>` : '';
         html += `<div class="history-item" style="cursor:pointer;margin-left:6px;margin-bottom:6px;" onclick="showHistoryDetail(${realIdx})">
@@ -2165,7 +2337,7 @@ function renderHistoryGraph(){
   const selFarmer=(document.getElementById('graph-farmer-sel')||{value:'all'}).value||'all';
   const selStage =(document.getElementById('graph-stage-sel') ||{value:'all'}).value||'all';
 
-  const farmerOpts='<option value="all">全農家</option>'+farmers.slice(1).sort().map(f=>`<option value="${f}"${selFarmer===f?' selected':''}>${f}</option>`).join('');
+  const farmerOpts='<option value="all">全農家</option>'+farmers.slice(1).sort().map(f=>`<option value="${escAttr(f)}"${selFarmer===f?' selected':''}>${esc(f)}</option>`).join('');
   const stageOpts ='<option value="all">全ステージ</option>'+STAGE_ORDER.map(s=>`<option value="${s}"${selStage===s?' selected':''}>${STAGE_META[s].icon} ${STAGE_META[s].name}</option>`).join('');
 
   let data=allHistory.filter(h=>{
@@ -2384,15 +2556,69 @@ function saveGraphAsImage(){
 }
 
 // ===== エクスポート / インポート =====
+/* ── バックアップ健全性（CLAUDE.md §2.5: iOS Safariは7日未使用でストレージを削除する）──
+   エクスポートは「付録」ではなく主動線。最終エクスポート日を記録し、起動時に督促する。 */
+const EXPORT_WARN_DAYS = 14;
+function daysBetweenISO(a, b){
+  // UTC正午基準の日数差（§3.6）。不正な日付は null
+  const da = Date.parse(a+'T12:00:00Z'), db = Date.parse(b+'T12:00:00Z');
+  if(isNaN(da)||isNaN(db)) return null;
+  return Math.floor(db/86400000) - Math.floor(da/86400000);
+}
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+/* CORE: 起動時に出すべきバックアップ警告を判定する純粋関数（テスト対象） */
+function backupWarningInfo(lastExportISO, historyCount, todayIso){
+  if(historyCount === 0) return null;                      // 失うものが無ければ警告しない
+  if(!lastExportISO) return {type:'never', days:null};
+  const days = daysBetweenISO(lastExportISO, todayIso);
+  if(days === null) return {type:'never', days:null};
+  return days > EXPORT_WARN_DAYS ? {type:'overdue', days} : null;
+}
+function isIOSSafariBrowser(){
+  const ua = navigator.userAgent;
+  const iOS = /iP(hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  return iOS && !standalone;
+}
+function renderStartupBanners(){
+  if(new URLSearchParams(location.search).has('test')) return;   // テスト実行時は出さない
+  const histCount = JSON.parse(lsGet('cattle_history','[]')).length;
+  const warn = backupWarningInfo(lsGet('last_export_date', null), histCount, todayISO());
+  let html = '';
+  if(warn){
+    const msg = warn.type==='never'
+      ? 'まだ一度もバックアップ（エクスポート）していません'
+      : `最終バックアップから ${warn.days}日 経過しています`;
+    html += `<div id="backup-banner" style="padding:10px 12px;background:#fff3e0;color:#e65100;font-size:13px;line-height:1.5;">
+      ⚠️ ${msg}。iPhoneのSafariは約7日間使わないと保存データを自動削除することがあります。
+      <div style="margin-top:6px;display:flex;gap:8px;">
+        <button onclick="exportHistory()" style="padding:6px 12px;border:none;border-radius:8px;background:#e65100;color:#fff;font-weight:700;touch-action:manipulation;">📤 今すぐエクスポート</button>
+        <button onclick="document.getElementById('backup-banner').remove()" style="padding:6px 12px;border:1px solid #e65100;border-radius:8px;background:transparent;color:#e65100;touch-action:manipulation;">後で</button>
+      </div></div>`;
+  }
+  if(isIOSSafariBrowser() && lsGet('a2hs_dismissed', null)!=='1'){
+    html += `<div id="a2hs-banner" style="padding:10px 12px;background:#e3f2fd;color:#0d47a1;font-size:13px;line-height:1.5;">
+      📱 このアプリは「ホーム画面に追加」して使うと、Safariの自動データ削除（7日ルール）の対象外になります。
+      共有ボタン<span style="font-weight:700;">（□↑）→「ホーム画面に追加」</span>がおすすめです。
+      <div style="margin-top:6px;">
+        <button onclick="lsSet('a2hs_dismissed','1');document.getElementById('a2hs-banner').remove()" style="padding:6px 12px;border:1px solid #0d47a1;border-radius:8px;background:transparent;color:#0d47a1;touch-action:manipulation;">今後表示しない</button>
+      </div></div>`;
+  }
+  if(html) document.body.insertAdjacentHTML('afterbegin', html);
+}
+
 function exportHistory(){
   const history = JSON.parse(lsGet('cattle_history','[]'));
-  const custom  = JSON.parse(lsGet('custom_feeds','[]'));
+  const custom  = lsGetJSON('custom_feeds','[]');
   const bwSettings = JSON.parse(lsGet('bw_settings','{"bw":540,"overrides":{}}'));
   if(history.length === 0 && custom.length === 0){
     showToast('エクスポートするデータがありません');return;
   }
   const data = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toLocaleString('ja-JP'),
     history,
     custom_feeds: custom,
@@ -2417,6 +2643,9 @@ function exportHistory(){
     showToast('画面を長押し→保存してください');
     return;
   }
+  lsSet('last_export_date', todayISO());
+  const bb = document.getElementById('backup-banner');
+  if(bb) bb.remove();
   showToast(`📤 ${history.length}件の履歴をエクスポートしました`);
 }
 
@@ -2439,9 +2668,10 @@ function importHistory(event){
 
       // カスタム飼料もインポート
       if(Array.isArray(data.custom_feeds) && data.custom_feeds.length > 0){
-        const existingCustom = JSON.parse(lsGet('custom_feeds','[]'));
+        const existingCustom = lsGetJSON('custom_feeds','[]');
         const existingCustomNames = new Set(existingCustom.map(f=>f.name));
-        const newCustom = data.custom_feeds.filter(f=>!existingCustomNames.has(f.name));
+        const newCustom = data.custom_feeds.filter(f=>!existingCustomNames.has(f.name))
+          .map(f=>f.id ? f : ({...f, id: genUUID()}));   // 旧形式のエクスポートにはidが無い
         lsSet('custom_feeds', JSON.stringify([...existingCustom, ...newCustom]));
       }
 
@@ -2450,7 +2680,7 @@ function importHistory(event){
         const currentBW = JSON.parse(lsGet('bw_settings','{"bw":540}'));
         if(currentBW.bw === 540){
           lsSet('bw_settings', JSON.stringify(data.bw_settings));
-          applyBWToRequirements();
+          updateBWHeaderBtn(); onStageChange();
         }
       }
 
@@ -2477,44 +2707,61 @@ const REQ_ITEMS = [
 ];
 
 // ===================================================================
-// 日本飼養標準・肉用牛（2022年版）7.3〜7.5 の公式式を実装
-// 構成: 維持要求量(W^0.75ベース) + 妊娠末期付加(体重非依存) + 泌乳付加(乳量依存)
+// 出典: 日本飼養標準・肉用牛（2022年版）／農研機構編
+//   7章「養分要求量の算定式」の式を実装する。
+//   構成 = 成雌牛の維持要求量（§7.3）＋ 妊娠末期付加（表3.1.3）＋ 泌乳付加（表3.1.4）。
+//   ページは 2026-05-31 収蔵PDF の印刷ページ番号（原本ノンブル）。
+//   ※ 係数を書き換えるときは必ず原典の式番号・ページで裏取りすること。推測で埋めない。
 // ===================================================================
 
-// 維持要求量（7.3）: MEM=0.1119×W^0.75, DMI=MEM÷1.81, TDN=DE÷4.41=MEM÷0.82÷4.41
+// 成雌牛の維持要求量。§7.3「成雌牛の維持に要する要求量」（印刷p248）。
+// エネルギー §7.3.2 / CP §7.3.1（式7.2.1系をMPg=0で適用）/ Ca･P §7.3.3（式7.2.3系）。
 function calcMaintenance(bw){
   const W = bw;
-  const MEM = 0.1119 * Math.pow(W, 0.75);      // Mcal/日
-  const DER = MEM / 0.82;                      // DE Mcal/日
-  const TDN = DER / 4.41;                      // kg/日
-  const DMI = MEM / 1.81;                      // kg/日 (標準飼料ME含量1.81Mcal/kg想定)
-  // CP要求量: 7.2.1の式を繁殖牛に流用（MPg=0）
-  // CPR = (MCP/0.85 + MPu/0.80) / 1.15
-  const Adj = (130 * TDN * 0.64 * 0.25 * 0.5) / 6.25;
-  const FN  = 4.80 * DMI - Adj;
-  const UN  = 0.44 * Math.pow(W, 0.5);
-  const SP  = 0.2  * Math.pow(W, 0.6);
-  const MPm = (FN*6.25 + UN*6.25 + SP) / 0.67;
-  const MPR = MPm;                             // MPg=0
-  const MCP = 130 * TDN;
-  const MPd = 0.8 * 0.8 * MCP;
-  const MPu = MPR - MPd;
+  // §7.3.2 エネルギー: 成雌牛の維持ME（式7.3.2.1, 印刷p248）。育成牛の0.1067とは別係数。
+  const MEM = 0.1119 * Math.pow(W, 0.75);      // Mcal/日  ← 式7.3.2.1: MEM=0.1119×W^0.75
+  const DER = MEM / 0.82;                      // DE Mcal/日 (代謝率0.82で除す。§7.2.2準拠)
+  const TDN = DER / 4.41;                      // kg/日  (DE→TDN: DE=TDN×4.41、原典の「3.62で除す」と同値: 0.82×4.41≒3.62)
+  const DMI = MEM / 1.81;                      // kg/日  (給与飼料ME含量1.81Mcal/kg=TDN50%想定。§7.3.2)
+  // §7.3.1 CP: 代謝蛋白質MP要求量を式7.2.1.7でMPg=0として算定、CPは式7.2.1.1〜7.2.1.15（印刷p246-247）。
+  const Adj = (130 * TDN * 0.64 * 0.25 * 0.5) / 6.25;  // 式7.2.1.1の補正項Adj（NRC準拠）
+  const FN  = 4.80 * DMI - Adj;                // 式7.2.1.1: 代謝性ふん中窒素
+  const UN  = 0.44 * Math.pow(W, 0.5);         // 式7.2.1.2: 内因性尿中窒素
+  const SP  = 0.2  * Math.pow(W, 0.6);         // 式7.2.1.3: 脱落表皮蛋白質
+  const MPm = (FN*6.25 + UN*6.25 + SP) / 0.67; // 式7.2.1.4: 維持MP（利用効率0.67）
+  const MPR = MPm;                             // 式7.2.1.7でMPg=0 → MPR=MPm（§7.3.1）
+  const MCP = 130 * TDN;                       // 式7.2.1.8: 第一胃微生物合成粗蛋白（TDNRに比例）
+  const MPd = 0.8 * 0.8 * MCP;                 // 式7.2.1.9: 微生物由来の分解性MP（純蛋白80%×小腸吸収80%）
+  const MPu = MPR - MPd;                       // 式7.2.1.10: 飼料由来の非分解性蛋白で不足を補う
+  // 式7.2.1.11〜15を解いた形: CPR=(MCP/0.85+MPu/0.80)/1.15
+  //   （CPd=MCP/0.85-0.15×CPR〔式7.2.1.12〕, CPu=MPu/0.80〔式7.2.1.13〕, CPR=CPd+CPu〔式7.2.1.11〕）
   const CP  = (MCP/0.85 + MPu/0.80) / 1.15;
-  // Ca,P (7.2.3) 吸収率込み: 維持期はRP=MILK=F=0
-  const Ca  = (0.0154 * W) / 0.5;
-  const P   = (0.0280 * W) / 0.85;
+  // §7.3.3 Ca･P: 式7.2.3.1/7.2.3.2（印刷p248）で RP=MILK=F=0（維持のみ）。除数は吸収率(Ca 0.5, P 0.85)。
+  const Ca  = (0.0154 * W) / 0.5;              // 式7.2.3.1: Ca=(0.0154×W)/0.5
+  const P   = (0.0280 * W) / 0.85;             // 式7.2.3.2: P=(0.0280×W)/0.85
   return {dm:DMI, tdn:TDN, cp:CP, ca:Ca, p:P, me:MEM};
 }
 
-// 妊娠末期付加（表3.1.3）: 体重非依存、分娩前2ヶ月の平均値
-// 子牛生時体重35kg、妊娠期間285-290日前提で算定された確定値
+// 妊娠末期付加（表3.1.3「妊娠末期2ヵ月間の維持に加える養分量」, 印刷p55）。体重非依存の確定値。
+// 前提: 子牛生時体重35kg・妊娠期間285日以上（原典脚注）。
 const PREGNANCY_ADD = {cp:238, tdn:0.98, dm:1.00, ca:14, p:4};
-// ※DM付加1.0kgは妊娠末期のDMI増加分の目安（実測平均）
+// ※CP238/TDN0.98/Ca14/P4 は表3.1.3（2022年版）の値そのまま。
+//   dm:1.00 のDMI付加は現場資料で裏付けあり（2026-07-10 文献調査）:
+//   ・三重県「和牛繁殖・育成マニュアル」(令和2年版) 表5「妊娠末期2か月間の胎子に必要な養分量」で
+//     DM=1.0kg（TDN0.83/CP212g、日本飼養標準・肉用牛2008準拠）。例:500kg経産で維持6.54+1.0=7.54kg。
+//   ・渡邉2021総説(家畜感染症学会誌10-4)も肉用牛2008から450kg妊娠末期のDMI=7.04kgとし、
+//     維持6.04(表3.1.2a)+1.0=7.04kg と一致。
+//   （2022年版の表3.1.3はDMI列を落としたが、2008年版とその派生資料はDM=1.0を明示している。）
 
-// 泌乳付加（表3.1.4）: 乳量1kgあたりの付加量
-// CPは公式式(MPl=38×MILK÷0.65)から逆算された表確定値
-const LACTATION_ADD_PER_KG = {cp:97, tdn:0.36, dm:0.30, ca:2.5, p:1.1};
-// ※DM付加0.30kg/乳1kgは泌乳期のDMI増加分の目安
+// 泌乳付加（表3.1.4「授乳時の維持に加える養分量（授乳量1kg当たり）」, 印刷p55）。乳量1kg当たり。
+const LACTATION_ADD_PER_KG = {cp:97, tdn:0.36, dm:0.50, ca:2.5, p:1.1};
+// ※CP97/TDN0.36/Ca2.5/P1.1 は表3.1.4の値そのまま。
+//   dm:0.50 のDMI付加は三重県「和牛繁殖・育成マニュアル」(令和2年版) の泌乳付加表に準拠
+//   （母乳1kg当たり DM0.5/TDN0.36/CP97g、例:母乳5kgで配合約3kg相当）。2026-07-10 文献調査で更新。
+//   旧値0.30は出典がなく、かつ本体のtdn:0.36と物理的に非整合だった（0.36÷0.30=TDN120%の飼料が必要）。
+//   0.50なら 0.36÷0.50=TDN72%（配合飼料の濃度）で整合し、泌乳期DMIも体重比≈1.9%と上限2.0%手前に収まる。
+//   （標準のエネルギー論理 ME1.32÷1.81≈0.73 は全体飼料濃度TDN50%想定で、和牛の少食には過大。）
+//   PREGNANCY_ADD.dm と同様、DMI体重比表示とreq.dmにのみ影響（養分要求には非影響）。
 
 // ステージ別要求量算定
 function calcReqFromBW(bw, stage, milk){
@@ -2544,6 +2791,13 @@ function calcReqFromBW(bw, stage, milk){
   // ステージ別の制約値
   // CP%DM: 維持8%, 妊娠末期10%, 泌乳期11%（飼養標準の実値から逆算）
   // DMI上限%BW: 維持1.5%, 妊娠末期1.5%, 泌乳期2.0%
+  //   ← 出典（2026-07-10 文献調査）: この値は一次文献の直接指定ではなく、以下の3点で妥当:
+  //     (1) 日本飼養標準の各ステージDMIを体重比に換算するとほぼ同値になる（500kg例:
+  //         維持6.54kg=1.31% / 妊娠7.54kg=1.51% / 泌乳(乳6)9.54kg=1.91%）。上限＝標準DMIの%BW換算。
+  //     (2) 和牛繁殖牛の指導資料でも乾乳・妊娠期のDMIは「体重の1.5〜2%」とされ範囲内。
+  //     (3) 欧米NASEM肉用牛は妊娠≈1.9%・泌乳≈2.3〜2.5%と高いが、和牛は体格の割に少食のため
+  //         そのまま当てると過大。和牛向けに低めの1.5〜2.0%を採用している。
+  //     生理的にも妊娠末期は胎子のルーメン圧迫で低め、泌乳期は食欲ピークで高め、と順序が正しい。
   // NFC目安: 維持18-20%, 妊娠末期20-25%, 泌乳期20-25%
   // NR目安: 維持5.0, 妊娠末期4.5, 泌乳期4.0
   const constraints = {
@@ -2551,8 +2805,9 @@ function calcReqFromBW(bw, stage, milk){
     post0:  {fat_max:5, cp_pct:11, nfc_range:"20〜25", nr:4.0, dmi_max_pct:2.0},
     post90: {fat_max:5, cp_pct:11, nfc_range:"20〜25", nr:4.0, dmi_max_pct:2.0},
     maint:  {fat_max:5, cp_pct:8,  nfc_range:"18〜20", nr:5.0, dmi_max_pct:1.5},
+    maint_preg: {fat_max:5, cp_pct:8, nfc_range:"18〜20", nr:5.0, dmi_max_pct:1.5},  // 妊娠中期までは維持と同等（付加は妊娠末期=preで計上）
   };
-  const c = constraints[stage];
+  const c = constraints[stage] || constraints.maint;
 
   return {
     cp:  parseFloat(cp.toFixed(1)),
@@ -2573,26 +2828,43 @@ function saveBWSettingsToLS(settings){
   lsSet('bw_settings', JSON.stringify(settings));
 }
 
-function applyBWToRequirements(){
+/* CORE: 要求量の導出（§1.3「導出せよ、書き換えるな」）。同じ入力なら常に同じ出力。
+   milk=null なら calcReqFromBW が既定乳量（post0:6 / post90:4）を使う。
+   overrides は BW設定モーダルの手動上書き（{stage:{cp,tdn,dm,ca,p}}） */
+function getRequirements(bw, stage, milk, overrides){
+  if(!(stage in DEFAULT_REQUIREMENTS)) stage = 'maint';
+  const auto = calcReqFromBW(bw, stage, milk);
+  const ov = (overrides||{})[stage]||{};
+  return {
+    cp:   ov.cp  !=null ? ov.cp   : auto.cp,
+    tdn:  ov.tdn !=null ? ov.tdn  : auto.tdn,
+    dm:   ov.dm  !=null ? ov.dm   : auto.dm,
+    ca:   ov.ca  !=null ? ov.ca   : auto.ca,
+    p:    ov.p   !=null ? ov.p    : auto.p,
+    fat_max: auto.fat_max, cp_pct: auto.cp_pct,
+    nfc_range: auto.nfc_range, nr: auto.nr,
+    dmi_max_pct: auto.dmi_max_pct
+  };
+}
+
+/* WIRE: 現在のUI状態（BW設定・乳量入力）から要求量を導出 */
+function currentRequirements(stage){
   const s = loadBWSettings();
-  STAGE_KEYS.forEach(stage=>{
-    // 泌乳期のデフォルト乳量(post0=6, post90=4)で初期計算
-    const defaultMilk = stage === 'post0' ? 6 : (stage === 'post90' ? 4 : null);
-    const auto = calcReqFromBW(s.bw, stage, defaultMilk);
-    const ov = (s.overrides||{})[stage]||{};
-    REQUIREMENTS[stage] = {
-      cp:   ov.cp  !=null ? ov.cp   : auto.cp,
-      tdn:  ov.tdn !=null ? ov.tdn  : auto.tdn,
-      dm:   ov.dm  !=null ? ov.dm   : auto.dm,
-      ca:   ov.ca  !=null ? ov.ca   : auto.ca,
-      p:    ov.p   !=null ? ov.p    : auto.p,
-      fat_max: auto.fat_max, cp_pct: auto.cp_pct,
-      nfc_range: auto.nfc_range, nr: auto.nr,
-      dmi_max_pct: auto.dmi_max_pct
-    };
-  });
+  const isMilk = stage === 'post0' || stage === 'post90';
+  const milkInput = document.getElementById('milk-amount');
+  const milk = isMilk && milkInput ? (num(milkInput.value)||null) : null;  // 空・0・無効は既定乳量に
+  return getRequirements(s.bw, stage, milk, s.overrides);
+}
+
+/* 履歴に reqSnapshot が無い古いデータ用のフォールバック: 既定乳量で導出 */
+function reqForStage(stage){
+  const s = loadBWSettings();
+  return getRequirements(s.bw, stage, null, s.overrides);
+}
+
+function updateBWHeaderBtn(){
   const bwBtn = document.getElementById('bw-header-btn');
-  if(bwBtn) bwBtn.textContent = `⚙️ BW ${s.bw}kg`;
+  if(bwBtn) bwBtn.textContent = `⚙️ BW ${loadBWSettings().bw}kg`;
 }
 
 function openBWModal(){
@@ -2624,7 +2896,7 @@ function openBWModal(){
 }
 
 function updateBWPreview(){
-  const bw = parseFloat(document.getElementById('bw-input').value)||540;
+  const bw = num(document.getElementById('bw-input').value)||540;
   STAGE_KEYS.forEach(stage=>{
     const defaultMilk = stage === 'post0' ? 6 : (stage === 'post90' ? 4 : null);
     const auto = calcReqFromBW(bw, stage, defaultMilk);
@@ -2638,31 +2910,32 @@ function updateBWPreview(){
 function closeBWModal(){ document.getElementById('bw-modal').classList.remove('open'); }
 
 function saveBWSettings(){
-  const bw = parseFloat(document.getElementById('bw-input').value)||540;
+  const bw = num(document.getElementById('bw-input').value)||540;
   const overrides = {};
   STAGE_KEYS.forEach(stage=>{
     overrides[stage]={};
     REQ_ITEMS.forEach(item=>{
       const val = document.getElementById(`ov-${stage}-${item.key}`).value;
-      overrides[stage][item.key] = val===''?null:parseFloat(val);
+      overrides[stage][item.key] = num(val);
     });
   });
   saveBWSettingsToLS({bw, overrides});
-  applyBWToRequirements();
+  updateBWHeaderBtn();
   onStageChange();
   closeBWModal();
   showToast(`✅ BW ${bw}kg で要求量を更新しました`);
 }
 
 function resetBWToAuto(){
-  const bw = parseFloat(document.getElementById('bw-input').value)||540;
+  const bw = num(document.getElementById('bw-input').value)||540;
   saveBWSettingsToLS({bw, overrides:{}});
-  applyBWToRequirements();
+  updateBWHeaderBtn();
+  onStageChange();
   openBWModal(); // 再描画
   showToast('自動計算に戻しました');
 }
 
-applyBWToRequirements();onStageChange();addFeedRow();
+migrateStorage();updateBWHeaderBtn();onStageChange();addFeedRow();
 // 履歴検索リスナー（初期化時）
 (function(){
   const hsEl=document.getElementById('history-search');
@@ -2736,7 +3009,7 @@ function saveDetailAsImage(){
   const history=JSON.parse(lsGet('cattle_history','[]'));
   const h=history[_editingHistoryIndex];
   if(!h)return;
-  const req=h.reqSnapshot||REQUIREMENTS[h.stage];
+  const req=h.reqSnapshot||reqForStage(h.stage);
 
   function pct(val,base){return base>0?Math.round(val/base*100):0;}
   function bar(p){
@@ -2756,11 +3029,11 @@ function saveDetailAsImage(){
     </div>`;
   }
 
-  const feedList=h.feeds.map(f=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span>${f.name}</span><span style="font-weight:700;">${f.amount}kg</span></div>`).join('');
+  const feedList=h.feeds.map(f=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span>${esc(f.name)}</span><span style="font-weight:700;">${f.amount}kg</span></div>`).join('');
 
   const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>栄養計算結果 - ${h.farmer||''}  ${h.date}</title>
+<title>栄養計算結果 - ${esc(h.farmer||'')}  ${h.date}</title>
 <style>body{font-family:-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:16px;background:#f5f5f5;}
 .card{background:white;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
 h2{color:#2e7d32;font-size:16px;margin:0 0 10px;}
@@ -2772,8 +3045,8 @@ td{padding:6px;border-bottom:1px solid #f0f0f0;}
 </style></head><body>
 <div class="card">
   <h2>🐄 繁殖和牛 栄養計算結果</h2>
-  ${h.farmer?`<div style="font-size:14px;font-weight:700;margin-bottom:4px;">🏠 ${h.farmer}</div>`:''}
-  ${h.memo?`<div style="font-size:12px;background:#fff8e1;padding:5px 8px;border-radius:6px;margin-bottom:6px;">📝 ${h.memo}</div>`:''}
+  ${h.farmer?`<div style="font-size:14px;font-weight:700;margin-bottom:4px;">🏠 ${esc(h.farmer)}</div>`:''}
+  ${h.memo?`<div style="font-size:12px;background:#fff8e1;padding:5px 8px;border-radius:6px;margin-bottom:6px;">📝 ${esc(h.memo)}</div>`:''}
   <div style="font-size:11px;color:#757575;">📅 ${h.date}${h.bw?' ／ BW '+h.bw+'kg':''}</div>
   <div style="font-size:12px;font-weight:700;color:#2e7d32;margin-top:6px;">${h.stageName}</div>
 </div>
@@ -2825,7 +3098,7 @@ function showHistoryDetail(index){
   const h=history[index];
   if(!h)return;
 
-  const req = h.reqSnapshot || REQUIREMENTS[h.stage];
+  const req = h.reqSnapshot || reqForStage(h.stage);
   function sc(p){return p>=90&&p<=120?'ok':((p>=75&&p<90)||(p>120&&p<=140))?'warn':'ng';}
   function badge(p){const s=sc(p);return`<span class="badge badge-${s}">${s==='ok'?'✓ 適正':s==='warn'?'△ 注意':'✗ 不足/超過'}</span>`;}
   function bar(pct){const w=Math.min(pct,150);const c=sc(pct);const col=c==='ok'?'var(--ok)':c==='warn'?'var(--warn)':'var(--ng)';return`<div class="pct-bar"><div class="pct-bar-fill" style="width:${w/1.5}%;background:${col}"></div></div>`;}
@@ -2833,8 +3106,8 @@ function showHistoryDetail(index){
   const titleEl=document.getElementById('detail-modal-title');
   titleEl.textContent=(h.farmer?`🏠 ${h.farmer} ／ `:'') + h.stageName;
 
-  const farmerLine=h.farmer?`<div style="font-size:13px;font-weight:700;margin-bottom:6px;">🏠 ${h.farmer}</div>`:'';
-  const memoLine=h.memo?`<div style="font-size:12px;background:#fff8e1;color:#795548;border-radius:6px;padding:6px 10px;margin-bottom:10px;">📝 ${h.memo}</div>`:'';
+  const farmerLine=h.farmer?`<div style="font-size:13px;font-weight:700;margin-bottom:6px;">🏠 ${esc(h.farmer)}</div>`:'';
+  const memoLine=h.memo?`<div style="font-size:12px;background:#fff8e1;color:#795548;border-radius:6px;padding:6px 10px;margin-bottom:10px;">📝 ${esc(h.memo)}</div>`:'';
   const bwBadge = h.bw ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#e8eaf6;color:#283593;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">⚙️ BW ${h.bw}kg</span>` : '';
   const milkBadge = h.milkAmount ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#e3f2fd;color:#0d47a1;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">🥛 ${h.milkAmount}kg/日</span>` : '';
   const dateLine=`<div style="margin-bottom:10px;">
@@ -2845,7 +3118,7 @@ function showHistoryDetail(index){
   // 給与飼料リスト
   const feedListHTML=`<div class="card-title" style="font-size:12px;margin-bottom:6px;">🌾 給与飼料</div>`+
     h.feeds.map(f=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #f5f5f5;">
-      <span>${f.name}</span><span style="font-weight:700;">${f.amount}kg</span>
+      <span>${esc(f.name)}</span><span style="font-weight:700;">${f.amount}kg</span>
     </div>`).join('');
 
   // 計算結果グリッド
@@ -2861,10 +3134,10 @@ function showHistoryDetail(index){
   rHTML+='</div>';
 
   // 詳細テーブル
-  // Ca:P比
+  // Ca:P比（judgeCaP に一本化。日本飼養標準: 1:1〜7:1 は許容）
   const _caPR=(h.ca&&h.p&&h.p>0)?(h.ca/h.p).toFixed(2):'-';
-  const _caPOk=_caPR!=='-'&&parseFloat(_caPR)>=1.5&&parseFloat(_caPR)<=2.5;
-  const _caPBadge=_caPR==='-'?'':(_caPOk?'<span class="badge badge-ok">✓</span>':parseFloat(_caPR)<1.5?'<span class="badge badge-ng">Pが多い</span>':'<span class="badge badge-warn">Caが多い</span>');
+  const _caPJ=judgeCaP(_caPR==='-'?null:parseFloat(_caPR));
+  const _caPBadge=!_caPJ?'':`<span class="badge badge-${_caPJ==='ok'?'ok':_caPJ==='ng'?'ng':'warn'}">${CAP_LABEL[_caPJ]}</span>`;
   // 各バッジ
   const _fatBadge=h.fatPct<=req.fat_max?'<span class="badge badge-ok">✓ &lt;5%</span>':'<span class="badge badge-ng">✗ 超過</span>';
   const _cpPct2=h.cpPct||(h.dm>0?parseFloat((h.cp/h.dm/10).toFixed(1)):'-');
@@ -2879,7 +3152,7 @@ function showHistoryDetail(index){
   const _dmiPct2=h.dmiPct||(h.bw>0?parseFloat((h.dm/h.bw*100).toFixed(1)):'-');
   const _dmiMaxPct=req.dmi_max_pct||1.5;
   const _dmiBadge=parseFloat(_dmiPct2)>_dmiMaxPct?'<span class="badge badge-ng">⚠ 超過</span>':'<span class="badge badge-ok">✓</span>';
-  const _dcadRow=h.stage==='pre'?`<tr><td>DCAD管理<span style="font-size:10px;color:var(--text-sub);display:block;">目標 −50〜−150mEq</span></td><td>${h.strawRatio!=null?'稲わら'+h.strawRatio+'%NDF':'-'}</td><td>${(h.strawRatio||0)>40?'<span class="badge badge-warn">⚠ K過多</span>':'<span class="badge badge-ok">✓ 管理可</span>'}</td></tr>`:'';
+  const _dcadRow=h.stage==='pre'?`<tr><td>分娩前K過多<span style="font-size:10px;color:var(--text-sub);display:block;">稲わら(高K)の多給に注意</span></td><td>${h.strawRatio!=null?'稲わら'+h.strawRatio+'%NDF':'-'}</td><td>${(h.strawRatio||0)>40?'<span class="badge badge-warn">⚠ K過多に注意</span>':'<span class="badge badge-ok">✓ 問題なし</span>'}</td></tr>`:'';
 
   // 保存時の飼料リストから粗濃比・稲わら・配合量・ビタミンA を再計算
   const _feeds=loadFeeds();
@@ -2910,11 +3183,11 @@ function showHistoryDetail(index){
     <tr><td>CP%DM</td><td>${_cpPct2}%</td><td>${_cpBadge}</td></tr>
     <tr><td>NFC%DM</td><td>${h.nfcPct}%</td><td>${_nfcBadge} 目安 ${req.nfc_range||'15〜22'}%</td></tr>
     <tr><td>NR (TDN-CP)/CP</td><td>${h.nr}</td><td>${_nrBadge} 目安 ${req.nr}</td></tr>
-    <tr><td>Ca:P比</td><td>${_caPR}</td><td>${_caPBadge} 1.5〜2.5</td></tr>
+    <tr><td>Ca:P比</td><td>${_caPR}</td><td>${_caPBadge} 許容 ${CAP_MIN}〜${CAP_MAX}</td></tr>
     <tr><td>RDP:NFC</td><td>${h.rdpNfc||'-'}</td><td>1:3</td></tr>
     <tr><td>DMI (体重比)</td><td>${h.dm}kg (${_dmiPct2}%)</td><td>${_dmiBadge} 上限${_dmiMaxPct}%</td></tr>
     ${_dcadRow}
-    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──</td></tr>
+    <tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-size:11px;font-weight:700;color:var(--primary);padding:6px 4px;">── 飼料構成・和牛繁殖特有評価 ──<span style="display:block;font-weight:400;font-size:10px;color:var(--text-sub);">※飼養標準に規定がなく、現場マニュアル等に基づく運用目安（解説タブ参照）</span></td></tr>
     <tr><td>粗:濃 DM比<span style="font-size:10px;color:var(--text-sub);display:block;">目標:濃 ${_ct.lo}〜${_ct.hi}%DM</span></td><td>${_roughPct.toFixed(0)}%:${_concPct.toFixed(0)}%</td><td>${_concRatioBadge}</td></tr>
     <tr><td>配合飼料量<span style="font-size:10px;color:var(--text-sub);display:block;">目安 ${_ck.lo}〜${_ck.hi}kg/日</span></td><td>${_concKgRaw.toFixed(2)}kg</td><td>${_concKgBadge}</td></tr>
     ${_strawPct>0?`<tr><td>稲わら依存度<span style="font-size:10px;color:var(--text-sub);display:block;">目安 DM30%以下</span></td><td>${_strawPct.toFixed(0)}%DM</td><td>${_strawBadge}</td></tr>`:''}
@@ -2936,7 +3209,7 @@ function showHistoryDetail(index){
     const stageKey=h.stage||'maint';
     const issues=detectIssues(t,req,rows,bwNow,stageKey);
     const c3=buildCase3(t,req,rows,issues,stageKey);
-    const c1=buildCase1(rows,req,t,bwNow,issues);
+    const c1=buildCase1(rows,req,t,bwNow,issues,stageKey);
     const c2=buildCase2(rows,req,t,bwNow,issues,stageKey);
     const mixA=buildOptimalMix(rows,req,bwNow,stageKey);
     const mixB=buildResetMix(rows,req,bwNow,stageKey);
@@ -2977,7 +3250,7 @@ function showHistoryDetail(index){
           }
           return `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:${tagBg[d.tag]};border-radius:6px;font-size:12px;">
             <span style="font-size:10px;background:${tagColor[d.tag]};color:white;padding:1px 6px;border-radius:8px;white-space:nowrap;">${label}</span>
-            <span style="font-weight:600;">${d.name}</span>
+            <span style="font-weight:600;">${esc(d.name)}</span>
             <span style="margin-left:auto;">${detail}</span>
           </div>`;
         }).join('')}
@@ -2991,7 +3264,7 @@ function showHistoryDetail(index){
     rHTML+detailHTML+improveHTML;
 
   // ── レーダーチャートを描画 ──
-  const _rReq = h.reqSnapshot || REQUIREMENTS[h.stage];
+  const _rReq = h.reqSnapshot || reqForStage(h.stage);
   const _mainVals = buildRadarData(h, _rReq);
   const _nrA = parseFloat(h.nr)||0;
   const _nrT = _rReq.nr||4.5;
@@ -3040,7 +3313,7 @@ function showHistoryDetail(index){
 // ===== 改善案 =====
 function suggestImprovements() {
   const stage = document.getElementById('stage-select').value;
-  const req = REQUIREMENTS[stage];
+  const req = currentRequirements(stage);
   const rows = getCurrentFeedRows();
   if (rows.length === 0) return;
 
@@ -3052,7 +3325,7 @@ function suggestImprovements() {
   const issues = detectIssues(totals, req, rows, bwNow, stage);
 
   // ===== Case 1: 給与量調整案（粗飼料/濃厚飼料を分離スケーリング） =====
-  let case1HTML = buildCase1(rows, req, totals, bwNow, issues);
+  let case1HTML = buildCase1(rows, req, totals, bwNow, issues, stage);
   // ===== Case 2: 飼料追加・増量案 =====
   let case2HTML = buildCase2(rows, req, totals, bwNow, issues, stage);
   // ===== Case 3: 総合コメント =====
@@ -3196,18 +3469,23 @@ function simRenderPicker(){
       : f.cat==='育成用配合飼料'
         ? '<span style="font-size:9px;background:#fce4ec;color:#c62828;padding:1px 5px;border-radius:8px;">育成用</span>'
         : '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:8px;">濃</span>';
-    return `<div onclick="simAddFeed('${f.name.replace(/'/g,"&#39;")}')"
+    return `<div class="sim-pick-item" data-feed-id="${escAttr(f.id)}"
       style="padding:8px 6px;cursor:pointer;border-radius:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center;"
       onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
       <span>${esc(f.name)} ${catLabel}</span>
       <span style="color:var(--text-sub);font-size:10px;">CP${f.cp}% TDN${f.tdn}%</span>
     </div>`;
   }).join('');
+  // イベント委譲: リスナは親に1つだけ。再描画してもリスナが増えない（§4.2）
+  listEl.onclick = e => {
+    const el = e.target.closest('.sim-pick-item');
+    if(el) simAddFeed(el.dataset.feedId);
+  };
 }
 
-function simAddFeed(feedName){
+function simAddFeed(feedId){
   const allFeeds = loadFeeds();
-  const feed = allFeeds.find(f=>f.name===feedName);
+  const feed = allFeeds.find(f=>f.id===feedId);
   if(!feed) return;
   // デフォルト給与量: 粗飼料3kg, 濃厚飼料1kg
   const defaultKg = isRoughage(feed) ? 3.0 : 1.0;
@@ -3307,34 +3585,38 @@ function simUpdateResult(){
 
 // --- 粗飼料/濃厚飼料の分類 ---
 const ROUGHAGE_CATS = ['自給飼料','購入粗飼料'];
+// 繁殖雌牛には推奨しない配合飼料カテゴリ（育成用・肥育用）。
+// 新規追加候補から除外し、配合提案B（buildResetMix）の除外方針と統一する。
+const NON_BREEDING_CONC_CATS = ['育成用配合飼料','育成肥育用配合飼料'];
 // ステージ別 濃厚飼料DM比 目標範囲
 const concTargets = {maint:{lo:20,hi:30}, pre:{lo:35,hi:45}, post0:{lo:40,hi:50}, post90:{lo:35,hi:48}};
 // ステージ別 配合飼料原物給与量 目標範囲（kg/日）
 const concTargetKg = {maint:{lo:0.5,hi:2.0}, pre:{lo:2.5,hi:4.5}, post0:{lo:3.0,hi:5.5}, post90:{lo:2.5,hi:4.5}};
 function isRoughage(feed){ return ROUGHAGE_CATS.includes(feed.cat); }
 
+/* 給与設計の合計と濃度を求める純粋関数（DOM・localStorage禁止。CLAUDE.md §1.1）。
+   以前はここで stage-select を読んで要求量比まで返していたが、
+   (1) 返り値の pctCP/pctTDN は誰も使っておらず、
+   (2) 履歴詳細の再計算時に「そのとき画面で選ばれていたステージ」の要求量が混入していた（§1.3）。
+   要求量比が要るときは呼び出し側が自分の req で割ること。 */
 function calcTotals(rows) {
-  let dm=0,cp=0,tdn=0,ca=0,p=0,fat=0,nfc=0,rdp=0;
-  rows.forEach(({feed,amount})=>{
-    const d=amount*(1-feed.moisture/100);
-    dm+=d; cp+=d*feed.cp/100*1000; tdn+=d*feed.tdn/100;
-    ca+=d*(feed.ca||0)/100*1000; p+=d*(feed.p||0)/100*1000;
-    fat+=d*(feed.fat||0)/100;
-    if(feed.nfc!=null)nfc+=d*feed.nfc/100;
-    if(feed.rdp!=null)rdp+=d*feed.rdp/100*1000;
-  });
+  const t = sumRationTotals(rows);
+  const {dm,cp,tdn,ca,p,fat,nfc,rdp} = t;
   const tdnG=tdn*1000;
   return {dm,cp,tdn,ca,p,fat,nfc,rdp,
+    complete:t.complete,
     fatPct:dm>0?fat/dm*100:0, cpPct:dm>0?cp/dm/10:0,
-    nfcPct:dm>0?nfc/dm*100:0, nr:cp>0?(tdnG-cp)/cp:0,
-    pctCP:cp/(REQUIREMENTS[document.getElementById('stage-select').value]||{cp:1}).cp*100,
-    pctTDN:tdn/(REQUIREMENTS[document.getElementById('stage-select').value]||{tdn:1}).tdn*100
+    nfcPct:dm>0?nfc/dm*100:0, nr:cp>0?(tdnG-cp)/cp:0
   };
 }
 
 // --- 問題点の検出 ---
 function detectIssues(t, req, rows, bw, stage){
   const issues = [];
+  // 未測定(null)成分を含む合計は過小の可能性 → 「不足」は判定不能として扱う（CLAUDE.md §3.2）。
+  // 「過剰・超過」は部分合計でもしきい値を超えていれば有効（真の値は表示値以上）。
+  const comp = t.complete || {};
+  const known = k => comp[k] !== false;
   const pctCP  = t.cp/req.cp*100;
   const pctTDN = t.tdn/req.tdn*100;
   const pctCa  = t.ca/req.ca*100;
@@ -3342,20 +3624,35 @@ function detectIssues(t, req, rows, bw, stage){
   const dmiPct = bw>0 ? t.dm/bw*100 : 0;
   const dmiMax = req.dmi_max_pct||1.5;
 
-  if(pctCP < 90)  issues.push({type:'cp_short', label:'CP不足', pct:pctCP, gap:req.cp-t.cp});
-  if(pctTDN < 90) issues.push({type:'tdn_short', label:'TDN不足', pct:pctTDN, gap:req.tdn-t.tdn});
+  if(pctCP < 90)  issues.push(known('cp') ? {type:'cp_short', label:'CP不足', pct:pctCP, gap:req.cp-t.cp}
+                                          : {type:'cp_unknown', label:'CP: 未測定の飼料があり不足判定できません（参考値）', pct:pctCP});
+  if(pctTDN < 90) issues.push(known('tdn') ? {type:'tdn_short', label:'TDN不足', pct:pctTDN, gap:req.tdn-t.tdn}
+                                           : {type:'tdn_unknown', label:'TDN: 未測定の飼料があり不足判定できません（参考値）', pct:pctTDN});
   if(pctCP > 130) issues.push({type:'cp_over', label:'CP過剰（BUN↑・受胎率↓リスク）', pct:pctCP});
   if(pctTDN > 130) issues.push({type:'tdn_over', label:'TDN過剰（過肥リスク）', pct:pctTDN});
-  if(pctCa < 80)  issues.push({type:'ca_short', label:'Ca不足', pct:pctCa});
-  if(pctP < 80)   issues.push({type:'p_short', label:'P不足', pct:pctP});
+  // 過剰側は未測定飼料があっても有効（真値は表示値以上）。不足側と違い known() 判定は不要。
+  if(pctP > 130)  issues.push({type:'p_over',  label:`P過剰(${Math.round(pctP)}%)`,  pct:pctP});
+  if(pctCa > 130) issues.push({type:'ca_over', label:`Ca過剰(${Math.round(pctCa)}%)`, pct:pctCa});
+  if(pctCa < 80)  issues.push(known('ca') ? {type:'ca_short', label:'Ca不足', pct:pctCa, gap:req.ca-t.ca}
+                                          : {type:'ca_unknown', label:'Ca: 未測定の飼料があり不足判定できません（参考値）', pct:pctCa});
+  if(pctP < 80)   issues.push(known('p') ? {type:'p_short', label:'P不足', pct:pctP, gap:req.p-t.p}
+                                         : {type:'p_unknown', label:'P: 未測定の飼料があり不足判定できません（参考値）', pct:pctP});
   if(t.fatPct > 5) issues.push({type:'fat_over', label:'粗脂肪>5%', pct:t.fatPct});
   if(dmiPct > dmiMax) issues.push({type:'dmi_over', label:`DMI超過(${dmiPct.toFixed(1)}%BW>上限${dmiMax}%)`, pct:dmiPct});
 
-  // NR判定
+  // NR判定（CP/TDNに未測定があると比率が信頼できないため判定しない）
   const nrTarget = req.nr||5.0;
-  if(Math.abs(t.nr - nrTarget) > 1.0){
+  if(known('cp') && known('tdn') && Math.abs(t.nr - nrTarget) > 1.0){
     if(t.nr > nrTarget+1.0) issues.push({type:'nr_high', label:`NR高い(${t.nr.toFixed(1)} > 目安${nrTarget})→CP不足傾向`});
     if(t.nr < nrTarget-1.0) issues.push({type:'nr_low', label:`NR低い(${t.nr.toFixed(1)} < 目安${nrTarget})→TDN不足傾向`});
+  }
+
+  // Ca:P比（両方が測定済みのときだけ判定。低Ca+低Pでも比は正常に見えるため充足率と併せて使う）
+  // しきい値の出典と、繁殖雌牛における意味づけは judgeCaP() のコメントを参照（CAP_MIN/CAP_MAX に集約）。
+  if(known('ca') && known('p') && t.p > 0){
+    const caPR = t.ca / t.p;
+    if(caPR < CAP_MIN)      issues.push({type:'capr_low',  label:`Ca:P比${caPR.toFixed(1)}（1:1未満・Ca供給不足/P過剰）`, ratio:caPR});
+    else if(caPR > CAP_MAX) issues.push({type:'capr_high', label:`Ca:P比${caPR.toFixed(1)}（7:1超・推奨範囲外）`, ratio:caPR});
   }
 
   // 稲わら依存度
@@ -3365,132 +3662,218 @@ function detectIssues(t, req, rows, bw, stage){
   if(strawPct > 50) issues.push({type:'straw_high', label:`稲わら依存度${strawPct.toFixed(0)}%（>50%: CP・TDN低下の要因）`});
   else if(strawPct > 35) issues.push({type:'straw_mod', label:`稲わら割合${strawPct.toFixed(0)}%（やや多め）`});
 
-  // CP濃度
-  if(t.cpPct < req.cp_pct) issues.push({type:'cp_conc_low', label:`CP濃度${t.cpPct.toFixed(1)}%DM < 目安${req.cp_pct}%`});
+  // CP濃度（CP未測定の飼料があれば不足側の判定はしない）
+  if(known('cp') && t.cpPct < req.cp_pct) issues.push({type:'cp_conc_low', label:`CP濃度${t.cpPct.toFixed(1)}%DM < 目安${req.cp_pct}%`});
 
   return issues;
 }
 
+// 要求量比のミニバッジ。判定色は judgePct に一本化する（CLAUDE.md §1.2: しきい値は1箇所）
+const PCT_BG = {ok:'#e8f5e9', warn:'#fff3e0', ng:'#ffebee'};
+function miniPct(label, val, pct){
+  return `<span class="mini-result" style="background:${PCT_BG[judgePct(pct)]}">${label} ${val} (${Math.round(pct)}%)</span>`;
+}
+
+/* 調整後の給与設計が DMI上限・粗濃比・配合飼料量の目安に収まっているかを点検する。
+   給与量スケーリングはCP/TDNしか見ないため、これが無いと
+   「配合を2.5倍」のようなアシドーシス方向の提案が無警告で通ってしまう。 */
+function rationGuardWarnings(adjRows, req, bw, stage){
+  const warns = [];
+  const dmiMax = req.dmi_max_pct || 1.5;
+  const ct = concTargets[stage]   || {lo:30, hi:45};
+  const ck = concTargetKg[stage]  || {lo:1.0, hi:4.5};
+  let dm=0, concDM=0, concKg=0;
+  adjRows.forEach(({feed, amount})=>{
+    const dm_kg = amount*(1-(feed.moisture||0)/100);
+    dm += dm_kg;
+    if(!isRoughage(feed)){ concDM += dm_kg; concKg += amount; }
+  });
+  const dmiPct  = bw>0 ? dm/bw*100 : 0;
+  const concPct = dm>0 ? concDM/dm*100 : 0;
+  // 給与量を0.01kg単位に丸めるため、上限ちょうどに合わせた案でも僅かに超過しうる。
+  // 丸め誤差で「超えます」と警告しないよう許容幅を持たせる。
+  if(dmiPct > dmiMax + 0.01) warns.push(`調整後DMIが${dmiPct.toFixed(1)}%BW（上限${dmiMax}%）を超えます。実際に食べきれない可能性があります。`);
+  if(concPct > ct.hi) warns.push(`調整後の濃厚飼料が${concPct.toFixed(0)}%DM（目安${ct.lo}〜${ct.hi}%DM）。ルーメンアシドーシスのリスクがあります。`);
+  if(concKg  > ck.hi) warns.push(`調整後の配合飼料が${concKg.toFixed(1)}kg/日（目安${ck.lo}〜${ck.hi}kg/日）。増やすなら分割給与を。`);
+  return warns.length
+    ? `<div class="note warn" style="margin-top:6px;">${warns.map(w=>`⚠️ ${w}`).join('<br>')}</div>`
+    : '';
+}
+
+// 給与量スケーリング（①）で解決できる問題。これ以外が残る場合は②〜④に誘導する
+const SCALABLE_ISSUES = ['cp_short','tdn_short','cp_over','tdn_over','cp_conc_low','nr_high','nr_low'];
+
+/* 調整後の給与設計を DMI上限に収まるまで全体で按分縮小する（純粋関数）。
+   DMIは「実際に食べられる量」という物理的な上限なので、これを超える案は提案として成立しない。
+   CP過剰時のスケーリングは濃厚飼料しか減らさないため、粗飼料が主因のケースでは
+   これが無いと「食べきれない量」の提案がそのまま表に出てしまう。
+   返り値の shrink が 1 未満なら縮小が起きたことを意味する。 */
+function fitToDMI(adjRows, req, bw){
+  const dmiMax = req.dmi_max_pct || 1.5;
+  if(!(bw > 0)) return {rows: adjRows, shrink: 1};
+  const dmiLimit = bw * dmiMax / 100;
+  const dm = adjRows.reduce((s,{feed,amount}) => s + amount*(1-(feed.moisture||0)/100), 0);
+  if(dm <= dmiLimit || dm <= 0) return {rows: adjRows, shrink: 1};
+  const shrink = dmiLimit / dm;
+  return {
+    rows: adjRows.map(r => ({...r, amount: parseFloat((r.amount*shrink).toFixed(2))})),
+    shrink,
+  };
+}
+
 // --- Case1: 粗飼料/濃厚飼料 分離スケーリング ---
-function buildCase1(rows, req, totals, bw, issues) {
+function buildCase1(rows, req, totals, bw, issues, stage) {
   const roughRows = rows.filter(r=>isRoughage(r.feed));
   const concRows  = rows.filter(r=>!isRoughage(r.feed));
+  const comp = totals.complete || {};
+  const cpKnown  = comp.cp  !== false;
+  const tdnKnown = comp.tdn !== false;
 
-  // 何も問題ない場合
+  // 未測定(null)を含む合計は過小 → 偽の不足ギャップから過大な増量提案が出る（§3.2）
+  if(!cpKnown && !tdnKnown){
+    return `<div><div class="suggest-title">① 給与量調整案</div>
+      <div class="note warn">⚠️ CP・TDNが未測定の飼料が含まれるため、過不足を算出できません。飼料DBに分析値を入力してください。</div></div>`;
+  }
+  const unknownNote = (!cpKnown || !tdnKnown)
+    ? `<div class="note" style="background:#e3f2fd;color:#0d47a1;margin-bottom:8px;">ℹ️ ${!cpKnown?'CP':'TDN'}未測定の飼料があるため、${!cpKnown?'TDN':'CP'}のみを基準に調整しています。</div>`
+    : '';
+
   const pctCP  = totals.cp/req.cp*100;
   const pctTDN = totals.tdn/req.tdn*100;
-  const alreadyOk = pctCP>=90 && pctCP<=120 && pctTDN>=90 && pctTDN<=120;
-  if(alreadyOk){
-    return `<div><div class="suggest-title">① 給与量調整案</div><div class="note" style="background:#e8f5e9;color:#1b5e20;">✓ 現在の給与量はほぼ適正です。</div></div>`;
+  const cpOk   = !cpKnown  || judgePct(pctCP)==='ok';
+  const tdnOk  = !tdnKnown || judgePct(pctTDN)==='ok';
+
+  // CP・TDNが適正でも、給与量の増減では直らない問題（P過剰・DMI超過等）は残ることを明示する。
+  // 「✓適正です」と総合コメントの「減らしてください」が同時に出る矛盾を防ぐ。
+  if(cpOk && tdnOk){
+    const others = issues.filter(i=>!SCALABLE_ISSUES.includes(i.type));
+    const body = others.length
+      ? `✓ CP・TDNは要求量の90〜120%に収まっています。ただし <b>${esc(others.map(i=>i.label).join(' / '))}</b> は給与量の増減では解決しません。下の②〜④を参照してください。`
+      : '✓ 現在の給与量はほぼ適正です。';
+    return `<div><div class="suggest-title">① 給与量調整案</div>
+      <div class="note" style="background:#e8f5e9;color:#1b5e20;">${body}</div></div>`;
   }
 
   // 粗飼料のみ or 濃厚飼料のみの場合は一律スケール
   if(roughRows.length===0 || concRows.length===0){
-    const k = (req.tdn/totals.tdn*0.5 + req.cp/totals.cp*0.5);
-    return buildUniformScale(rows, req, k, bw);
+    // 合計が0の栄養素で比を作ると Infinity になる → 測定済みかつ >0 のものだけ使う
+    const ks = [];
+    if(cpKnown  && totals.cp  > 0) ks.push(req.cp  / totals.cp);
+    if(tdnKnown && totals.tdn > 0) ks.push(req.tdn / totals.tdn);
+    if(ks.length === 0){
+      return `<div><div class="suggest-title">① 給与量調整案</div>
+        <div class="note warn">⚠️ 現在の給与飼料からCP・TDNが得られないため、給与量調整案を算出できません。</div></div>`;
+    }
+    const k = ks.reduce((a,b)=>a+b, 0) / ks.length;
+    return buildUniformScale(rows, req, k, bw, stage, unknownNote);
   }
 
-  // 分離スケーリング: 
-  // CP不足 → 濃厚飼料をより多く増やす
-  // TDN不足 → 濃厚飼料をより多く増やす（濃厚飼料のTDN%が高いため）
-  // CP過剰 → 濃厚飼料を減らす
+  // 分離スケーリング:
+  // CP・TDN不足 → 濃厚飼料を優先的に増やす（濃厚飼料はCP・TDN濃度が高い）
+  // CP過剰       → 濃厚飼料を減らす
   const roughTotals = calcTotals(roughRows);
   const concTotals  = calcTotals(concRows);
 
   let kRough = 1.0, kConc = 1.0;
-  const cpGap  = req.cp - totals.cp;    // g
-  const tdnGap = req.tdn - totals.tdn;  // kg
+  const cpGap  = cpKnown  ? req.cp  - totals.cp  : 0;   // g
+  const tdnGap = tdnKnown ? req.tdn - totals.tdn : 0;   // kg
 
   if(cpGap > 0 || tdnGap > 0){
-    // 不足: 濃厚飼料を優先的に増やす
-    // 濃厚飼料で不足分の70%、粗飼料で30%を補う
+    // 不足分の70%を濃厚飼料、30%を粗飼料で補う
     if(concTotals.cp > 0 && concTotals.tdn > 0){
-      const concCpPerUnit = concTotals.cp;  // 濃厚飼料全体のCP(g)
-      const concTdnPerUnit = concTotals.tdn; // 濃厚飼料全体のTDN(kg)
-      const cpScale = cpGap > 0 ? 1 + (cpGap * 0.7 / concCpPerUnit) : 1;
-      const tdnScale = tdnGap > 0 ? 1 + (tdnGap * 0.7 / concTdnPerUnit) : 1;
-      kConc = Math.max(cpScale, tdnScale);
-      kConc = Math.min(kConc, 2.5); // 2.5倍上限
-      // 粗飼料は残りの30%
-      if(roughTotals.cp > 0){
-        const roughCpScale = cpGap > 0 ? 1 + (cpGap * 0.3 / roughTotals.cp) : 1;
-        kRough = Math.min(roughCpScale, 1.5);
+      const cpScale  = cpGap  > 0 ? 1 + (cpGap  * 0.7 / concTotals.cp)  : 1;
+      const tdnScale = tdnGap > 0 ? 1 + (tdnGap * 0.7 / concTotals.tdn) : 1;
+      kConc = Math.min(Math.max(cpScale, tdnScale), 2.5);   // 2.5倍上限
+      if(roughTotals.cp > 0 && cpGap > 0){
+        kRough = Math.min(1 + (cpGap * 0.3 / roughTotals.cp), 1.5);
       }
     }
-  } else if(cpGap < -req.cp*0.2){
+  } else if(cpKnown && concTotals.cp > 0 && cpGap < -req.cp*0.2){
     // CP過剰 → 濃厚飼料を減らす
     kConc = Math.max(0.5, 1 + cpGap*0.7/concTotals.cp);
-    kRough = 1.0;
   }
 
-  const adjRows = rows.map(r=>{
+  const scaled = rows.map(r=>{
     const k = isRoughage(r.feed) ? kRough : kConc;
-    return {...r, adjAmount: parseFloat((r.amount * k).toFixed(2))};
+    return {feed:r.feed, amount: parseFloat((r.amount * k).toFixed(2))};
   });
-  const adjTotals = calcTotals(adjRows.map(r=>({feed:r.feed,amount:r.adjAmount})));
+  // DMI上限に収まらない案は「食べきれない＝実行できない」ので全体を按分縮小する
+  const {rows: adjPlain, shrink} = fitToDMI(scaled, req, bw);
+  const adjTotals = calcTotals(adjPlain);
 
-  // DMI上限チェック
-  const dmiMax = req.dmi_max_pct||1.5;
-  const adjDmiPct = bw>0 ? adjTotals.dm/bw*100 : 0;
-  let dmiWarn = '';
-  if(adjDmiPct > dmiMax){
-    dmiWarn = `<div class="note warn" style="margin-top:6px;">⚠️ 調整後DMIが${adjDmiPct.toFixed(1)}%BW（上限${dmiMax}%）を超えています。実際に食べきれない可能性があります。</div>`;
-  }
-
-  let tableRows = adjRows.map(r=>{
-    const diff = r.adjAmount - r.amount;
+  const tableRows = rows.map((r,i)=>{
+    const adjAmount = adjPlain[i].amount;
+    const diff = adjAmount - r.amount;
     const diffStr = diff>=0 ? `<span style="color:var(--ok)">+${diff.toFixed(2)}</span>` : `<span style="color:var(--ng)">${diff.toFixed(2)}</span>`;
     const catBadge = isRoughage(r.feed) ? '<span style="font-size:9px;color:#558b2f;">粗</span>' : '<span style="font-size:9px;color:#e65100;">濃</span>';
-    return `<tr><td>${catBadge} ${r.feed.name}</td><td style="text-align:right">${r.amount.toFixed(2)}</td><td style="text-align:right"><b>${r.adjAmount.toFixed(2)}</b></td><td style="text-align:right">${diffStr}</td></tr>`;
+    return `<tr><td>${catBadge} ${esc(r.feed.name)}</td><td style="text-align:right">${r.amount.toFixed(2)}</td><td style="text-align:right"><b>${adjAmount.toFixed(2)}</b></td><td style="text-align:right">${diffStr}</td></tr>`;
   }).join('');
 
-  const cpPct2 = Math.round(adjTotals.cp/req.cp*100);
-  const tdnPct2 = Math.round(adjTotals.tdn/req.tdn*100);
-  function sc(p){return p>=90&&p<=120?'ok':((p>=75&&p<90)||(p>120&&p<=140))?'warn':'ng';}
-  function mini(label,val,pct){return `<span class="mini-result" style="background:${sc(pct)==='ok'?'#e8f5e9':sc(pct)==='warn'?'#fff3e0':'#ffebee'}">${label} ${val} (${pct}%)</span>`;}
-
   const scaleLabel = kRough===kConc ? `×${kConc.toFixed(2)}倍` : `粗${kRough.toFixed(2)}倍 / 濃${kConc.toFixed(2)}倍`;
+  // 表示上「×1.00倍」になる程度の微小な縮小は注記しない（丸め由来のノイズ）
+  const shrinkNote = shrink < 0.995
+    ? `<div class="note" style="background:#e3f2fd;color:#0d47a1;margin-bottom:8px;">ℹ️ 食べきれる量（DMI上限）に収まるよう、全体をさらに×${shrink.toFixed(2)}倍しています。</div>`
+    : '';
+
+  // 縮小の結果、CP・TDNが不足側に残るなら「量」では解決しない → 置換（②）に誘導する
+  const pctCPAdj  = adjTotals.cp/req.cp*100;
+  const pctTDNAdj = adjTotals.tdn/req.tdn*100;
+  const stillShort = (cpKnown && pctCPAdj < 90) || (tdnKnown && pctTDNAdj < 90);
+  const replaceNote = (shrink < 1 && stillShort)
+    ? `<div class="note warn" style="margin-top:6px;">⚠️ DMI上限まで食べさせても${cpKnown&&pctCPAdj<90?'CP':''}${(cpKnown&&pctCPAdj<90)&&(tdnKnown&&pctTDNAdj<90)?'・':''}${tdnKnown&&pctTDNAdj<90?'TDN':''}が不足します。給与量では解決しないため、<b>より高CP・高TDNの飼料への置き換え</b>（下の②〜④）が必要です。</div>`
+    : '';
 
   return `<div style="margin-bottom:4px;">
     <div class="suggest-title">① 給与量調整案 <span class="badge badge-warn">${scaleLabel}</span></div>
     <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;">粗飼料と濃厚飼料を分けてスケーリングし、TDN・CPを同時に改善する案です。</p>
+    ${unknownNote}
+    ${shrinkNote}
     <table class="full-result-table" style="margin-bottom:8px;">
       <tr><th>飼料名</th><th style="text-align:right">現在(kg)</th><th style="text-align:right">推奨(kg)</th><th style="text-align:right">増減</th></tr>
       ${tableRows}
     </table>
     <div class="mini-results" style="margin-bottom:6px;">
-      ${mini('CP',Math.round(adjTotals.cp)+'g',cpPct2)}
-      ${mini('TDN',adjTotals.tdn.toFixed(2)+'kg',tdnPct2)}
-      ${mini('DM',adjTotals.dm.toFixed(2)+'kg',Math.round(adjTotals.dm/req.dm*100))}
+      ${miniPct('CP', Math.round(adjTotals.cp)+'g', pctCPAdj)}
+      ${miniPct('TDN', adjTotals.tdn.toFixed(2)+'kg', pctTDNAdj)}
+      ${miniPct('DM', adjTotals.dm.toFixed(2)+'kg', adjTotals.dm/req.dm*100)}
       <span class="mini-result">NR ${adjTotals.nr.toFixed(1)}</span>
       <span class="mini-result">脂肪 ${adjTotals.fatPct.toFixed(1)}%</span>
     </div>
-    ${dmiWarn}
+    ${rationGuardWarnings(adjPlain, req, bw, stage)}
+    ${replaceNote}
   </div>`;
 }
 
-function buildUniformScale(rows, req, k, bw){
+function buildUniformScale(rows, req, k, bw, stage, unknownNote=''){
   k = Math.max(0.5, Math.min(k, 2.5));
-  const adjRows = rows.map(r=>({...r, adjAmount:parseFloat((r.amount*k).toFixed(2))}));
-  const adjTotals = calcTotals(adjRows.map(r=>({feed:r.feed,amount:r.adjAmount})));
-  const dmiMax = req.dmi_max_pct||1.5;
-  const adjDmiPct = bw>0 ? adjTotals.dm/bw*100 : 0;
-  let dmiWarn = adjDmiPct>dmiMax ? `<div class="note warn" style="margin-top:6px;">⚠️ DMI ${adjDmiPct.toFixed(1)}%BWが上限${dmiMax}%を超過</div>` : '';
-  let tableRows = adjRows.map(r=>{
-    const diff=r.adjAmount-r.amount;
-    return `<tr><td>${r.feed.name}</td><td style="text-align:right">${r.amount.toFixed(2)}</td><td style="text-align:right"><b>${r.adjAmount.toFixed(2)}</b></td><td style="text-align:right">${diff>=0?'+':''}${diff.toFixed(2)}</td></tr>`;
+  const scaled = rows.map(r=>({feed:r.feed, amount:parseFloat((r.amount*k).toFixed(2))}));
+  const {rows: adjPlain, shrink} = fitToDMI(scaled, req, bw);
+  const adjTotals = calcTotals(adjPlain);
+  const tableRows = rows.map((r,i)=>{
+    const adjAmount = adjPlain[i].amount;
+    const diff = adjAmount - r.amount;
+    return `<tr><td>${esc(r.feed.name)}</td><td style="text-align:right">${r.amount.toFixed(2)}</td><td style="text-align:right"><b>${adjAmount.toFixed(2)}</b></td><td style="text-align:right">${diff>=0?'+':''}${diff.toFixed(2)}</td></tr>`;
   }).join('');
-  function sc(p){return p>=90&&p<=120?'ok':p>=75?'warn':'ng';}
-  function mini(l,v,p){return `<span class="mini-result" style="background:${sc(p)==='ok'?'#e8f5e9':sc(p)==='warn'?'#fff3e0':'#ffebee'}">${l} ${v} (${p}%)</span>`;}
+  // 表示上「×1.00倍」になる程度の微小な縮小は注記しない（丸め由来のノイズ）
+  const shrinkNote = shrink < 0.995
+    ? `<div class="note" style="background:#e3f2fd;color:#0d47a1;margin-bottom:8px;">ℹ️ 食べきれる量（DMI上限）に収まるよう、全体をさらに×${shrink.toFixed(2)}倍しています。</div>`
+    : '';
   return `<div><div class="suggest-title">① 給与量調整案 <span class="badge badge-warn">×${k.toFixed(2)}倍</span></div>
+    ${unknownNote}
+    ${shrinkNote}
     <table class="full-result-table" style="margin-bottom:8px;"><tr><th>飼料名</th><th style="text-align:right">現在</th><th style="text-align:right">推奨</th><th style="text-align:right">増減</th></tr>${tableRows}</table>
-    <div class="mini-results">${mini('CP',Math.round(adjTotals.cp)+'g',Math.round(adjTotals.cp/req.cp*100))} ${mini('TDN',adjTotals.tdn.toFixed(2)+'kg',Math.round(adjTotals.tdn/req.tdn*100))}</div>${dmiWarn}</div>`;
+    <div class="mini-results">
+      ${miniPct('CP', Math.round(adjTotals.cp)+'g', adjTotals.cp/req.cp*100)}
+      ${miniPct('TDN', adjTotals.tdn.toFixed(2)+'kg', adjTotals.tdn/req.tdn*100)}
+    </div>
+    ${rationGuardWarnings(adjPlain, req, bw, stage)}</div>`;
 }
 
 // --- Case2: 飼料追加・増量案 ---
 function buildCase2(rows, req, totals, bw, issues, stage) {
   const feeds = loadFeeds();
-  const currentNames = rows.map(r=>r.feed.name);
+  // 給与中かどうかは id で判定する（同名の別分析値を取り違えないため。CLAUDE.md §1.5）
+  const currentIds = new Set(rows.map(r=>r.feed.id));
   const dmiMax = req.dmi_max_pct||1.5;
   const dmiRoom = bw>0 ? (bw*dmiMax/100 - totals.dm) : 5; // 追加可能DM(kg)
 
@@ -3502,6 +3885,9 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
   const nrHigh   = issues.some(i=>i.type==='nr_high');
   const nrLow    = issues.some(i=>i.type==='nr_low');
   const strawHigh = issues.some(i=>i.type==='straw_high'||i.type==='straw_mod');
+  const pOver    = issues.some(i=>i.type==='p_over');
+  const caprLow  = issues.some(i=>i.type==='capr_low');
+  const dmiOver  = issues.some(i=>i.type==='dmi_over');
 
   if(issues.length === 0){
     return `<div><div class="suggest-title">② 飼料追加・増量案</div><div class="note" style="background:#e8f5e9;color:#1b5e20;">✓ 現在の飼料設計は概ね適正です。</div></div>`;
@@ -3510,14 +3896,36 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
   let issueHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">' +
     issues.map(i=>{
       const cls = i.type.includes('over')||i.type.includes('high')||i.type==='straw_high' ? 'badge-ng' : 'badge-warn';
-      return `<span class="badge ${cls}">${i.label}</span>`;
+      return `<span class="badge ${cls}">${esc(i.label)}</span>`;
     }).join('') + '</div>';
+
+  // DMIが既に上限超過なら「足す」提案自体が誤り。減量・置換に誘導する（総合コメント参照）
+  if(dmiOver){
+    return `<div>
+      <div class="suggest-title">② 飼料追加・増量案</div>
+      ${issueHTML}
+      <div class="note warn">⚠️ すでにDMIが上限を超えているため、<b>飼料の追加・増量は提案しません</b>。まず①で総量を調整するか、高TDN・高CPの飼料へ置き換えて総量を減らしてください。</div>
+    </div>`;
+  }
+
+  // 未測定(null)による判定不能しか残っていない場合、追加候補を出しても意味がない
+  if(issues.every(i=>i.type.endsWith('_unknown'))){
+    return `<div>
+      <div class="suggest-title">② 飼料追加・増量案</div>
+      ${issueHTML}
+      <div class="note warn">⚠️ 成分が未測定の飼料があるため過不足を判定できません。飼料DBに分析値を入力すると改善案を算出できます。</div>
+    </div>`;
+  }
 
   // --- 候補スコアリング（新規追加＋既存増量） ---
   function scoreFeed(f, isExisting){
     let score = 0;
     let reasons = [];
     let suggestDM = null; // 追加すべきDM(kg)
+
+    // 育成用・肥育用配合飼料は繁殖雌牛に不適 → 新規追加候補として推奨しない
+    // （既に給与中のものは農家の現有飼料なので候補に残し、増量の可否は判断に委ねる）
+    if(!isExisting && NON_BREEDING_CONC_CATS.includes(f.cat)) return null;
 
     // CP不足時: CP>12%なら候補（閾値を現実的に引き下げ）
     if(cpShort || nrHigh){
@@ -3542,9 +3950,17 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
       score += f.cp * 0.6 + f.tdn * 0.4;
       if(!reasons.length) reasons.push('CP・TDN両方補給');
     }
-    // Ca不足
+    // Ca不足（CP・TDNが足りている場合はCaギャップから追加量を算出する）
+    // ボーナスに上限を設けるのは、炭酸カルシウム(Ca38.5%)のような高Ca飼料が
+    // CP・TDN不足を解決する候補を押しのけて上位を独占しないようにするため
     if(caShort && f.ca > 0.3){
-      score += f.ca * 8; reasons.push(`Ca ${f.ca}%`);
+      score += Math.min(f.ca * 8, 40); reasons.push(`Ca ${f.ca}%`);
+      if(suggestDM === null){
+        const caIssue = issues.find(i=>i.type==='ca_short');
+        const caGap = (caIssue && caIssue.gap != null) ? caIssue.gap : null;   // g
+        const caPerDmKg = f.ca/100*1000;                                        // g/DMkg
+        if(caGap != null && caGap > 0 && caPerDmKg > 0) suggestDM = caGap / caPerDmKg;
+      }
     }
     // CP過剰 → 濃厚飼料の減量を優先。低CP粗飼料の追加はDMI余裕がある場合のみ
     if(cpOver){
@@ -3556,6 +3972,35 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
         score -= f.cp * 0.5;
       } else {
         score -= f.cp * 0.8; // CP高い飼料は追加しない
+      }
+    }
+    // P過剰 / Ca:P比低下（P相対過剰）→ 高P飼料を上積みしない。是正はCa源の補強で行う
+    // 米ぬか(P2.3%)・ふすま(P1.1%)等の副産物はPが高く、追加すると比がさらに崩れる
+    if(pOver || caprLow){
+      const fp = f.p;
+      if(fp == null){
+        score -= 5;                                   // P未測定の飼料は是正判断ができない
+      } else if(fp > 0.6){
+        score -= (fp - 0.6) * 20;                     // 高P飼料は強くペナルティ
+      } else {
+        score += 3; reasons.push(`低P(${fp}%)`);
+      }
+      // Ca:P比の是正には高Ca飼料が有効（炭酸カルシウム・アルファルファ・ヘイキューブ等）
+      if(caprLow && (f.ca||0) > 0.5){
+        score += Math.min((f.ca - 0.5) * 10, 40); reasons.push(`Ca ${f.ca}% → Ca:P是正`);
+
+        // Ca:P比を CAP_TARGET まで戻すのに必要なDM量を算出する。
+        // 追加後: (Ca + x*caPerDm) / (P + x*pPerDm) = CAP_TARGET を x について解く。
+        // 目標は 1.5（飼養標準の下限1:1に余裕をみた、従来推奨の下端）。
+        if(suggestDM === null && f.ca != null && f.p != null){
+          const CAP_TARGET = 1.5;
+          const caPerDm = f.ca/100*1000, pPerDm = f.p/100*1000;   // g / DM kg
+          const denom = caPerDm - CAP_TARGET * pPerDm;
+          if(denom > 0){
+            const need = (CAP_TARGET * totals.p - totals.ca) / denom;
+            if(need > 0) suggestDM = need;
+          }
+        }
       }
     }
     // 脂肪過剰 → 低脂肪飼料
@@ -3571,11 +4016,15 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
 
     if(score <= 0) return null;
 
-    // 追加量をDMI上限で制限
+    // 追加量をDMI上限の残り（dmiRoom）で制限する。
+    // 以前は Math.max(0.1, dmiRoom) としていたため、DMIに余裕が無くても最低0.1kgの追加を提案していた。
     if(suggestDM !== null){
-      suggestDM = Math.min(suggestDM, Math.max(0.1, dmiRoom));
-      const addKg = suggestDM / (1 - f.moisture/100);
-      return {feed:f, score, reasons, addAmountKg: parseFloat(addKg.toFixed(2)), isExisting};
+      suggestDM = Math.min(suggestDM, dmiRoom);
+      if(suggestDM >= 0.05){
+        const addKg = suggestDM / (1 - f.moisture/100);
+        return {feed:f, score, reasons, addAmountKg: parseFloat(addKg.toFixed(2)), isExisting};
+      }
+      return {feed:f, score, reasons, addAmountKg:null, isExisting};
     }
     return {feed:f, score, reasons, addAmountKg:null, isExisting};
   }
@@ -3583,7 +4032,7 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
   // 既存飼料の増量候補
   const existCandidates = rows.map(r=>scoreFeed(r.feed, true)).filter(x=>x!==null);
   // 新規追加候補
-  const newCandidates = feeds.filter(f=>!currentNames.includes(f.name)).map(f=>scoreFeed(f, false)).filter(x=>x!==null);
+  const newCandidates = feeds.filter(f=>!currentIds.has(f.id)).map(f=>scoreFeed(f, false)).filter(x=>x!==null);
 
   const allCandidates = [...existCandidates, ...newCandidates]
     .sort((a,b)=>b.score-a.score)
@@ -3598,21 +4047,25 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
     const existLabel = c.isExisting ? '<span class="badge badge-ok" style="font-size:9px;">使用中</span>' : '<span class="badge badge-info" style="font-size:9px;">新規</span>';
     let afterHTML = '';
     if(addKg && addKg > 0 && addKg < 30){
+      // 飼料の同定は id で行う（同名の別分析値を取り違えないため。CLAUDE.md §1.5）
       const newRows = c.isExisting
-        ? rows.map(r=>r.feed.name===c.feed.name ? {feed:r.feed,amount:r.amount+addKg} : r)
+        ? rows.map(r=>r.feed.id===c.feed.id ? {feed:r.feed,amount:r.amount+addKg} : r)
         : [...rows, {feed:c.feed, amount:addKg}];
       const at = calcTotals(newRows);
       const adjDmiPct = bw>0 ? at.dm/bw*100 : 0;
-      function sc(p){return p>=90&&p<=120?'ok':((p>=75&&p<90)||(p>120&&p<=140))?'warn':'ng';}
-      function mini2(l,v,p){return `<span class="mini-result" style="font-size:10px;background:${sc(p)==='ok'?'#e8f5e9':sc(p)==='warn'?'#fff3e0':'#ffebee'}">${l} ${p}%</span>`;}
       const dmiWarn2 = adjDmiPct > (req.dmi_max_pct||1.5) ? `<span class="mini-result" style="font-size:10px;background:#ffebee;">DMI ${adjDmiPct.toFixed(1)}%⚠</span>` : `<span class="mini-result" style="font-size:10px;">DMI ${adjDmiPct.toFixed(1)}%</span>`;
+      // P過剰・Ca:P比が問題のときは、追加後にそれが悪化しないかも示す
+      const caPRAfter = (at.complete.ca!==false && at.complete.p!==false && at.p>0) ? at.ca/at.p : null;
+      const caPRBadge = (pOver||caprLow) && caPRAfter!==null
+        ? `<span class="mini-result" style="font-size:10px;background:${caPRAfter>=1.5?'#e8f5e9':caPRAfter>=1.0?'#fff3e0':'#ffebee'}">Ca:P ${caPRAfter.toFixed(1)}</span>` : '';
       afterHTML = `<div style="margin-top:6px;">
         <div style="font-size:11px;color:var(--text-sub);margin-bottom:4px;">${c.isExisting?'増量':'追加'}後の予測:</div>
         <div class="mini-results">
-          ${mini2('CP',Math.round(at.cp),Math.round(at.cp/req.cp*100))}
-          ${mini2('TDN',at.tdn.toFixed(2),Math.round(at.tdn/req.tdn*100))}
+          ${miniPct('CP', Math.round(at.cp)+'g', at.cp/req.cp*100)}
+          ${miniPct('TDN', at.tdn.toFixed(2)+'kg', at.tdn/req.tdn*100)}
           <span class="mini-result" style="font-size:10px">NR ${at.nr.toFixed(1)}</span>
           <span class="mini-result" style="font-size:10px">脂肪 ${at.fatPct.toFixed(1)}%</span>
+          ${caPRBadge}
           ${dmiWarn2}
         </div>
       </div>`;
@@ -3621,9 +4074,9 @@ function buildCase2(rows, req, totals, bw, issues, stage) {
     return `<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
         <div>
-          <span style="font-size:13px;font-weight:700;">${i+1}. ${c.feed.name}</span>
+          <span style="font-size:13px;font-weight:700;">${i+1}. ${esc(c.feed.name)}</span>
           ${existLabel}
-          <span style="font-size:11px;color:var(--text-sub);margin-left:4px;">${c.feed.cat}</span>
+          <span style="font-size:11px;color:var(--text-sub);margin-left:4px;">${esc(c.feed.cat)}</span>
         </div>
         ${addKg ? `<span class="badge badge-warn" style="white-space:nowrap;">${actionLabel}</span>` : ''}
       </div>
@@ -3681,6 +4134,26 @@ function buildCase3(totals, req, rows, issues, stage){
     comments.push('⚠️ <b>CP充足率が130%を超えています。</b> 過剰なCPはルーメンでアンモニアに分解され、BUN（血中尿素窒素）が上昇し、<b>受胎率の低下</b>を引き起こす可能性があります。CP源の飼料を減らしてください。');
   }
 
+  // P過剰 / Ca:P比 1:1未満（日本飼養標準・肉用牛2022 準拠）
+  // 標準の第一選択は「リン含量の高い飼料の多給を避ける」、第二選択が「炭酸カルシウム等でCaを補給し
+  // Ca:P比が1:1を下回らないようにする」。この順序でコメントする。
+  const pOverIssue   = issues.find(i=>i.type==='p_over');
+  const caprLowIssue = issues.find(i=>i.type==='capr_low');
+  if(pOverIssue || caprLowIssue){
+    const head = (pOverIssue && caprLowIssue) ? '<b>P過剰かつCa:P比が1:1未満</b>です。'
+               : pOverIssue ? '<b>P充足率が130%を超えています。</b>'
+               : '<b>Ca:P比が1:1を下回っています。</b>';
+    comments.push(`🦴 ${head} 生米ぬか（P2.3%）・ふすま（P1.1%）などの副産物はPが高く、配合飼料もCaが低くPが高いため、多給するとCa:P比が崩れます。飼養標準は<b>炭酸カルシウム等でCaを十分に補給し、Ca:P比が1:1を下回らないようにすること</b>を求めています。繁殖雌牛では、<b>妊娠末期の胎子骨格形成と泌乳でCa要求が高まる</b>時期にCa:Pの逆転が起きると<b>Caの供給不足</b>を意味し、さらに<b>P過剰がCaの吸収を阻害</b>して不足分を骨から動員することになります。対処は<b>①まず高P飼料（米ぬか等）を減量</b>、<b>②それでも戻らなければ炭酸カルシウム等のCa源で補給</b>の順です。`);
+  }
+  const caprHighIssue = issues.find(i=>i.type==='capr_high');
+  if(caprHighIssue){
+    comments.push('🦴 <b>Ca:P比が7:1を超えています。</b> 飼養標準では「Pが充足していればCa:P比1:1〜7:1は生産性に影響しない」とされるため、7:1以下であれば是正は不要ですが、7:1超は推奨範囲外です。多くは<b>P不足</b>が原因なので、まずP充足率を確認し、不足していればP源（ふすま等）で補ってください。<b>Pが充足しているなら比を無理に下げる必要はありません</b>（Ca源を削ったり、不要にP源を足したりしないでください）。');
+  }
+  const caOverIssue = issues.find(i=>i.type==='ca_over');
+  if(caOverIssue && !caprHighIssue){
+    comments.push('⚠️ <b>Ca充足率が130%を超えています。</b> 妊娠末期のCa多給は分娩後のCa動員能を鈍らせるため、Ca源（アルファルファ・ヘイキューブ・鉱塩）の給与量を見直してください。');
+  }
+
   // DMI超過
   const dmiIssue = issues.find(i=>i.type==='dmi_over');
   if(dmiIssue){
@@ -3689,7 +4162,7 @@ function buildCase3(totals, req, rows, issues, stage){
 
   // ステージ別アドバイス
   if(stage==='pre' && !issues.some(i=>i.type==='ca_short')){
-    comments.push('💡 <b>妊娠末期のポイント:</b> Ca過剰給与は分娩後の乳熱リスクを高めます。DCAD管理（陰イオン食）も併せて検討してください。');
+    comments.push('💡 <b>妊娠末期のポイント:</b> Ca過剰給与や高K稲わらの多給は避け、分娩前は各養分を過不足なく整えるのが基本です（和牛は泌乳量が少なく臨床乳熱はまれなため、乳牛式のDCAD管理・陰イオン塩は通常不要です）。');
   }
   if((stage==='post0'||stage==='post90') && issues.some(i=>i.type==='cp_short'||i.type==='tdn_short')){
     comments.push('💡 <b>泌乳期の栄養不足は子牛の発育と次の受胎に直結します。</b> 分娩後のBCS低下を0.5以内に抑えることが目標です。');
@@ -3722,7 +4195,7 @@ window.confirmSave = function(){
     _saveDate=new Date().toLocaleString('ja-JP');
   }
   const _me=document.getElementById('milk-amount'),_ma=document.getElementById('milk-input-area');
-  const _milk=(_me&&_ma&&_ma.style.display!=='none')?parseFloat(_me.value)||null:null;
+  const _milk=(_me&&_ma&&_ma.style.display!=='none')?num(_me.value)||null:null;
   const simActive=_simRows&&_simRows.length>0&&document.getElementById('sim-card');
 
   // 【1】現状（計算結果）を必ず保存
@@ -3790,35 +4263,15 @@ window.confirmSave = function(){
   }
 
   while(h.length>50) h.pop();
-  lsSet('cattle_history',JSON.stringify(h));
+  if(!lsSet('cattle_history',JSON.stringify(h))) return;  // 失敗時はモーダルを開いたまま（lsSetがエラー通知済み）
   document.getElementById('save-modal').classList.remove('open');
   const toastMsg = simActive ? '💾 現状＋シミュレーター案を保存しました！' : '💾 保存しました！';
   showToast(toastMsg);
 };
 
 // 2. calculate後にDMI・DCAD警告 + _lastResultへdmiPct追記
-const _origCalculate = window.calculate;
-window.calculate = function(){
-  _origCalculate();
-  setTimeout(function(){
-    if(!window._lastResult)return;
-    const r=window._lastResult;
-    const bw=r.bw||loadBWSettings().bw;
-    const dmiLim=bw*0.015;
-    // dmiPct追記
-    if(!r.dmiPct) r.dmiPct=parseFloat(((r.dm/bw)*100).toFixed(1));
-    r.dmiOver=r.dmiPct>1.5;
-    // 警告表示
-    let warns='';
-    if(r.dm>dmiLim) warns+=`<div style="background:#ffebee;border-left:4px solid #c62828;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DMI警告:</strong> DM ${r.dm}kg は体重${bw}kgの${r.dmiPct}%（上限目安1.5%=${dmiLim.toFixed(2)}kg）を超えています。</div>`;
-    if(r.stage==='pre'){
-      const sr=r.strawRatio||0;
-      warns+=sr>40?`<div style="background:#fff8e1;border-left:4px solid #f57c00;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">⚠️ <strong>DCAD注意（分娩前）:</strong> 稲わら${sr}%でK過多。陰イオン塩添加を検討。目標DCAD: −50〜−150 mEq/kg DM</div>`:`<div style="background:#e8f5e9;border-left:4px solid #2e7d32;padding:8px 12px;border-radius:6px;font-size:12px;margin-top:8px;">✅ <strong>DCAD管理（分娩前）:</strong> 陰イオン塩で目標DCAD −50〜−150 mEq/kg DM を目指してください。</div>`;
-    }
-    const wb=document.getElementById('extra-warn-box');
-    if(wb) wb.innerHTML=warns;
-  },100);
-};
+// （旧: window.calculate を包むラッパーがここにあったが、存在しない #extra-warn-box に
+//  書き込む死にコードだったため削除。DMI/DCAD警告は結果詳細テーブルに表示されている）
 
 // 4. CSV一括インポート
 function importFeedCSV(event){
@@ -3828,14 +4281,14 @@ function importFeedCSV(event){
     try{
       const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());
       if(lines.length<2){showToast('CSVデータが2行以上必要です');return;}
-      const customs=JSON.parse(lsGet('custom_feeds','[]'));
+      const customs=lsGetJSON('custom_feeds','[]');
       const existing=loadFeeds().map(f=>f.name);
       let cnt=0;
       lines.slice(1).forEach(line=>{
         const c=line.split(',').map(s=>s.trim().replace(/^"|"$/g,''));
         if(!c[0]||existing.includes(c[0]))return;
         const pf=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
-        customs.push({cat:c[1]||'その他',name:c[0],cp:pf(c[2]),tdn:pf(c[3]),moisture:pf(c[4]),fat:pf(c[5]),ndf:pf(c[6])||null,nfc:pf(c[7])||null,ca:pf(c[8]),p:pf(c[9]),rdp:pf(c[10])||null,memo:c[11]||'',custom:true,cf:null,adf:null,ash:null,mg:null,k:null});
+        customs.push({id:genUUID(),cat:c[1]||'その他',name:c[0],cp:pf(c[2]),tdn:pf(c[3]),moisture:pf(c[4]),fat:pf(c[5]),ndf:pf(c[6])||null,nfc:pf(c[7])||null,ca:pf(c[8]),p:pf(c[9]),rdp:pf(c[10])||null,memo:c[11]||'',custom:true,cf:null,adf:null,ash:null,mg:null,k:null});
         existing.push(c[0]);cnt++;
       });
       lsSet('custom_feeds',JSON.stringify(customs));
@@ -3885,21 +4338,22 @@ document.addEventListener('DOMContentLoaded',function(){
   var dd = String(today.getDate()).padStart(2,'0');
   setWarekiValue('calc-date', yyyy+'-'+mm+'-'+dd);
   onStageChange();
+  renderStartupBanners();   // バックアップ督促 + ホーム画面追加案内（§2.5）
 });
 
 function exportCustomFeeds(){
-  var custom = JSON.parse(lsGet('custom_feeds','[]'));
-  var deleted = JSON.parse(lsGet('deleted_feeds','[]'));
-  if(custom.length === 0 && deleted.length === 0){
+  var custom = lsGetJSON('custom_feeds','[]');
+  var deletedIds = lsGetJSON('deleted_feed_ids','[]');
+  if(custom.length === 0 && deletedIds.length === 0){
     showToast('エクスポートする飼料データがありません');return;
   }
-  var feedPrices=JSON.parse(lsGet('feed_prices','{}'));
+  var feedPrices=lsGetJSON('feed_prices','{}');
   var data = {
-    version: 1,
+    version: 2,
     type: 'feed_backup',
     exportedAt: new Date().toLocaleString('ja-JP'),
     custom_feeds: custom,
-    deleted_feeds: deleted,
+    deleted_feed_ids: deletedIds,
     feed_prices: feedPrices
   };
   var json = JSON.stringify(data, null, 2);
@@ -3920,6 +4374,27 @@ function exportCustomFeeds(){
   }
 }
 
+/* 飼料バックアップJSONを現行スキーマ(v2)へ正規化する。
+   v1: custom_feedsにidなし / deleted_feedsは名前 / feed_pricesは名前キー */
+function normalizeFeedBackup(data){
+  var customs = (data.custom_feeds||[]).map(function(f){ return f.id ? f : Object.assign({}, f, {id: genUUID()}); });
+  var defaultNameToId = {}; DEFAULT_FEEDS.forEach(function(f){ defaultNameToId[f.name]=f.id; });
+  var nameToId = Object.assign({}, defaultNameToId);
+  customs.forEach(function(f){ nameToId[f.name]=f.id; });
+  var deletedIds = [];
+  if(Array.isArray(data.deleted_feed_ids)) deletedIds = data.deleted_feed_ids;
+  else if(Array.isArray(data.deleted_feeds)) deletedIds = data.deleted_feeds.map(function(n){return defaultNameToId[n];}).filter(Boolean);
+  var prices = {};
+  var isV2 = (data.version||1) >= 2;
+  if(data.feed_prices && typeof data.feed_prices==='object'){
+    Object.keys(data.feed_prices).forEach(function(k){
+      var id = isV2 ? k : nameToId[k];
+      if(id!=null && data.feed_prices[k]!=null) prices[id] = data.feed_prices[k];
+    });
+  }
+  return {customs:customs, deletedIds:deletedIds, prices:prices};
+}
+
 function importCustomFeeds(event){
   var file = event.target.files[0];
   if(!file) return;
@@ -3930,22 +4405,22 @@ function importCustomFeeds(event){
       if(data.type !== 'feed_backup' || !Array.isArray(data.custom_feeds)){
         showToast('⚠️ 正しい飼料バックアップファイルではありません');return;
       }
-      var existing = JSON.parse(lsGet('custom_feeds','[]'));
+      // 旧v1(名前ベース)も同じ変換を通して取り込む（CLAUDE.md §2.3）
+      var norm = normalizeFeedBackup(data);
+      var existing = lsGetJSON('custom_feeds','[]');
       var existingNames = new Set(existing.map(function(f){return f.name;}));
-      var newFeeds = data.custom_feeds.filter(function(f){return !existingNames.has(f.name);});
+      var existingIds = new Set(existing.map(function(f){return f.id;}));
+      var newFeeds = norm.customs.filter(function(f){return !existingNames.has(f.name) && !existingIds.has(f.id);});
       lsSet('custom_feeds', JSON.stringify([...existing, ...newFeeds]));
 
-      if(Array.isArray(data.deleted_feeds)){
-        var existingDel = JSON.parse(lsGet('deleted_feeds','[]'));
-        var merged = [...new Set([...existingDel, ...data.deleted_feeds])];
-        lsSet('deleted_feeds', JSON.stringify(merged));
+      if(norm.deletedIds.length){
+        var existingDel = lsGetJSON('deleted_feed_ids','[]');
+        lsSet('deleted_feed_ids', JSON.stringify([...new Set([...existingDel, ...norm.deletedIds])]));
       }
 
-      if(data.feed_prices && typeof data.feed_prices==='object'){
-        var curPrices=JSON.parse(lsGet('feed_prices','{}'));
-        Object.keys(data.feed_prices).forEach(function(k){if(curPrices[k]==null)curPrices[k]=data.feed_prices[k];});
-        lsSet('feed_prices',JSON.stringify(curPrices));
-      }
+      var curPrices=lsGetJSON('feed_prices','{}');
+      Object.keys(norm.prices).forEach(function(k){if(curPrices[k]==null)curPrices[k]=norm.prices[k];});
+      lsSet('feed_prices',JSON.stringify(curPrices));
       renderMaster();
       showToast('📥 ' + newFeeds.length + '件の飼料をインポートしました（重複' + (data.custom_feeds.length - newFeeds.length) + '件スキップ）');
     } catch(err){
@@ -3958,24 +4433,25 @@ function importCustomFeeds(event){
 
 // ===== 飼料DBボタン =====
 function masterEditClick(btn){
-  var name=btn.getAttribute('data-name').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
-  if(name) openEditModal(name);
+  var id=btn.getAttribute('data-id');
+  if(id) openEditModal(id);
 }
 function masterDelClick(btn){
+  var id=btn.getAttribute('data-id');
   var name=btn.getAttribute('data-name').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
   var isCustom=btn.getAttribute('data-custom')==='true';
-  if(!name) return;
+  if(!id) return;
   showConfirm('「'+name+'」を削除しますか？', function(){
-    deleteFeed(name,isCustom);renderMaster();showToast('「'+name+'」を削除しました');
+    deleteFeedById(id,isCustom);renderMaster();showToast('「'+name+'」を削除しました');
   });
 }
 
 // ===== コスト計算（1日あたり） =====
 function calcDailyCost(rows){
-  var prices=JSON.parse(lsGet('feed_prices','{}'));
+  var prices=lsGetJSON('feed_prices','{}');
   var total=0; var hasCost=false; var lines=[];
   rows.forEach(function(r){
-    var p=prices[r.feed.name];
+    var p=prices[r.feed.id];
     if(p!=null){
       var cost=r.amount*p;
       total+=cost; hasCost=true;
@@ -3986,18 +4462,19 @@ function calcDailyCost(rows){
 }
 
 function showRestoreModal(){
-  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
+  var deletedIds=lsGetJSON('deleted_feed_ids','[]');
   var html='';
-  if(deleted.length===0){
+  if(deletedIds.length===0){
     html='<div class="empty-state"><div class="icon">✅</div><p>削除されたデフォルト飼料はありません</p></div>';
   } else {
-    html+='<p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">削除済みのデフォルト飼料: '+deleted.length+'件</p>';
-    deleted.forEach(function(name){
-      var f=DEFAULT_FEEDS.find(function(x){return x.name===name;});
-      var safeN=name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+='<p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">削除済みのデフォルト飼料: '+deletedIds.length+'件</p>';
+    deletedIds.forEach(function(id){
+      var f=DEFAULT_FEEDS.find(function(x){return x.id===id;});
+      if(!f) return;
+      var safeN=esc(f.name);
       html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border);">';
-      html+='<div style="font-size:13px;">'+safeN+(f?' <span style="font-size:11px;color:var(--text-sub);">('+f.cat+')</span>':'')+'</div>';
-      html+='<button class="btn btn-outline btn-sm restore-one-btn" data-rname="'+safeN+'" style="border-color:#f57c00;color:#f57c00;touch-action:manipulation;">復元</button>';
+      html+='<div style="font-size:13px;">'+safeN+' <span style="font-size:11px;color:var(--text-sub);">('+f.cat+')</span></div>';
+      html+='<button class="btn btn-outline btn-sm restore-one-btn" data-rid="'+f.id+'" style="border-color:#f57c00;color:#f57c00;touch-action:manipulation;">復元</button>';
       html+='</div>';
     });
   }
@@ -4005,23 +4482,24 @@ function showRestoreModal(){
   document.getElementById('restore-list').onclick=function(e){
     var btn=e.target.closest ? e.target.closest('.restore-one-btn') : null;
     if(!btn && e.target.className.indexOf('restore-one-btn')>=0) btn=e.target;
-    if(btn) restoreOneFeed(btn.getAttribute('data-rname').replace(/&amp;/g,'&').replace(/&quot;/g,'"'));
+    if(btn) restoreOneFeed(btn.getAttribute('data-rid'));
   };
   document.getElementById('restore-modal').classList.add('open');
 }
 function closeRestoreModal(){document.getElementById('restore-modal').classList.remove('open');}
-function restoreOneFeed(name){
-  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
-  deleted=deleted.filter(function(n){return n!==name;});
-  lsSet('deleted_feeds',JSON.stringify(deleted));
+function restoreOneFeed(id){
+  var deleted=lsGetJSON('deleted_feed_ids','[]');
+  deleted=deleted.filter(function(x){return x!==id;});
+  lsSet('deleted_feed_ids',JSON.stringify(deleted));
+  var f=DEFAULT_FEEDS.find(function(x){return x.id===id;});
   showRestoreModal();renderMaster();
-  showToast('「'+name+'」を復元しました');
+  showToast('「'+(f?f.name:'')+'」を復元しました');
 }
 function restoreAllFeeds(){
-  var deleted=JSON.parse(lsGet('deleted_feeds','[]'));
+  var deleted=lsGetJSON('deleted_feed_ids','[]');
   var count=deleted.length;
   if(count===0){showToast('復元できる飼料はありません');return;}
-  lsSet('deleted_feeds','[]');
+  lsSet('deleted_feed_ids','[]');
   closeRestoreModal();renderMaster();
   showToast('🔄 '+count+'件のデフォルト飼料を復元しました');
 }
@@ -4035,7 +4513,7 @@ function openFarmerReportModal(){
     return;
   }
   const sel = document.getElementById('report-farmer-sel');
-  sel.innerHTML = farmers.map(f=>`<option value="${f.replace(/"/g,'&quot;')}">${f}</option>`).join('');
+  sel.innerHTML = farmers.map(f=>`<option value="${escAttr(f)}">${esc(f)}</option>`).join('');
   document.getElementById('report-note').value = '';
   document.getElementById('report-date-from').value = '';
   document.getElementById('report-date-to').value = '';
@@ -4145,14 +4623,14 @@ function generateFarmerReport(){
       const nd = (newest.date || '').split(' ')[0].replace(/\//g, '-');
       return d > nd ? h : newest;
     }, stageRecords[0]);
-    const req = latest.reqSnapshot || REQUIREMENTS[stageKey] || {};
+    const req = latest.reqSnapshot || reqForStage(stageKey);
 
     // 時系列テーブル
     // ── テーブル1: 栄養充足率（農家説明用・A4縦に収まる）──
     const COLS1 = [
       {key:'date',   label:'日付',       fmt:h=>h.date.split(' ')[0]||h.date},
-      {key:'memo',   label:'メモ',        fmt:h=>(h.memo||'').slice(0,12)+(h.memo&&h.memo.length>12?'…':'')},
-      {key:'feeds',  label:'主な給与飼料', fmt:h=>h.feeds.map(f=>f.name.split('（')[0].slice(0,7)).join('・')},
+      {key:'memo',   label:'メモ',        fmt:h=>esc((h.memo||'').slice(0,12)+(h.memo&&h.memo.length>12?'…':''))},
+      {key:'feeds',  label:'主な給与飼料', fmt:h=>esc(h.feeds.map(f=>f.name.split('（')[0].slice(0,7)).join('・'))},
       {key:'pctCP',  label:'CP\n充足率',  fmt:h=>h.pctCP!=null?h.pctCP+'%':'-', colorFn:h=>pctBg(h.pctCP)},
       {key:'pctTDN', label:'TDN\n充足率', fmt:h=>h.pctTDN!=null?h.pctTDN+'%':'-', colorFn:h=>pctBg(h.pctTDN)},
       {key:'pctDM',  label:'DM\n充足率',  fmt:h=>h.pctDM!=null?h.pctDM+'%':'-', colorFn:h=>pctBg(h.pctDM)},
@@ -4227,7 +4705,7 @@ function generateFarmerReport(){
       </div>` : '';
 
     // 最新データのサマリーカード（現状 & シミュ案の比較）
-    const lreq = latest.reqSnapshot || REQUIREMENTS[stageKey] || {};
+    const lreq = latest.reqSnapshot || reqForStage(stageKey);
 
     // 現状レコード（simResult=falseの最新）とシミュ案レコード（simResult=trueの最新）を分離
     const latestCalc  = calcRecords.length ? calcRecords.reduce((a,b)=>(a.date||'')>(b.date||'')?a:b) : latest;
@@ -4289,10 +4767,10 @@ function generateFarmerReport(){
       ];
       // 飼料の変更点バッジ
       const diffFeedsBadges = (latestSim.diffFeeds||[]).map(d=>{
-        if(d.tag==='added')   return `<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:8px;">🆕 ${d.name} +${d.to}kg</span>`;
-        if(d.tag==='removed') return `<span style="font-size:10px;background:#ffebee;color:#c62828;padding:1px 6px;border-radius:8px;">🗑 ${d.name}</span>`;
+        if(d.tag==='added')   return `<span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:8px;">🆕 ${esc(d.name)} +${d.to}kg</span>`;
+        if(d.tag==='removed') return `<span style="font-size:10px;background:#ffebee;color:#c62828;padding:1px 6px;border-radius:8px;">🗑 ${esc(d.name)}</span>`;
         const df=d.to-d.from; const col=df>0?'#2e7d32':'#c62828'; const bg2=df>0?'#e8f5e9':'#fff3e0';
-        return `<span style="font-size:10px;background:${bg2};color:${col};padding:1px 6px;border-radius:8px;">✏️ ${d.name} ${d.from}→${d.to}kg</span>`;
+        return `<span style="font-size:10px;background:${bg2};color:${col};padding:1px 6px;border-radius:8px;">✏️ ${esc(d.name)} ${d.from}→${d.to}kg</span>`;
       }).join(' ');
 
       summaryHTML = `
@@ -4347,7 +4825,7 @@ function generateFarmerReport(){
     if(lc.pctCP!=null&&lc.pctCP<75)   warnings.push(`CP不足（${lc.pctCP}%）：発情・受胎率低下リスク。要求量${req.cp}gに対して${lc.cp}g`);
     if(lc.pctTDN!=null&&lc.pctTDN<75) warnings.push(`TDN不足（${lc.pctTDN}%）：BCS低下・発情不整リスク`);
     if(lc.pctCP!=null&&lc.pctCP>140)  warnings.push(`CP過剰（${lc.pctCP}%）：BUN上昇・アンモニア過多・受胎率低下リスク`);
-    if(lc.pctCa!=null&&lc.pctCa>140)  warnings.push(`Ca過剰（${lc.pctCa}%）：P吸収阻害・DCAD上昇リスク`);
+    if(lc.pctCa!=null&&lc.pctCa>140)  warnings.push(`Ca過剰（${lc.pctCa}%）：P吸収阻害・分娩前のCa過剰は避ける`);
     if(lc.pctP!=null&&lc.pctP<75)     warnings.push(`P不足（${lc.pctP}%）：発情不整・食欲低下リスク`);
     // 質的評価
     if(lc.fatPct!=null&&lc.fatPct>5)  warnings.push(`脂肪%DM超過（${lc.fatPct}%）：ルーメン繊維消化低下リスク`);
@@ -4371,9 +4849,9 @@ function generateFarmerReport(){
       warnings.push(`稲わら依存度が高い（DM比${lc.strawDMpct}%、目安30%以下）：CP・TDN・Ca不足の主因。アルファルファ・チモシー等への代替を検討`);
     else if(lc.strawDMpct!=null&&lc.strawDMpct>30)
       warnings.push(`稲わら依存度がやや高め（DM比${lc.strawDMpct}%、目安30%以下）`);
-    // 妊娠末期DCAD
+    // 妊娠末期の高K稲わら多給
     if(stageKey==='pre'&&lc.strawRatio&&lc.strawRatio>40)
-      warnings.push(`稲わらNDF割合高め（${lc.strawRatio}%）：K過多でDCAD上昇に注意`);
+      warnings.push(`分娩前の稲わらNDF割合が高め（${lc.strawRatio}%）：高Kの多給に注意`);
     // ビタミンA（妊娠末期・泌乳前期のみ）
     if((stageKey==='pre'||stageKey==='post0')&&lc.vitAFlag==='none')
       warnings.push(`ビタミンA供給源が確認できない：妊娠末期・泌乳前期の欠乏は流産・虚弱子牛・胎盤停滞リスク。アルファルファ・チモシー・トウモロコシサイレージの追加またはビタミン剤の使用を検討`);
@@ -4934,7 +5412,6 @@ function renderFarmList(){
   el.innerHTML = html;
 }
 
-function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 
 // --- 農家詳細（個体一覧） ---
 function openFarmDetail(farmId){
@@ -5020,12 +5497,12 @@ function saveCow(){
     farmId, earTag:document.getElementById('cow-ear-tag').value.trim(),
     name:document.getElementById('cow-name').value.trim(),
     birth:getWarekiValue('cow-birth'),
-    parity:parseInt(document.getElementById('cow-parity').value)||0,
-    weight:parseInt(document.getElementById('cow-weight').value)||500,
+    parity:Math.trunc(num(document.getElementById('cow-parity').value, 0)),
+    weight:Math.trunc(num(document.getElementById('cow-weight').value)||500),
     stage:document.getElementById('cow-stage').value,
     lastCalving:getWarekiValue('cow-last-calving'),
     lastAI:getWarekiValue('cow-last-ai'),
-    bcs:parseFloat(document.getElementById('cow-bcs').value)||3.0,
+    bcs:num(document.getElementById('cow-bcs').value)||3.0,
     memo:document.getElementById('cow-memo').value.trim()
   };
   if(editId){
@@ -5141,11 +5618,11 @@ function saveEvent(){
     type:document.getElementById('ev-type').value,
     memo:document.getElementById('ev-memo').value.trim()
   };
-  if(ev.type==='bcs') ev.bcsVal = parseFloat(document.getElementById('ev-bcs-val').value)||3.0;
+  if(ev.type==='bcs') ev.bcsVal = num(document.getElementById('ev-bcs-val').value)||3.0;
   if(ev.type==='ai') ev.sire = document.getElementById('ev-sire').value.trim();
   if(ev.type==='calving'){
     ev.calfSex = document.getElementById('ev-calf-sex').value;
-    ev.calfWeight = parseFloat(document.getElementById('ev-calf-weight').value)||30;
+    ev.calfWeight = num(document.getElementById('ev-calf-weight').value)||30;
     ev.calvingStatus = document.getElementById('ev-calving-status').value;
   }
   events.push(ev);
@@ -5402,6 +5879,9 @@ function solveMixLP(feedList, req, bw, stage, maxIter=1200){
   const dmiMax = bw * (req.dmi_max_pct||1.5) / 100;
   const ct   = (stage && concTargets[stage])   || {lo:30, hi:45};
   const ckKg = (stage && concTargetKg[stage])  || {lo:1.0, hi:4.5};
+  // Ca/Pに未測定飼料が混じる場合、Ca:P比の最適化は信頼できないので無効化（§3.2）
+  const caKnown = feedList.every(o=>o.feed.ca!=null);
+  const pKnown  = feedList.every(o=>o.feed.p!=null);
 
   function objective(x){
     let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,roughDM=0,concDM=0,concKgRaw=0,strawDM=0;
@@ -5443,10 +5923,29 @@ function solveMixLP(feedList, req, bw, stage, maxIter=1200){
     if(strawPct>40) loss += Math.pow((strawPct-40)/15, 2)*4;   // 40%超でペナルティ
     if(strawPct>55) loss += Math.pow((strawPct-55)/10, 2)*8;   // 55%超で強ペナルティ
 
-    // ── ⑥ 脂肪・Ca:P ──
+    // ── ⑥ 脂肪・Ca:P（Ca:PはCa/Pが全飼料で測定済みのときだけ制約）──
     if(fatPct>5)  loss += Math.pow((fatPct-5)/5, 2)*4;
-    if(caPR<1.0 && ca>0 && p>0) loss += Math.pow(1.0-caPR, 2)*2;
-    if(caPR>3.5)  loss += Math.pow(caPR-3.5, 2);
+    // 日本飼養標準・肉用牛2022: Pが充足していれば Ca:P 1:1〜7:1 は生産性に影響しない。
+    // 従来は3.5超をペナルティにしていたが、標準が許容する設計まで是正対象にしていたため7.0に緩和。
+    // 下限 CAP_MIN（Ca供給不足・P過剰によるCa吸収阻害）は要件なので強めに残す。
+    if(caKnown && pKnown){
+      if(caPR<CAP_MIN && ca>0 && p>0) loss += Math.pow(CAP_MIN-caPR, 2)*4;
+      if(caPR>CAP_MAX) loss += Math.pow(caPR-CAP_MAX, 2);
+    }
+
+    // ── ⑦ Ca・Pの充足率 ──
+    // 比(Ca:P)だけを制約すると、低Ca+低Pでも比が正常に見えて無罰のまま通ってしまう。
+    // 不足側・過剰側の両方をここで押さえる（測定済みの成分のみ）。
+    if(caKnown && req.ca>0){
+      const caRat = ca/req.ca;
+      if(caRat<0.90) loss += Math.pow(0.90-caRat, 2)*6;
+      if(caRat>1.50) loss += Math.pow(caRat-1.50, 2)*3;
+    }
+    if(pKnown && req.p>0){
+      const pRat = p/req.p;
+      if(pRat<0.90) loss += Math.pow(0.90-pRat, 2)*6;
+      if(pRat>1.30) loss += Math.pow(pRat-1.30, 2)*4;   // P過剰はCa吸収阻害・Ca:P悪化の要因
+    }
 
     return {loss,dm,cp,tdn,fatPct,ca,p,caPR,concPct,strawPct,concKgRaw};
   }
@@ -5475,18 +5974,26 @@ function solveMixLP(feedList, req, bw, stage, maxIter=1200){
 function renderMixTable(feedList, amounts, req, bw, stage, label, badge){
   const n=feedList.length;
   let dm=0,cp=0,tdn=0,fat=0,ca=0,p=0,concKg=0,strawDM=0,roughDM=0,concDM=0;
+  let caComplete=true, pComplete=true;   // 未測定(null)を0扱いにしない（§3.2）
   let rows='';
   for(let i=0;i<n;i++){
     const f=feedList[i].feed;
     const amt=parseFloat(amounts[i].toFixed(2));
-    if(amt<0.05) continue;
+    if(amt<0.05){
+      // 最適化の結果ゼロになった飼料を黙って消すと「表から消えた」だけに見える。
+      // 「給与中止」と明示して、農家に伝わる形にする。
+      rows+=`<tr style="opacity:.6;"><td>${esc(f.name)} ${isRoughage(f)?'<span style="font-size:9px;color:#558b2f;">粗</span>':'<span style="font-size:9px;color:#e65100;">濃</span>'}</td><td style="text-align:right;font-weight:700;color:var(--ng);">0.00</td><td style="text-align:right;font-size:11px;color:var(--text-sub);">給与中止</td></tr>`;
+      continue;
+    }
     const d=amt*(1-f.moisture/100);
     dm+=d; cp+=d*f.cp/100*1000; tdn+=d*f.tdn/100;
-    fat+=d*(f.fat||0)/100; ca+=d*(f.ca||0)/100*1000; p+=d*(f.p||0)/100*1000;
+    fat+=d*(f.fat||0)/100;
+    if(f.ca==null) caComplete=false; else ca+=d*f.ca/100*1000;
+    if(f.p==null)  pComplete=false;  else p +=d*f.p/100*1000;
     if(isRoughage(f)){roughDM+=d;}else{concDM+=d; concKg+=amt;}
     if(f.name.indexOf('稲わら')>=0) strawDM+=d;
     const catL=isRoughage(f)?'<span style="font-size:9px;color:#558b2f;">粗</span>':'<span style="font-size:9px;color:#e65100;">濃</span>';
-    rows+=`<tr><td>${f.name} ${catL}</td><td style="text-align:right;font-weight:700;">${amt.toFixed(2)}</td><td style="text-align:right;font-size:11px;color:var(--text-sub);">${d.toFixed(2)}</td></tr>`;
+    rows+=`<tr><td>${esc(f.name)} ${catL}</td><td style="text-align:right;font-weight:700;">${amt.toFixed(2)}</td><td style="text-align:right;font-size:11px;color:var(--text-sub);">${d.toFixed(2)}</td></tr>`;
   }
   if(dm===0) return '<div class="note warn">配合を計算できませんでした。</div>';
   const fatPct=fat/dm*100, concPct=(roughDM+concDM)>0?concDM/(roughDM+concDM)*100:0;
@@ -5500,8 +6007,14 @@ function renderMixTable(feedList, amounts, req, bw, stage, label, badge){
   const concRB=concPct>ct2.hi?`<span class="mini-result" style="background:#ffebee;">濃${concPct.toFixed(0)}%⚠</span>`:concPct<ct2.lo?`<span class="mini-result" style="background:#fff3e0;">濃${concPct.toFixed(0)}%△</span>`:`<span class="mini-result" style="background:#e8f5e9;">濃${concPct.toFixed(0)}%✓</span>`;
   const strawB=strawPct>50?`<span class="mini-result" style="background:#ffebee;">稲わら${strawPct.toFixed(0)}%⚠</span>`:strawPct>30?`<span class="mini-result" style="background:#fff3e0;">稲わら${strawPct.toFixed(0)}%△</span>`:strawPct>0?`<span class="mini-result" style="background:#e8f5e9;">稲わら${strawPct.toFixed(0)}%✓</span>`:'';
   const concKgB=concKg>ckKg2.hi?`<span class="mini-result" style="background:#ffebee;">配合${concKg.toFixed(1)}kg⚠</span>`:`<span class="mini-result" style="background:#e8f5e9;">配合${concKg.toFixed(1)}kg✓</span>`;
-  const dmiB=dmiPct>(req.dmi_max_pct||1.5)*100?`<span class="mini-result" style="background:#ffebee;">DMI${dmiPct.toFixed(1)}%⚠</span>`:`<span class="mini-result">DMI${dmiPct.toFixed(1)}%BW</span>`;
-  const caPB=caPR>=1.5&&caPR<=2.5?`<span class="mini-result" style="background:#e8f5e9;">Ca:P${caPR.toFixed(1)}✓</span>`:caPR<1.0?`<span class="mini-result" style="background:#ffebee;">Ca:P${caPR.toFixed(1)}⚠</span>`:`<span class="mini-result">Ca:P${caPR.toFixed(1)}</span>`;
+  const dmiB=dmiPct>(req.dmi_max_pct||1.5)?`<span class="mini-result" style="background:#ffebee;">DMI${dmiPct.toFixed(1)}%⚠</span>`:`<span class="mini-result">DMI${dmiPct.toFixed(1)}%BW</span>`;
+  // Ca/Pの充足率（未測定を含む場合は「参考値」とし判定色を付けない。§3.2）
+  const caPct=Math.round(ca/req.ca*100), pPct=Math.round(p/req.p*100);
+  const caB=caComplete?mini('Ca',Math.round(ca)+'g',caPct):`<span class="mini-result" style="background:#e3f2fd;">Ca ${Math.round(ca)}g〜(${caPct}%〜参考)</span>`;
+  const pB =pComplete ?mini('P',Math.round(p)+'g',pPct)  :`<span class="mini-result" style="background:#e3f2fd;">P ${Math.round(p)}g〜(${pPct}%〜参考)</span>`;
+  // Ca:P比は両方が測定済みのときだけ判定（低Ca+低Pでも比は正常に見えるため、充足率と併記する）
+  // Ca:P判定は日本飼養標準に準拠（P充足下で1:1〜7:1は許容。1:1未満のみが是正必須）
+  const caPB=(!caComplete||!pComplete)?`<span class="mini-result" style="background:#e3f2fd;">Ca:P${caPR.toFixed(1)}(参考)</span>`:caPR<1.0?`<span class="mini-result" style="background:#ffebee;">Ca:P${caPR.toFixed(1)}⚠1:1未満</span>`:caPR<=7.0?`<span class="mini-result" style="background:#e8f5e9;">Ca:P${caPR.toFixed(1)}✓</span>`:`<span class="mini-result" style="background:#fff3e0;">Ca:P${caPR.toFixed(1)}△7:1超</span>`;
   return `<div style="margin-bottom:4px;">
     ${badge?`<div style="margin-bottom:6px;">${badge}</div>`:''}
     <table class="full-result-table" style="margin-bottom:8px;">
@@ -5511,6 +6024,7 @@ function renderMixTable(feedList, amounts, req, bw, stage, label, badge){
     </table>
     <div class="mini-results" style="gap:4px;flex-wrap:wrap;">
       ${mini('CP',Math.round(cp)+'g',cpPct)} ${mini('TDN',tdn.toFixed(2)+'kg',tdnPct)} ${mini('DM',dm.toFixed(2)+'kg',dmPct)}
+      ${caB} ${pB}
       <span class="mini-result">脂肪${fatPct.toFixed(1)}%</span> ${caPB} ${dmiB}
     </div>
     <div class="mini-results" style="gap:4px;margin-top:4px;flex-wrap:wrap;">
@@ -5563,7 +6077,7 @@ function buildOptimalMix(rows, req, bw, stage){
   const badge=`<span class="badge badge-info" style="font-size:10px;">現有${rows.length}種・粗濃比/稲わら制約あり</span>`;
   return `<div>
     <div class="suggest-title">③ 配合提案A（現有飼料の最適量）</div>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;">現在使用中の飼料の給与量を<b>粗濃比（濃${ct.lo}〜${ct.hi}%DM）・稲わら上限（DM30%）・配合量（${ckKg.lo}〜${ckKg.hi}kg）</b>の制約下で最適化した案です。</p>
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;">現在使用中の飼料の給与量を<b>粗濃比（濃${ct.lo}〜${ct.hi}%DM）・稲わら依存度・配合量（${ckKg.lo}〜${ckKg.hi}kg/日）・Ca/P充足率</b>の制約下で最適化した案です。</p>
     ${renderMixTable(feedList,result.amounts,req,bw,stage,'',badge)}
   </div>`;
 }
@@ -5643,8 +6157,8 @@ function buildResetMix(rows, req, bw, stage){
   if(bulkFeed) selected.push(bulkFeed);
   if(nutrFeed) selected.push(nutrFeed);
   selected.push(concFeed);
-  // CP補強が必要な場合（バルク役CPが低く栄養補完粗飼料がない）は副産物を追加
-  const needExtraCP = (!nutrFeed)||(bulkFeed&&bulkFeed.cp<8&&!nutrFeed);
+  // CP補強が必要な場合（栄養補完粗飼料が選べなかった）は副産物を追加
+  const needExtraCP = !nutrFeed;
   if(needExtraCP){
     const extra=allFeeds.filter(f=>!isRoughage(f)&&f.cp>30&&f.tdn>70&&f.name!==concFeed.name)
       .sort((a,b)=>b.tdn-a.tdn)[0];
@@ -5681,7 +6195,7 @@ function buildResetMix(rows, req, bw, stage){
   const feedNames=selected.map(f=>{
     const isBulkF=bulkFeed&&f.name===bulkFeed.name;
     const col=isRoughage(f)?(isBulkF?'#795548':'#2e7d32'):'#e65100';
-    return `<span class="badge" style="background:#f5f5f5;color:${col};font-size:10px;">${f.name}</span>`;
+    return `<span class="badge" style="background:#f5f5f5;color:${col};font-size:10px;">${esc(f.name)}</span>`;
   }).join(' ');
   const badge=`<span class="badge badge-warn" style="font-size:10px;">バルク+栄養補完粗飼料+配合の3ロール構成</span>`;
   const roleNote=`<div style="font-size:11px;color:var(--text-sub);margin-bottom:6px;line-height:1.8;">
@@ -5806,7 +6320,7 @@ function linkCow(cowId){
   const bwSettings = loadBWSettings();
   bwSettings.bw = cow.weight||500;
   saveBWSettingsToLS(bwSettings);
-  applyBWToRequirements();
+  updateBWHeaderBtn();
 
   // ステージをセレクトに反映（maint_pregは計算タブにないのでmaintにフォールバック）
   const stageEl = document.getElementById('stage-select');
@@ -5835,7 +6349,7 @@ function linkCow(cowId){
   const prevInfo = prev
     ? `<div style="margin-top:8px;padding:8px;background:#f3f8ff;border-radius:6px;border:1px solid #bbdefb;">
         <div style="font-size:11px;color:#1565c0;font-weight:700;margin-bottom:4px;">📋 前回の計算履歴（${prev.date.split(' ')[0]}）</div>
-        <div style="font-size:11px;color:#555;margin-bottom:6px;">${prev.feeds.map(f=>`${f.name} ${f.amount}kg`).join('　')}</div>
+        <div style="font-size:11px;color:#555;margin-bottom:6px;">${prev.feeds.map(f=>`${esc(f.name)} ${f.amount}kg`).join('　')}</div>
         <button type="button" onclick="applyPrevFeeds('${cowId}')"
           style="font-size:11px;background:#1565c0;color:white;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;">
           ↩ この飼料構成を引き継ぐ
@@ -5983,7 +6497,7 @@ function renderBCSGraph(){
     }
     pts.forEach(p=>{
       dots+=`<circle cx="${xPos(p.date).toFixed(1)}" cy="${yPos(p.val).toFixed(1)}" r="4" fill="${color}" stroke="white" stroke-width="1.5">
-        <title>${name}: BCS ${p.val} (${p.date})</title></circle>`;
+        <title>${esc(name)}: BCS ${p.val} (${p.date})</title></circle>`;
     });
   });
 
@@ -6240,6 +6754,319 @@ function calcDaysOpen(cow){
   const today = new Date();
   return Math.floor((today - calv)/(1000*60*60*24));
 }
+
+/* ================================================================
+   TEST — URL に ?test=1 を付けると実行される（CLAUDE.md §3.5）
+   目的: 現在の計算挙動を「特性テスト」として凍結し、
+         リファクタで結果が変わったら即座に検知する。
+   期待値は実際にこのコードが出力した値。計算式を意図して変更した
+   ときだけ期待値を更新し、理由をコミットメッセージに残すこと。
+   実行中はユーザーデータ(localStorage)を退避し、終了後に復元する。
+   ================================================================ */
+(function(){
+  if(!new URLSearchParams(location.search).has('test')) return;
+
+  const T = {pass:0, fail:0};
+  function eq(actual, expected, msg, tol = 1e-9){
+    const ok = (typeof expected === 'number' && typeof actual === 'number')
+      ? Math.abs(actual - expected) <= tol
+      : JSON.stringify(actual) === JSON.stringify(expected);
+    if(ok) T.pass++;
+    else { T.fail++; console.error('TEST FAIL:', msg, {actual, expected}); }
+  }
+
+  // 給与設計 fixture 3例。expected===null なら記録モード（実測値をconsoleに出力）
+  const FIXTURES = [
+    { label:'分娩前', stage:'pre',
+      feeds:[['稲わら（標準値）',4],['北海道産乾草（平均値）',3],['繁殖きづな',2]],
+      expected: {stage:"pre",bw:540,cp:772,tdn:4.23,dm:7.91,ca:40,p:19,pctCP:99,pctTDN:95,pctDM:100,cpPct:9.8,fatPct:1.9,nfcPct:18,nr:4.5,rdpNfc:"1:2.7",dmiPct:1.5,concPct:23,strawDMpct:44,vitAFlag:"none"} },
+    { label:'泌乳期', stage:'post0',
+      feeds:[['稲わら（分析値1）',4],['ヘイキューブ普及品',2],['繁殖かーちゃん',3],['生米ぬか（標準）',0.5]],
+      // 2026-07-10 更新1: 「アルファルファ(17<CP<20)」の < > が無エスケープでoption列を破壊し、
+      //   それ以降の4飼料（ヘイキューブ普及品等）が選択不能だったバグ(#6)を修正したため録り直し。
+      // 2026-07-10 更新2: 泌乳DM付加を0.30→0.50(三重県マニュアル準拠)に変更したためreq.dmが8.73→9.93となり、
+      //   pctDM(=totalDM/req.dm)が97→85に変化。他の値は非依存で不変。
+      expected: {stage:"post0",bw:540,cp:1065,tdn:5.19,dm:8.48,ca:54,p:41,pctCP:95,pctTDN:92,pctDM:85,cpPct:12.6,fatPct:2.6,nfcPct:28,nr:3.9,rdpNfc:"1:3.3",dmiPct:1.6,concPct:37,strawDMpct:42,vitAFlag:"ok"} },
+    { label:'維持期', stage:'maint',
+      feeds:[['稲わら（標準値）',5],['アミノビーフ',2]],
+      expected: {stage:"maint",bw:540,cp:387,tdn:2.68,dm:5.48,ca:18,p:14,pctCP:71,pctTDN:77,pctDM:79,cpPct:7.1,fatPct:2.4,nfcPct:12.4,nr:5.9,rdpNfc:"-",dmiPct:1,concPct:20,strawDMpct:80,vitAFlag:"ok"} },
+  ];
+  // 要求量導出（BW540kg・既定乳量）の凍結値。null なら記録モード
+  // 出典: calcMaintenance/calcReqFromBW（日本飼養標準ベース）の 2026-07-10 時点の実出力
+  const EXPECTED_REQ = {
+    pre:   {cp:781.9,  tdn:4.45, dm:7.93, ca:30.6, p:21.8, fat_max:5, cp_pct:10, nfc_range:"20〜25", nr:4.5, dmi_max_pct:1.5},
+    post0: {cp:1125.9, tdn:5.63, dm:9.93, ca:31.6, p:24.4, fat_max:5, cp_pct:11, nfc_range:"20〜25", nr:4,   dmi_max_pct:2},
+    maint: {cp:543.9,  tdn:3.47, dm:6.93, ca:16.6, p:17.8, fat_max:5, cp_pct:8,  nfc_range:"18〜20", nr:5,   dmi_max_pct:1.5},
+  };
+
+  function setFixture(stage, feeds){
+    document.getElementById('stage-select').value = stage;
+    onStageChange();                       // 要求量表示を BW540・既定乳量で再導出
+    document.getElementById('feed-rows').innerHTML = '';
+    feeds.forEach(([name, amt]) => addFeedRow(name, String(amt)));
+  }
+
+  function checkFixture(f){
+    setFixture(f.stage, f.feeds);
+    calculate();
+    const r = window._lastResult;
+    const snap = {stage:r.stage, bw:r.bw, cp:r.cp, tdn:r.tdn, dm:r.dm, ca:r.ca, p:r.p,
+      pctCP:r.pctCP, pctTDN:r.pctTDN, pctDM:r.pctDM, cpPct:r.cpPct, fatPct:r.fatPct,
+      nfcPct:r.nfcPct, nr:r.nr, rdpNfc:r.rdpNfc, dmiPct:r.dmiPct,
+      concPct:r.concPct, strawDMpct:r.strawDMpct, vitAFlag:r.vitAFlag};
+    if(!f.expected){ console.log('RECORD fixture', f.label, JSON.stringify(snap)); return; }
+    Object.keys(f.expected).forEach(k => eq(snap[k], f.expected[k], `${f.label}: ${k}`));
+  }
+
+  function runAll(){
+    // ---- 純粋関数の単体テスト ----
+    eq(buildRadarData({cp:800,tdn:4.5,dm:8,p:20,ca:30,nr:'4.5'},
+                      {cp:800,tdn:4.5,dm:8,p:20,ca:30,nr:4.5}),
+       [100,100,100,100,100,100], 'buildRadarData: 要求どおりなら全項目100%');
+
+    // sumRationTotals: null(未測定)と0(測定値ゼロ)を区別する（CLAUDE.md §3.2 / TODO #1）
+    const sr = sumRationTotals([
+      {feed:{cp:10, tdn:70, ca:1,    p:null, fat:0, nfc:20,   rdp:5,    moisture:20}, amount:10},  // DM 8kg
+      {feed:{cp:20, tdn:80, ca:null, p:0.5,  fat:2, nfc:null, rdp:null, moisture:0},  amount:5},   // DM 5kg
+    ]);
+    eq(sr.dm, 13,   'sumRationTotals: DM 8+5kg');
+    eq(sr.cp, 1800, 'sumRationTotals: CP 800+1000g');
+    eq(sr.ca, 80,   'sumRationTotals: ca=null は合算しない（8kg×1%=80g）');
+    eq(sr.p,  25,   'sumRationTotals: p=null は合算しない（5kg×0.5%=25g）');
+    eq(sr.complete.ca,  false, 'sumRationTotals: Ca未測定を検知');
+    eq(sr.complete.p,   false, 'sumRationTotals: P未測定を検知');
+    eq(sr.complete.nfc, false, 'sumRationTotals: NFC未測定を検知');
+    eq(sr.complete.rdp, false, 'sumRationTotals: RDP未測定を検知');
+    eq(sr.complete.cp,  true,  'sumRationTotals: CPは完備');
+    eq(sr.complete.fat, true,  'sumRationTotals: fat=0(測定済みゼロ)は未測定ではない');
+
+    // lsSet: 保存失敗を握り潰さず false を返す（CLAUDE.md §2.1 / TODO #3）
+    eq(lsSet('__test_lsset__','x'), true, 'lsSet: 保存成功で true');
+    const origSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(){ const err=new Error('quota'); err.name='QuotaExceededError'; throw err; };
+    try {
+      eq(lsSet('__test_lsset__','y'), false, 'lsSet: QuotaExceededError で false');
+      eq(saveCustomFeed({name:'__test__'}), false, 'saveCustomFeed: 保存失敗を伝播する');
+    } finally {
+      Storage.prototype.setItem = origSetItem;
+    }
+    eq(lsGet('__test_lsset__', null), 'x', 'lsSet: 失敗した書き込みは反映されていない');
+    lsRemove('__test_lsset__');
+
+    // バックアップ督促の判定（CLAUDE.md §2.5 / TODO #2）
+    eq(daysBetweenISO('2026-06-26','2026-07-10'), 14, 'daysBetweenISO: 14日差');
+    eq(daysBetweenISO('2026-07-10','2026-07-10'), 0,  'daysBetweenISO: 同日は0');
+    eq(daysBetweenISO('不正な日付','2026-07-10'), null, 'daysBetweenISO: 不正入力はnull');
+    eq(backupWarningInfo(null, 5, '2026-07-10'), {type:'never', days:null}, 'backupWarning: 未エクスポートは警告');
+    eq(backupWarningInfo('2026-06-25', 5, '2026-07-10'), {type:'overdue', days:15}, 'backupWarning: 15日経過で警告');
+    eq(backupWarningInfo('2026-06-26', 5, '2026-07-10'), null, 'backupWarning: ちょうど14日はセーフ');
+    eq(backupWarningInfo(null, 0, '2026-07-10'), null, 'backupWarning: 履歴0件なら警告しない');
+
+    // getRequirements: グローバルを書き換えない導出（CLAUDE.md §1.3 / TODO #4）
+    eq(getRequirements(540,'maint',null,{maint:{cp:600}}).cp, 600, 'getRequirements: 手動上書きが優先');
+    eq(getRequirements(540,'maint',null,{maint:{cp:600}}).tdn, 3.47, 'getRequirements: 上書きしない項目は自動値');
+    eq(getRequirements(540,'post0',8,null).cp, calcReqFromBW(540,'post0',8).cp, 'getRequirements: 乳量を反映');
+    eq(getRequirements(540,'post0',8,null).cp > getRequirements(540,'post0',6,null).cp, true, 'getRequirements: 乳量増でCP要求増');
+    eq(calcReqFromBW(540,'maint_preg',null).cp, calcReqFromBW(540,'maint',null).cp, 'calcReqFromBW: maint_pregはmaintと同じ維持要求');
+    eq(Object.isFrozen(DEFAULT_REQUIREMENTS) && Object.isFrozen(DEFAULT_REQUIREMENTS.pre), true, 'DEFAULT_REQUIREMENTSは凍結済み');
+
+    // lsGetJSON: メモリキャッシュ + 無効化（TODO #10）
+    lsSet('custom_feeds', JSON.stringify([{id:'c1',name:'キャッシュ検証',cp:1,tdn:1,moisture:0}]));
+    const _cc = lsGetJSON('custom_feeds','[]');
+    eq(_cc[0].name, 'キャッシュ検証', 'lsGetJSON: 読める');
+    eq(lsGetJSON('custom_feeds','[]') === _cc, true, 'lsGetJSON: 2回目はキャッシュ（同一参照）');
+    lsSet('custom_feeds', JSON.stringify([]));
+    eq(lsGetJSON('custom_feeds','[]').length, 0, 'lsSet: 書き込みでキャッシュ無効化');
+    lsRemove('custom_feeds');
+    eq(lsGetJSON('custom_feeds','[]').length, 0, 'lsRemove: 削除でキャッシュ無効化');
+
+    // num: 入力境界の数値変換（TODO #8）
+    eq(num('1.2'), 1.2, "num: 通常の数値");
+    eq(num('１２３．５'), 123.5, 'num: 全角数字を半角に変換');
+    eq(num('－５'), -5, 'num: 全角マイナス');
+    eq(num('1.2kg'), null, 'num: 末尾ゴミ付きは無効（parseFloatは1.2を返していた）');
+    eq(num(''), null, 'num: 空文字はnull');
+    eq(num(null, 0), 0, 'num: fallback指定');
+    eq(num('0'), 0, 'num: ゼロは有効な測定値');
+    eq(num('  2.5  '), 2.5, 'num: 前後空白は許容');
+
+    // esc/escAttr: HTMLエスケープ（TODO #6）
+    eq(esc('A&B <酪農> "生"'), 'A&amp;B &lt;酪農&gt; "生"', 'esc: &<>のみ（テキスト用）');
+    eq(escAttr(`A&B <x> "y" 'z'`), 'A&amp;B &lt;x&gt; &quot;y&quot; &#39;z&#39;', 'escAttr: 引用符も潰す（属性用）');
+    eq(esc(null), '', 'esc: null は空文字');
+    eq(esc(123), '123', 'esc: 数値は文字列化');
+
+    // judgePct: 判定しきい値（TODO #7 で1箇所に集約）
+    eq(judgePct(95),'ok','judgePct: 95%は適正');
+    eq(judgePct(90),'ok','judgePct: 90%は適正(下端)');
+    eq(judgePct(120),'ok','judgePct: 120%は適正(上端)');
+    eq(judgePct(85),'warn','judgePct: 85%は注意');
+    eq(judgePct(130),'warn','judgePct: 130%は注意');
+    eq(judgePct(74),'ng','judgePct: 74%は不足');
+    eq(judgePct(141),'ng','judgePct: 141%は超過');
+
+    // detectIssues: P過剰・Ca過剰・Ca:P比を改善案に反映する（2026-07-14 追加）
+    // スライドのデモ症例（BW540 泌乳前期・P164%・Ca126%・Ca:P 0.98）を凍結する
+    const _demoReq = {cp:1125.9, tdn:5.63, dm:9.93, ca:31.6, p:24.4, cp_pct:11, nr:4, dmi_max_pct:2};
+    const _demoT = {cp:1125, tdn:5.63, dm:8.58, ca:40, p:41, fatPct:3.4, cpPct:10.8, nr:4.7,
+                    complete:{cp:true, tdn:true, ca:true, p:true}};
+    const _demoTypes = detectIssues(_demoT, _demoReq, [], 540, 'post0').map(i=>i.type);
+    eq(_demoTypes.includes('p_over'),   true,  'detectIssues: P164%をp_overとして検出');
+    eq(_demoTypes.includes('capr_low'), true,  'detectIssues: Ca:P 0.98をcapr_lowとして検出');
+    eq(_demoTypes.includes('ca_over'),  false, 'detectIssues: Ca126%は過剰(>130%)ではない');
+    eq(_demoTypes.includes('cp_over'),  false, 'detectIssues: CP100%は過剰ではない');
+    // Ca/Pのどちらかが未測定ならCa:P比は判定しない（§3.2: 比だけ正常に見える罠）
+    const _unkTypes = detectIssues({..._demoT, complete:{cp:true,tdn:true,ca:true,p:false}},
+                                   _demoReq, [], 540, 'post0').map(i=>i.type);
+    eq(_unkTypes.includes('capr_low'), false, 'detectIssues: P未測定ならCa:P比を判定しない');
+    eq(_unkTypes.includes('p_over'),   true,  'detectIssues: 過剰側は未測定でも有効（真値は表示値以上）');
+
+    // judgeCaP: 日本飼養標準・肉用牛2022 準拠のCa:P判定（1:1〜7:1 は許容、1:1未満のみ是正必須）
+    // 旧実装は 1.5〜2.5 を外れると警告し、標準が許容する設計まで是正対象にしていた
+    eq(judgeCaP(0.8), 'ng',  'judgeCaP: 0.8:1 は要是正 → ng');
+    eq(judgeCaP(0.99),'ng',  'judgeCaP: 1:1未満はCa供給不足・P過剰 → ng');
+    eq(judgeCaP(1.0), 'ok',  'judgeCaP: 1:1 は許容の下端');
+    eq(judgeCaP(1.3), 'ok',  'judgeCaP: 1.3 は許容（旧実装では警告していた）');
+    eq(judgeCaP(5.0), 'ok',  'judgeCaP: 5:1 もP充足下では許容（旧実装では警告していた）');
+    eq(judgeCaP(7.0), 'ok',  'judgeCaP: 7:1 は許容の上端');
+    eq(judgeCaP(7.5), 'warn','judgeCaP: 7:1超は推奨範囲外');
+    eq(judgeCaP(0),   null,  'judgeCaP: P=0 は判定しない');
+
+    // detectIssues: Ca:P の発火しきい値も標準に一致していること
+    const _capReq = {cp:1125.9, tdn:5.63, dm:9.93, ca:31.6, p:24.4, cp_pct:11, nr:4, dmi_max_pct:2};
+    const _capT = (ca,p) => ({cp:1125, tdn:5.63, dm:8.58, ca, p, fatPct:3, cpPct:11, nr:4,
+                              complete:{cp:true,tdn:true,ca:true,p:true}});
+    const _types = (ca,p) => detectIssues(_capT(ca,p), _capReq, [], 540, 'post0').map(i=>i.type);
+    eq(_types(200, 40).includes('capr_high'), false, 'detectIssues: Ca:P 5:1 は警告しない（標準は7:1まで許容）');
+    eq(_types(200, 25).includes('capr_high'), true,  'detectIssues: Ca:P 8:1 は7:1超なので警告');
+    eq(_types(40, 41).includes('capr_low'),   true,  'detectIssues: Ca:P 0.98 は1:1未満なので警告');
+
+    // calcTotals: 純粋関数。DOMのステージ選択に依存しない（§1.1 / §1.3）
+    const _ctRows = [{feed:{id:'x1',cat:'自給飼料',name:'テスト草',cp:10,tdn:60,ca:0.5,p:0.25,fat:2,nfc:20,rdp:5,moisture:20},amount:10}];
+    document.getElementById('stage-select').value = 'maint';  onStageChange();
+    const _ctA = calcTotals(_ctRows);
+    document.getElementById('stage-select').value = 'post0';  onStageChange();
+    const _ctB = calcTotals(_ctRows);
+    eq(JSON.stringify(_ctA), JSON.stringify(_ctB), 'calcTotals: ステージ選択を変えても同じ入力なら同じ出力');
+    eq(_ctA.pctCP, undefined, 'calcTotals: 要求量比は返さない（呼び出し側のreqで割る）');
+    eq(_ctA.dm, 8, 'calcTotals: DM 10kg×80%');
+
+    // rationGuardWarnings: 給与量スケーリングが粗濃比・配合量の目安を壊していないか（#3）
+    const _guardReq = {dm:8, dmi_max_pct:2.0};
+    const _conc = DEFAULT_FEEDS.find(f=>f.name==='繁殖きづな');
+    const _straw = DEFAULT_FEEDS.find(f=>f.name==='稲わら（分析値1）');
+    const _over = rationGuardWarnings([{feed:_straw,amount:3},{feed:_conc,amount:7}], _guardReq, 540, 'post0');
+    eq(/配合飼料が7\.0kg\/日/.test(_over), true, 'rationGuardWarnings: 配合7kgは目安上限(5.5kg)超過を警告');
+    eq(/濃厚飼料が/.test(_over), true, 'rationGuardWarnings: 濃厚飼料比の超過も警告');
+    const _safe = rationGuardWarnings([{feed:_straw,amount:4},{feed:_conc,amount:3}], _guardReq, 540, 'post0');
+    eq(_safe, '', 'rationGuardWarnings: 目安内なら警告なし');
+
+    // fitToDMI: 食べきれない提案を出さない（DMI上限で全体を按分縮小）
+    const _fitFeed = {id:'f1', cat:'自給飼料', name:'テスト乾草', cp:8, tdn:55, ca:0.3, p:0.2, fat:2, moisture:20};
+    // BW540・維持期(上限1.5%) → DMI上限 8.1kg。原物12kg = DM 9.6kg は超過
+    const _fit = fitToDMI([{feed:_fitFeed, amount:12}], {dmi_max_pct:1.5}, 540);
+    eq(Math.round(_fit.rows[0].amount*(1-0.2)*100)/100, 8.1, 'fitToDMI: DM 8.1kg（上限）まで縮小');
+    eq(_fit.shrink < 1, true, 'fitToDMI: 縮小が起きたことを shrink で伝える');
+    const _noFit = fitToDMI([{feed:_fitFeed, amount:8}], {dmi_max_pct:1.5}, 540);
+    eq(_noFit.shrink, 1, 'fitToDMI: 上限内なら縮小しない');
+    eq(_noFit.rows[0].amount, 8, 'fitToDMI: 上限内なら給与量を変えない');
+    eq(fitToDMI([{feed:_fitFeed, amount:12}], {dmi_max_pct:1.5}, 0).shrink, 1, 'fitToDMI: BW未設定なら縮小しない');
+
+    // 育成用・肥育用配合飼料は繁殖雌牛に推奨しない（配合提案Bの除外方針と統一）
+    eq(NON_BREEDING_CONC_CATS.includes(DEFAULT_FEEDS.find(f=>f.name==='セレクトグロアー').cat), true,
+       'NON_BREEDING_CONC_CATS: セレクトグロアーは育成用として除外対象');
+    eq(NON_BREEDING_CONC_CATS.includes(DEFAULT_FEEDS.find(f=>f.name==='繁殖きづな').cat), false,
+       'NON_BREEDING_CONC_CATS: 繁殖用配合飼料は除外しない');
+
+    // computeRation: DOMなしで直接テストできる純粋関数（TODO #7）
+    const _rr = computeRation(
+      [{feed:{id:'t1',cat:'自給飼料',name:'テスト稲わら',cp:5,tdn:50,ca:0.3,p:0.15,fat:2,nfc:15,rdp:3.5,ndf:70,moisture:10},amount:5}],
+      getRequirements(540,'maint',null,null),
+      {stage:'maint', bw:540, month:7});
+    eq(_rr.totals.dm, 4.5, 'computeRation: DM 5kg×90%');
+    eq(_rr.strawDMpct, 100, 'computeRation: 稲わら依存度100%');
+    eq(_rr.concPct, 0, 'computeRation: 濃厚飼料0%');
+    eq(_rr.vitAAtRisk, false, 'computeRation: 維持期はビタミンA警告なし');
+    eq(_rr.comp.cp, true, 'computeRation: completeフラグを伝播');
+    eq(_rr.dmiPct, parseFloat((4.5/540*100).toFixed(1)), 'computeRation: DMI体重比');
+
+    // マイグレーション v0→v2: 旧形式(名前ベース)データがID形式に変換される（TODO #9/#5）
+    eq(new Set([genUUID(),genUUID(),genUUID()]).size, 3, 'genUUID: 重複しない');
+    localStorage.setItem('custom_feeds', JSON.stringify([{name:'旧カスタム',cat:'副産物',cp:10,tdn:60,moisture:10}]));
+    localStorage.setItem('deleted_feeds', JSON.stringify(['大麦','存在しない飼料名']));
+    localStorage.setItem('feed_prices', JSON.stringify({'大麦':50,'旧カスタム':80,'知らない名前':99}));
+    localStorage.removeItem('schema_v');
+    localStorage.removeItem('deleted_feed_ids');
+    lsCacheClear();   // 生のlocalStorage操作をしたのでキャッシュ破棄
+    migrateStorage();
+    const _migC = lsGetJSON('custom_feeds','[]');
+    const _barley = DEFAULT_FEEDS.find(f=>f.name==='大麦');
+    eq(!!_migC[0].id, true, 'migration: カスタム飼料にIDが付与される');
+    eq(lsGetJSON('deleted_feed_ids','[]'), [_barley.id], 'migration: 削除フラグが名前→ID（不明名は破棄）');
+    const _migP = lsGetJSON('feed_prices','{}');
+    eq(_migP[_barley.id], 50, 'migration: デフォルト飼料の単価キーが名前→ID');
+    eq(_migP[_migC[0].id], 80, 'migration: カスタム飼料の単価キーが名前→ID');
+    eq(Object.keys(_migP).length, 2, 'migration: 対応する飼料が無い単価は破棄');
+    eq(lsGet('schema_v',''), '2', 'migration: schema_v=2 を記録');
+    eq(lsGet('deleted_feeds', null), null, 'migration: 旧キー deleted_feeds は削除');
+    eq(!!lsGet('backup_before_v2', null), true, 'migration: 移行前バックアップを保存');
+    const _idBefore = _migC[0].id;
+    migrateStorage();   // 冪等性: 再実行しても何も変わらない
+    eq(lsGetJSON('custom_feeds','[]')[0].id, _idBefore, 'migration: 再実行でIDが変わらない');
+    // loadFeedsがID削除フラグを反映するか
+    eq(loadFeeds().some(f=>f.name==='大麦'), false, 'loadFeeds: ID化された削除フラグが効く');
+    eq(loadFeeds().some(f=>f.name==='旧カスタム'), true, 'loadFeeds: カスタム飼料は表示される');
+    // 旧v1形式の飼料バックアップJSONの正規化
+    const _norm = normalizeFeedBackup({version:1, type:'feed_backup',
+      custom_feeds:[{name:'v1カスタム',cp:10,tdn:60,moisture:10}],
+      deleted_feeds:['ふすま（標準）'], feed_prices:{'ふすま（標準）':45,'v1カスタム':70}});
+    const _fusuma = DEFAULT_FEEDS.find(f=>f.name==='ふすま（標準）');
+    eq(!!_norm.customs[0].id, true, 'normalizeFeedBackup: v1カスタムにID付与');
+    eq(_norm.deletedIds, [_fusuma.id], 'normalizeFeedBackup: v1削除フラグをIDへ');
+    eq(_norm.prices[_fusuma.id], 45, 'normalizeFeedBackup: v1単価キーをIDへ');
+    eq(_norm.prices[_norm.customs[0].id], 70, 'normalizeFeedBackup: v1カスタム単価もIDへ');
+    // 片付け（fixtureテストを既定状態で走らせる）
+    ['custom_feeds','deleted_feeds','deleted_feed_ids','feed_prices','schema_v','backup_before_v2'].forEach(k=>localStorage.removeItem(k));
+    lsCacheClear();
+
+    const req = {
+      pre:   calcReqFromBW(540, 'pre',   null),
+      post0: calcReqFromBW(540, 'post0', 6),
+      maint: calcReqFromBW(540, 'maint', null),
+    };
+    if(!EXPECTED_REQ){ console.log('RECORD req', JSON.stringify(req)); }
+    else {
+      Object.keys(EXPECTED_REQ).forEach(stage =>
+        Object.keys(EXPECTED_REQ[stage]).forEach(k =>
+          eq(req[stage][k], EXPECTED_REQ[stage][k], `calcReqFromBW(540,${stage}): ${k}`)));
+    }
+
+    // ---- 特性テスト: 給与設計3例（実際の calculate() を DOM ごと動かす）----
+    FIXTURES.forEach(checkFixture);
+
+    console.log(`TEST: ${T.pass} passed, ${T.fail} failed`);
+    document.title = T.fail ? `❌ ${T.fail} FAILED` : `✅ ${T.pass} passed`;
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:8px;text-align:center;font-weight:700;color:#fff;background:' + (T.fail ? '#c62828' : '#2e7d32');
+    el.textContent = T.fail ? `❌ テスト失敗: ${T.fail}件（console参照）` : `✅ テスト合格: ${T.pass}件`;
+    document.body.appendChild(el);
+  }
+
+  // ユーザーデータを退避 → 既定状態(BW540・標準飼料のみ)でテスト → 復元
+  document.addEventListener('DOMContentLoaded', function(){
+    const KEYS = ['bw_settings','custom_feeds','deleted_feeds','deleted_feed_ids','feed_prices','schema_v','backup_before_v2'];
+    const saved = {};
+    KEYS.forEach(k => { saved[k] = localStorage.getItem(k); localStorage.removeItem(k); });
+    lsCacheClear();   // 生のlocalStorage操作をしたのでキャッシュ破棄
+    try {
+      runAll();
+    } finally {
+      KEYS.forEach(k => { if(saved[k] !== null) localStorage.setItem(k, saved[k]); else localStorage.removeItem(k); });
+      lsCacheClear();
+      updateBWHeaderBtn(); onStageChange();
+    }
+  });
+})();
 
 </script>
 </body>
